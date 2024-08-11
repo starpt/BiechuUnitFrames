@@ -305,8 +305,8 @@ function BC:drag(frame, parent, drag, combat, shift, callBack)
 		self.moving = nil
 	end)
 end
--- 自由拖动系统框体
-BC:drag(PaperDollFrame, CharacterFrame) -- 角色
+-- 自由拖动系统框架
+BC:drag(PaperDollFrame, CharacterFrame) -- 角色信息
 BC:drag(ReputationFrame, CharacterFrame) -- 声望
 BC:drag(SkillFrame, CharacterFrame) -- 技能
 BC:drag(TokenFrame, CharacterFrame) -- 货币
@@ -320,7 +320,6 @@ BC:drag(PVEFrame) -- 地下城与副本查找器
 BC:drag(GameMenuFrame) -- 游戏菜单
 BC:drag(HelpFrame) -- 客服支持
 BC:drag(SettingsPanel) -- 设置选项
-BC:drag(MacroFrame) -- 宏命令
 BC:drag(AddonList) -- 插件列表
 BC:drag(GossipFrame) -- 对话框
 BC:drag(MerchantFrame) -- 购物框
@@ -336,6 +335,9 @@ hooksecurefunc('AchievementFrame_LoadUI', function()
 end)
 hooksecurefunc('CollectionsJournal_LoadUI', function() -- 藏品
 	BC:drag(CollectionsJournal)
+end)
+hooksecurefunc('MacroFrame_LoadUI', function() -- 宏命令设置
+	BC:drag(MacroFrame)
 end)
 
 -- 保护性驱散Debuff
@@ -998,7 +1000,7 @@ function BC:update(unit)
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
-	-- 隐藏框体
+	-- 隐藏框架
 	if UnitExists(unit) and not self:getDB(key, 'hideFrame') and (key ~= 'party' or BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
 		frame:Show()
 	elseif frame:IsShown() then

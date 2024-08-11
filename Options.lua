@@ -158,7 +158,7 @@ hooksecurefunc(option, 'Show', function(self)
 	self.nameFontDown:OnShow() -- 名字字体
 	self.valueFontDown:OnShow() -- 数值字体
 	self.fontFlagsDown:OnShow() -- 字体轮廓
-	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框体
+	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框架
 	self.incomingHeals:SetChecked(BC:getDB('global', 'incomingHeals')) -- 显示预配治疗
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.autoNameplate:SetChecked(BC:getDB('global', 'autoNameplate')) -- 进入达拉然自动关闭姓名板
@@ -233,7 +233,7 @@ hooksecurefunc(option, 'Show', function(self)
 			end
 		end
 
-		if self[key].hideFrame then self[key].hideFrame:SetChecked(BC:getDB(key, 'hideFrame')) end -- 隐藏框体
+		if self[key].hideFrame then self[key].hideFrame:SetChecked(BC:getDB(key, 'hideFrame')) end -- 隐藏框架
 		if self[key].portraitClass then self[key].portraitClass:SetChecked(BC:getDB(key, 'portrait') == 1) end -- 头像显示职业图标(玩家)
 		if self[key].miniIcon then self[key].miniIcon:SetChecked(BC:getDB(key, 'miniIcon')) end -- 显示小图标(职业/种类)
 		if self[key].threatLeft then self[key].threatLeft:SetChecked(BC:getDB(key, 'threatLeft')) end -- 居左显示威胁值
@@ -292,7 +292,7 @@ option.reset:SetScript('OnClick', function()
 	BC:init()
 end)
 
-option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 24) -- 自由拖动系统框体
+option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 24) -- 自由拖动系统框架
 option:check('global', 'incomingHeals', 'dragSystemFarmes') -- 显示预治疗
 option:check('global', 'autoTab', 'incomingHeals') -- PVP自动TAB选择玩家
 option:check('global', 'autoNameplate', 'autoTab') -- 进入达拉然自动关闭姓名板
@@ -408,7 +408,7 @@ end)
 --[[ 宠物设置 结束 ]]
 
 --[[ 宠物的目标设置 开始 ]]
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
 
 -- 头像显示职业图标(玩家)
 option:check('pettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
@@ -464,7 +464,7 @@ option:check('target', 'selfCooldown', 'threatLeft') -- 只显示自己施放的
 option:check('target', 'dispelCooldown', 'selfCooldown') -- 只显示自己可以驱散的Debuff或Buff数字
 option:check('target', 'dispelStealable', 'dispelCooldown') -- 高亮显示自己可以驱散的Debuff或Buff
 
--- 和玩家框体水平居中
+-- 和玩家框架水平居中
 option.target.centerHorizontally = CreateFrame('Button', option.target:GetName() .. 'CenterHorizontally', option.target, 'OptionsButtonTemplate')
 option.target.centerHorizontally:SetPoint('TOPLEFT', horizontal + 2, -20)
 option.target.centerHorizontally:SetSize(180, 25)
@@ -577,7 +577,7 @@ option:check('focus', 'selfCooldown', 'threatLeft') -- 只显示自己施放的B
 option:check('focus', 'dispelCooldown', 'selfCooldown') -- 只显示自己可以驱散的Debuff或Buff数字
 option:check('focus', 'dispelStealable', 'dispelCooldown') -- 高亮显示自己可以驱散的Debuff或Buff
 
--- 与玩家框体垂直对齐
+-- 与玩家框架垂直对齐
 option.focus.alignHorizontally = CreateFrame('Button', option.focus:GetName() .. 'AlignHorizontally', option.focus, 'OptionsButtonTemplate')
 option.focus.alignHorizontally:SetPoint('TOPLEFT', horizontal + 2, -20)
 option.focus.alignHorizontally:SetSize(180, 25)
@@ -663,7 +663,7 @@ end)
 --[[ 焦点的目标设置 结束 ]]
 
 --[[ 队友设置 开始 ]]
-option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
 option:check('party', 'raidShowParty', 'hideFrame') -- 团队显示小队框架
 option:check('party', 'drag', 'raidShowParty') -- 非战斗中按住Shift左击拖动
 option:check('party', 'portraitCombat', 'drag') -- 头像上显示战斗信息
@@ -732,7 +732,7 @@ option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, ve
 --[[ 队友设置 结束 ]]
 
 --[[ 队友的宠物设置 开始 ]]
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
 
 -- 隐藏名字
 option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
@@ -764,7 +764,7 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 --[[ 队友的宠物设置 结束 ]]
 
 --[[ 队友目标的设置 开始 ]]
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
 option:check('partytarget', 'healthBarClass', 'hideFrame') -- 生命条职业色(玩家)
 
 -- 头像显示职业图标(玩家)
