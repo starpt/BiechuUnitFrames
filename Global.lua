@@ -1001,7 +1001,7 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 隐藏框架
-	if UnitExists(unit) and not self:getDB(key, 'hideFrame') and (key ~= 'party' or BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
+	if UnitExists(unit) and not (unit == 'targettarget' and UnitIsUnit('player', 'targettarget')) and not self:getDB(key, 'hideFrame') and (key ~= 'party' or BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
 		frame:Show()
 	elseif frame:IsShown() then
 		frame:Hide()
@@ -1029,7 +1029,6 @@ function BC:update(unit)
 	frame.manabar.powerType = frame.manabar.powerType or UnitPowerType(unit)
 	self:bar(frame.manabar)
 	self:bar(frame.healthbar)
-	-- if type(frame.update) == 'function' then print(frame:GetName()); frame.update() end
 end
 
 -- 始初化
@@ -1260,10 +1259,7 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 	elseif event == 'UNIT_FLAGS' then
 		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
 	elseif event == 'UNIT_TARGET' then
-		if unit == 'pet' or unit:match('^party%d$') then
-			local tot = unit .. 'target'
-			self:update(tot)
-		end
+		self:update((unit == 'player' and 'target' or unit) .. 'target')
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
 		self:updateIncomingHeals(unit)
 	end

@@ -4,6 +4,7 @@ local BC = _G[addonName]
 -- 切换目标立即更新战斗状态边框红光
 hooksecurefunc('TargetFrame_Update', function(self)
 	if self.flash then self.flash:Hide() end
+	BC:update(self.unit)
 end)
 
 -- 等级
