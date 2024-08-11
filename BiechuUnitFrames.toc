@@ -5,7 +5,7 @@
 ## Version: 3.4.3.2
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
-## X-Website: https://wow.biechu.com/addons
+## X-Website: https://github.com/starpt/BiechuUnitFrames
 ## X-eMail: starpt@gmail.com
 
 ## SavedVariablesPerCharacter: BiechuUnitFramesDB, BiechuUnitFramesCache
