@@ -82,21 +82,21 @@ function option:downMenuInit(down, key, name, menus, width)
 
 	UIDropDownMenu_Initialize(down, function()
 		local sorted = {}
-		for index in pairs(menus) do
-			table.insert(sorted, index)
+		for i in pairs(menus) do
+			table.insert(sorted, i)
 		end
 		table.sort(sorted, function(a, b)
 			return a < b
 		end)
-		for _, index in ipairs(sorted) do
+		for _, i in ipairs(sorted) do
 			local info = UIDropDownMenu_CreateInfo()
-			local menu = menus[index]
+			local menu = menus[i]
 			if type(menu) == 'table' then
 				info.text = menu.text
 				info.value = menu.value
 			else
 				info.text = menu
-				info.value = index
+				info.value = i
 			end
 			info.func = function(self)
 				UIDropDownMenu_SetSelectedID(down, self:GetID())
@@ -112,7 +112,7 @@ function option:downMenuInit(down, key, name, menus, width)
 end
 
 -- 下拉菜单
-function option:downMenu(key, name, menus, relative, offsetX, offsetY, width)
+function option:downMenu(key, name, menus, relative, offsetX, offsetY, width, show)
 	local parent = key == 'global' and self or self[key]
 	parent[name] = parent:CreateFontString(parent:GetName() .. name:gsub('^%l', string.upper), 'ARTWORK', 'GameFontNormalSmall')
 	parent[name]:SetPoint('TOPLEFT', relative and parent[relative] or parent, 'TOPLEFT', offsetX or 0, offsetY or vertical - 24)
@@ -121,7 +121,12 @@ function option:downMenu(key, name, menus, relative, offsetX, offsetY, width)
 	parent[name .. 'Down'] = CreateFrame('Frame', parent[name]:GetName() .. 'Down', parent, 'UIDropDownMenuTemplate')
 	parent[name .. 'Down']:SetPoint('TOPLEFT', parent[name], 'TOPLEFT', -18, -16)
 	parent[name .. 'Down'].OnShow = function(self)
-		option:downMenuInit(self, key, name, menus, width)
+		if type(show) == 'function' then
+			show(self, key, name, menus)
+		else
+			option:downMenuInit(self, key, name, menus)
+		end
+		UIDropDownMenu_SetWidth(self, width and width or (isZh and 120 or 200))
 	end
 end
 
@@ -133,8 +138,8 @@ for _, name in pairs(option.list) do
 	option:title(option[name], L[name]:gsub('[├├─└─]', ''))
 end
 
--- 显示设置
-hooksecurefunc(option, 'Show', function(self)
+-- 初始设置
+function option:init()
 	self.dark:SetChecked(BC:getDB('global', 'dark')) -- 使用暗黑材质
 	self.healthBarColor:SetChecked(BC:getDB('global', 'healthBarColor')) -- 生命条颜色按生命值变化
 	self.nameTextClassColor:SetChecked(BC:getDB('global', 'nameTextClassColor')) -- 名字颜色职业色(玩家)
@@ -158,10 +163,13 @@ hooksecurefunc(option, 'Show', function(self)
 	self.nameFontDown:OnShow() -- 名字字体
 	self.valueFontDown:OnShow() -- 数值字体
 	self.fontFlagsDown:OnShow() -- 字体轮廓
+	self.configDown:OnShow() -- 选择配置
+
 	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框架
 	self.incomingHeals:SetChecked(BC:getDB('global', 'incomingHeals')) -- 显示预配治疗
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.autoNameplate:SetChecked(BC:getDB('global', 'autoNameplate')) -- 进入达拉然自动关闭姓名板
+	self.alwaysCompareItems:SetChecked(GetCVar('alwaysCompareItems') == '1') -- 启用装备对比
 
 	-- 显示天赋小图标(点击切换天赋)
 	if BC:getDB('player', 'miniIcon') then
@@ -173,6 +181,7 @@ hooksecurefunc(option, 'Show', function(self)
 
 	self.player.autoTalentEquip:SetChecked(BC:getDB('player', 'autoTalentEquip')) -- 切换天赋后自动装备对应套装
 	self.player.equipmentIcon:SetChecked(BC:getDB('player', 'equipmentIcon')) -- 显示装备小图标(最多6个)
+	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
 	-- 在法力条上显示5秒回蓝
 	if BC.class == 'WARRIOR' or BC.class == 'ROGUE' or BC.class == 'DEATHKNIGHT' then
@@ -209,7 +218,6 @@ hooksecurefunc(option, 'Show', function(self)
 	self.party.outRange:SetChecked(BC:getDB('party', 'outRange')) -- 超出范围半透明
 	self.party.raidShowParty:SetChecked(BC:getDB('party', 'raidShowParty')) -- 团队显示小队框架
 
-
 	for _, key in pairs(option.list) do
 		if self[key].drag then self[key].drag:SetChecked(BC:getDB(key, 'drag')) end -- 排战斗中按住Shift拖动
 		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像上显示战斗信息
@@ -217,6 +225,7 @@ hooksecurefunc(option, 'Show', function(self)
 		if self[key].statusBarClass then self[key].statusBarClass:SetChecked(BC:getDB(key, 'statusBarClass')) end -- 状态栏背景职业色(玩家)
 		if self[key].healthBarClass then self[key].healthBarClass:SetChecked(BC:getDB(key, 'healthBarClass')) end -- 生命条职业色(玩家)
 		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 缩放
+		if self[key].statusBarAlpha then self[key].statusBarAlpha:SetValue(BC:getDB(key, 'statusBarAlpha')) end -- 状态栏透明度
 		if self[key].nameFontSize then self[key].nameFontSize:SetValue(BC:getDB(key, 'nameFontSize')) end -- 名字字体大小
 		if self[key].valueFontSize then self[key].valueFontSize:SetValue(BC:getDB(key, 'valueFontSize')) end -- 数值字体大小
 		if self[key].valueStyleDown then self[key].valueStyleDown:OnShow() end -- 状态数值
@@ -241,7 +250,10 @@ hooksecurefunc(option, 'Show', function(self)
 		if self[key].dispelCooldown then self[key].dispelCooldown:SetChecked(BC:getDB(key, 'dispelCooldown')) end -- 只显示自己可以驱散的Buff/Debuff倒计时
 		if self[key].dispelStealable then self[key].dispelStealable:SetChecked(BC:getDB(key, 'dispelStealable')) end -- 高亮显示自己可以驱散的Buff/Debuff
 	end
-
+end
+option:RegisterEvent('VARIABLES_LOADED')
+option:SetScript('OnEvent', function(self, event)
+	if event == 'VARIABLES_LOADED' then self:init() end
 end)
 
 --[[ 全局设置 开始 ]]
@@ -269,7 +281,7 @@ option:check('global', 'carry', 'nameTextClassColor', nil, nil, nil, function(se
 		BC:setDB('global', 'carry', self:GetChecked() and 2 or 0)
 	end
 end)
-option:slider('global', 'carrySlider', 'carry', 150, -4, 72, 16, L.carryK, L.carryW, 1, 2, 1, function(self, value)
+option:slider('global', 'carrySlider', 'carry', 120, -4, 72, 16, L.carryK, L.carryW, 1, 2, 1, function(self, value)
 	self:SetObeyStepOnDrag(true)
 	value = (option.carry:GetChecked() and 0 or 2) + value
 	if value ~= BC:getDB('global', 'carry') then
@@ -281,23 +293,64 @@ option:downMenu('global', 'nameFont', L.fontList, 'carry', 3, vertical - 4) -- �
 option:downMenu('global', 'valueFont',  L.fontList, 'nameFont') -- 数值字体
 option:downMenu('global', 'fontFlags', L.fontFlagsList, 'valueFont') -- 字体轮廓
 
--- 恢复默认设置
+-- 选择配置
+option:downMenu('global', 'config', {
+	[1] = {
+		text = L.public,
+		value = 'Public',
+	},
+	[2] = {
+		text = UnitClass('player'),
+		value = BC.class,
+	},
+	[3] = {
+		text = BC.charKey,
+		value = BC.charKey,
+	},
+}, nil, horizontal + 2, -18, 180, function(down, key, name, menus, width)
+	UIDropDownMenu_Initialize(down, function()
+		for i in pairs(menus) do
+			local info = UIDropDownMenu_CreateInfo()
+				info.text = menus[i].text
+				info.value = menus[i].value
+				info.func = function(self)
+					BC:setDB('config', self.value)
+					UIDropDownMenu_SetSelectedID(down, self:GetID())
+					option:Show()
+				end
+				UIDropDownMenu_AddButton(info)
+		end
+	end)
+	UIDropDownMenu_SetSelectedValue(down, BC:getDB('config'))
+end)
+
+-- 重置
 option.reset = CreateFrame('Button', option:GetName() .. 'Rest', option, 'OptionsButtonTemplate')
-option.reset:SetPoint('TOPLEFT', horizontal + 2, -20)
-option.reset:SetSize(180, 25)
+option.reset:SetPoint('TOPLEFT', option.configDown, 'TOPRIGHT', -12, -.5)
+option.reset:SetSize(60, 25)
 option.reset:SetText(L.reset)
 option.reset:SetScript('OnClick', function()
-	_G[addonName .. 'DB'] = nil
-	option:Show()
+	if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
+	option:init()
 	BC:init()
 end)
 
-option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 24) -- 自由拖动系统框架
+option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框架
 option:check('global', 'incomingHeals', 'dragSystemFarmes') -- 显示预治疗
 option:check('global', 'autoTab', 'incomingHeals') -- PVP自动TAB选择玩家
 option:check('global', 'autoNameplate', 'autoTab') -- 进入达拉然自动关闭姓名板
-option:check('global', 'alwaysCompareItems', 'autoNameplate') -- 开启装备对比
-option.alwaysCompareItems:SetChecked(GetCVar('alwaysCompareItems') == '1')
+
+-- 启用装备对比
+option:check('global', 'alwaysCompareItems', 'autoNameplate', nil, nil, nil, function(self)
+	SetCVar('alwaysCompareItems', self:GetChecked() and '1' or '0')
+end)
+
+-- 支持宝
+option.alipay = option:CreateTexture()
+option.alipay:SetTexture(BC.texture .. 'Alipay')
+option.alipay:SetSize(128, 128)
+option.alipay:SetPoint('BOTTOMRIGHT', option, 'BOTTOMRIGHT', -20, 20)
+
 --[[ 全局设置 结束 ]]
 
 --[[ 玩家设置 开始 ]]
@@ -320,7 +373,8 @@ end)
 
 option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切换天赋后自动装备对应套装
 option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(最多6个)
-option:check('player', 'fiveSecondRule', 'equipmentIcon') -- 在法力条上显示5秒回蓝
+option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
+option:check('player', 'fiveSecondRule', 'hidePartyNumber') -- 在法力条上显示5秒回蓝
 
 -- 显示自定义德鲁伊法力条
 option:check('player', 'druidBar', 'fiveSecondRule', nil, nil, nil, function(self)
@@ -491,8 +545,16 @@ option:slider('target', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '5
 	if value ~= BC:getDB('target', 'scale') then BC:setDB('target', 'scale', value) end
 end)
 
+-- 状态栏透明度
+option:slider('target', 'statusBarAlpha', 'scale', 0, vertical - 20, 133, 16, '0', '1', 0, 1, .1, function(self, value)
+	value = floor(value * 10 + 0.5)
+	value = value / 10
+	option.target.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
+	if value ~= BC:getDB('target', 'statusBarAlpha') then BC:setDB('target', 'statusBarAlpha', value) end
+end)
+
 -- 名字字体大小
-option:slider('target', 'nameFontSize', 'scale', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
+option:slider('target', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
 	value = floor(value)
 	option.target.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('target', 'nameFontSize') then BC:setDB('target', 'nameFontSize', value) end
@@ -594,8 +656,16 @@ option:slider('focus', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '50
 	if value ~= BC:getDB('focus', 'scale') then BC:setDB('focus', 'scale', value) end
 end)
 
+-- 状态栏透明度
+option:slider('focus', 'statusBarAlpha', 'scale', 0, vertical - 20, 133, 16, '0', '1', 0, 1, .1, function(self, value)
+	value = floor(value * 10 + 0.5)
+	value = value / 10
+	option.focus.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'statusBarAlpha') then BC:setDB('focus', 'statusBarAlpha', value) end
+end)
+
 -- 名字字体大小
-option:slider('focus', 'nameFontSize', 'scale', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
+option:slider('focus', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
 	value = floor(value)
 	option.focus.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'nameFontSize') then BC:setDB('focus', 'nameFontSize', value) end

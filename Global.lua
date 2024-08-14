@@ -1,11 +1,10 @@
 local addonName = ...
 _G[addonName] = _G[addonName] or CreateFrame('Frame')
-_G[addonName .. 'Cache'] = _G[addonName .. 'Cache'] or {}
 local BC = _G[addonName]
 local L = _G[addonName .. 'Locale']
-
-BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
+BC.charKey = UnitName('player') .. ' - ' .. GetRealmName()
 BC.class = select(2, UnitClass('player'))
+BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
 
 -- 默认设置
 BC.default = {
@@ -32,6 +31,7 @@ BC.default = {
 		miniIcon = true,
 		autoTalentEquip = true,
 		equipmentIcon = true,
+		hidePartyNumber = true,
 		fiveSecondRule = true,
 		druidBar = true,
 		border = 1,
@@ -76,6 +76,7 @@ BC.default = {
 		dispelCooldown = true,
 		dispelStealable = true,
 		scale = 1,
+		statusBarAlpha = 1,
 		nameFontSize = 12,
 		valueFontSize = 12,
 		valueStyle = 5,
@@ -103,6 +104,7 @@ BC.default = {
 		dispelCooldown = true,
 		dispelStealable = true,
 		scale = 1,
+		statusBarAlpha = 1,
 		nameFontSize = 12,
 		valueFontSize = 12,
 		valueStyle = 5,
@@ -124,7 +126,6 @@ BC.default = {
 		drag = true,
 		portraitCombat = true,
 		combatFlash = true,
-		healthBarClass = true,
 		showLevel = true,
 		raidShowParty = true,
 		showCastBar = true,
@@ -133,7 +134,6 @@ BC.default = {
 		dispelCooldown = true,
 		dispelStealable = true,
 		scale = 1,
-		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
@@ -244,7 +244,15 @@ BC.creatureList = {
 -- 读取变量
 function BC:getDB(key, name)
 	if type(key) ~= 'string' then return end
-	local db = _G[addonName .. 'DB']
+	local db = _G[addonName .. 'DB'] or {}
+	local default = 'Public'
+	if key == 'config' then
+		return db.config or default
+	elseif key == 'cache' then
+		db[key] = db[key] or {}
+		return db[key][name]
+	end
+	db = db[db.config or default] or {}
 	if type(db) == 'table' and type(db[key]) == 'table' and db[key][name] ~= nil then
 		return db[key][name]
 	elseif type(self.default[key]) == 'table' and self.default[key][name] ~= nil then
@@ -255,12 +263,18 @@ end
 -- 保存变量
 function BC:setDB(key, name, value)
 	if type(key) ~= 'string' then return end
-	if type(self.default[key]) == 'table' and self.default[key][name] == value then
-		value = nil
-	end
 	local db = _G[addonName .. 'DB'] or {}
-	if type(db[key]) ~= 'table' then db[key] = {} end
-	db[key][name] = value
+	if key == 'config' then
+		db[key] = name
+	elseif key == 'cache' then
+		db[key] = db[key] or {}
+		db[key][name] = value
+	else
+		local charKey = db.config or 'Public'
+		db[charKey] = db[charKey] or {}
+		db[charKey][key] = db[charKey][key] or {}
+		db[charKey][key][name] = value
+	end
 	_G[addonName .. 'DB'] = db
 
 	if self[key] then
@@ -277,7 +291,7 @@ function BC:setDB(key, name, value)
 		for i = 1, MAX_PARTY_MEMBERS do
 			self:init('party' .. i .. 'target')
 		end
-	elseif key == 'global' then
+	else
 		self:init()
 	end
 end
@@ -470,7 +484,7 @@ function BC:aura(unit)
 			GameTooltip:Hide()
 		end)
 
-		local _, icon, count, _, duration, expirationTime, source = UnitBuff(unit, i)
+		local _, icon, count, dispelType, duration, expirationTime, source = UnitBuff(unit, i)
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
 			local selfCast = source == 'player' or source == 'pet'
@@ -680,11 +694,12 @@ function BC:dark(unit)
 		if key == 'player' then
 			index = self:getDB(key, 'border')
 
-			-- 小队数边框
+			-- 小队编号边框
 			local indicator = self:file('CharacterFrame\\UI-CharacterFrame-GroupIndicator')
 			PlayerFrameGroupIndicatorLeft:SetTexture(indicator)
 			PlayerFrameGroupIndicatorRight:SetTexture(indicator)
 			PlayerFrameGroupIndicatorMiddle:SetTexture(indicator)
+
 		elseif key == 'target' or key == 'focus' then
 			local classification = UnitClassification(key)
 			if classification == 'elite' or classification == 'worldboss' then
@@ -722,6 +737,9 @@ function BC:dark(unit)
 			end
 		end
 		frame.statusBar:SetTexture(self:file(self.barList[1]))
+
+		-- 状态栏透明度
+		if self:getDB(key, 'statusBarAlpha') then frame.statusBar:SetAlpha(self:getDB(key, 'statusBarAlpha')) end
 	end
 
 	if frame.healthbar then frame.healthbar:SetStatusBarTexture(self:file(self.barList[1])) end -- 生命条
@@ -810,9 +828,6 @@ function BC:dark(unit)
 		end
 	end
 end
-hooksecurefunc('TargetFrame_CheckClassification', function(self)
-	BC:dark(self.unit)
-end)
 
 -- 数字单位
 function BC:carry(value)
@@ -834,8 +849,8 @@ function BC:carry(value)
 	return value
 end
 
--- 预治疗更新
-function BC:updateIncomingHeals(unit)
+-- 预治疗
+function BC:incomingHeals(unit)
 	local heals = UnitGetIncomingHeals(unit)
 	for _, v in pairs(self.unitList) do
 		if UnitIsUnit(unit, v) and self[v]:IsShown() and self[v].incomingHealsBar then
@@ -1001,31 +1016,39 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 隐藏框架
-	if UnitExists(unit) and not (unit == 'targettarget' and UnitIsUnit('player', 'targettarget')) and not self:getDB(key, 'hideFrame') and (key ~= 'party' or BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
-		frame:Show()
-	elseif frame:IsShown() then
+	if self:getDB(key, 'hideFrame') then
 		frame:Hide()
+		return
 	end
+	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' or key == 'party' and (BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
+		if UnitExists(unit) then
+			frame:Show()
+		else
+			frame:Hide()
+		end
+	end
+	if not UnitExists(unit) then return end
 
 	-- 名字
 	if frame.name then
 		if self:getDB(key, 'hideName') then
 			frame.name:Hide()
 		else
+			if key == 'pettarget' or key == 'partypet' or key == 'partytarget' then frame.name:SetText(UnitName(unit)) end
 			local color
 			if self:getDB('global', 'nameTextClassColor') and UnitIsPlayer(unit) then
 				color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 			else
 				color = { r = 1, g = .82, b = 0}
 			end
-			if frame.name:GetText() ~= UnitName(unit) then frame.name:SetText(UnitName(unit)) end
 			if type(color) == 'table' then frame.name:SetTextColor(color.r, color.g, color.b) end
 			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'), self:getDB('global', 'fontFlags'))
 			frame.name:Show()
 		end
 	end
 
-	self:portrait(unit) -- 头像
+	self:dark(unit)
+	self:portrait(unit)
 	frame.manabar.powerType = frame.manabar.powerType or UnitPowerType(unit)
 	self:bar(frame.manabar)
 	self:bar(frame.healthbar)
@@ -1201,7 +1224,6 @@ function BC:init(unit)
 		end)
 	end
 
-	self:dark(unit)
 	if type(frame.init) == 'function' then frame.init() end
 	self:update(unit)
 end
@@ -1211,10 +1233,7 @@ for _, event in pairs({
 	'ZONE_CHANGED', -- 区域更改
 	'ZONE_CHANGED_NEW_AREA', -- 传送
 	'UNIT_FLAGS', -- 战斗状态
-	-- 'PLAYER_TARGET_CHANGED', -- 玩家目标变化
-	-- 'PLAYER_FOCUS_CHANGED', -- 玩家焦点变化
 	'UNIT_TARGET', -- 目标
-	-- 'UNIT_PET', -- 宠物
 }) do
 	BC:RegisterEvent(event)
 end
@@ -1235,32 +1254,32 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 
 		-- 进入达拉然自动关闭姓名板
 		if self:getDB('global', 'autoNameplate') then
-			local cache = _G[addonName .. 'Cache']
+			local cache = self:getDB('cache') or {}
 			if GetZoneText() == L.dalaran then
-				if cache.nameplateShowFriends == nil then
-					cache.nameplateShowFriends = GetCVar('nameplateShowFriends')
+				if self:getDB('cache', 'nameplateShowFriends') == nil then
+					self:setDB('cache', 'nameplateShowFriends', GetCVar('nameplateShowFriends'))
 				end
-				if cache.nameplateShowEnemies == nil then
-					cache.nameplateShowEnemies = GetCVar('nameplateShowEnemies')
+				if self:getDB('cache', 'nameplateShowEnemies') == nil then
+					self:setDB('cache', 'nameplateShowEnemies', GetCVar('nameplateShowEnemies'))
 				end
 				SetCVar('nameplateShowFriends', '0')
 				SetCVar('nameplateShowEnemies', '0')
 			else
-				if cache.nameplateShowFriends then
-					SetCVar('nameplateShowFriends', cache.nameplateShowFriends)
-					cache.nameplateShowFriends = nil
+				if self:getDB('cache', 'nameplateShowFriends') then
+					SetCVar('nameplateShowFriends', self:getDB('cache', 'nameplateShowFriends'))
+					self:setDB('cache', 'nameplateShowFriends', nil)
 				end
-				if cache.nameplateShowEnemies then
-					SetCVar('nameplateShowEnemies', cache.nameplateShowEnemies)
-					cache.nameplateShowEnemies = nil
+				if self:getDB('cache', 'nameplateShowEnemies') then
+					SetCVar('nameplateShowEnemies', self:getDB('cache', 'nameplateShowEnemies'))
+					self:setDB('cache', 'nameplateShowEnemies', nil)
 				end
 			end
 		end
 	elseif event == 'UNIT_FLAGS' then
 		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
 	elseif event == 'UNIT_TARGET' then
-		self:update((unit == 'player' and 'target' or unit) .. 'target')
+		if unit ~= 'player' then self:update((unit == 'player' and 'target' or unit) .. 'target') end
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
-		self:updateIncomingHeals(unit)
+		self:incomingHeals(unit)
 	end
 end)

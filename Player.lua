@@ -10,14 +10,19 @@ BC.player.borderTexture = PlayerFrameTexture -- 边框
 BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
 BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
 
--- 小队队数
+-- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)
 PlayerFrameGroupIndicatorText:SetPoint('LEFT', 20, -3)
 PlayerFrameGroupIndicator:SetPoint('TOPLEFT', 97, -4.5)
+hooksecurefunc('PlayerFrame_UpdateGroupIndicator', function()
+	if PlayerFrameGroupIndicator:IsShown() and BC:getDB('player', 'hidePartyNumber') then
+		PlayerFrameGroupIndicator:Hide()
+	end
+end)
 
 -- 等级
 hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
-	PlayerLevelText:SetPoint('CENTER', BC.player, -63, -16)
+	PlayerLevelText:SetPoint('CENTER', BC.player, -62, -16)
 end)
 
 -- 法力条暗黑模式
@@ -100,7 +105,7 @@ end
 -- 天赋和装备小图标
 function frame:talentEquip()
 	-- 装备小图标 最多6个
-	local Cache = _G[addonName .. 'Cache']
+	local equipID = BC:getDB('cache', 'equip')
 	for i = 1, 6 do
 		local equip = _G['EquipSetFrame' .. i]
 		if not equip then
@@ -131,7 +136,7 @@ function frame:talentEquip()
 				local equip = _G['EquipSetFrame' .. index]
 				if equip then
 					equip.id = buttons[i].id
-					if Cache.equip == equip.id then
+					if equipID == equip.id then
 						equip:SetAlpha(1)
 					else
 						equip:SetAlpha(.4)
@@ -156,7 +161,7 @@ function frame:talentEquip()
 
 					-- 鼠标离开
 					equip:SetScript('OnLeave', function(self)
-						if self.id == Cache.equip then
+						if self.id == equipID then
 							self:SetAlpha(1)
 						else
 							self:SetAlpha(.4)
@@ -277,7 +282,7 @@ function frame:talentEquip()
 	end
 end
 hooksecurefunc('EquipmentManager_EquipSet', function(id) -- 装备方案
-	_G[addonName .. 'Cache'].equip = id
+	BC:setDB('cache', 'equip', id)
 	for i = 1, 6 do
 		local equip = _G['EquipSetFrame' .. i]
 		if equip.id ==  id then
@@ -292,8 +297,9 @@ hooksecurefunc(C_EquipmentSet, 'DeleteEquipmentSet', function() -- 删除方案
 end)
 
 BC.player.init = function()
-	PlayerLevelText:SetFont(BC:getDB('global', 'valueFont'), 13, 'OUTLINE') -- 等级
+	PlayerLevelText:SetFont(BC:getDB('global', 'valueFont'), BC:getDB('player', 'valueFontSize'), 'OUTLINE') -- 等级
 	frame:talentEquip() -- 天赋装备小图标
+	PlayerFrame_UpdateGroupIndicator() -- 小队编号
 
 	-- 德鲁伊法力/能量条
 	if BC.player.druid then
@@ -317,6 +323,7 @@ end
 
 -- 宠物
 BC.pet = PetFrame
+BC.pet.flash = PetFrameFlash
 
 -- 快乐值图标
 local point, relativeTo, relativePoint, offsetX, offsetY = PetFrameHappiness:GetPoint()

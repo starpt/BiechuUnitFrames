@@ -186,7 +186,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	-- 名字
 	BC[partytarget].name = BC[partytarget]:CreateFontString(nil, 'ARTWORK', 'GameFontNormalSmall')
-	BC[partytarget].name:SetPoint('BOTTOMRIGHT', -34, 34)
+	BC[partytarget].name:SetPoint('BOTTOMRIGHT', -32, 33)
 
 	-- 头像
 	BC[partytarget].portrait = BC[partytarget]:CreateTexture(nil, 'BORDER')

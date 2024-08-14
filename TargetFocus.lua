@@ -5,11 +5,12 @@ local BC = _G[addonName]
 hooksecurefunc('TargetFrame_Update', function(self)
 	if self.flash then self.flash:Hide() end
 	BC:update(self.unit)
+	BC:update(self.unit .. 'target')
 end)
 
 -- 等级
 hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
-	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16.5) end
+	if self.levelText then self.levelText:SetPoint('CENTER', 62.5, -16.5) end
 end)
 
 -- 更新Buff/Debuff
@@ -48,7 +49,7 @@ for unit, frame in pairs({
 	frame.manabar.SideText:SetPoint('RIGHT', frame.manabar, 'LEFT', -3, -.5)
 
 	-- 威胁
-	frame.threatNumericIndicator.border = frame.threatNumericIndicator:CreateTexture()
+	frame.threatNumericIndicator.border = frame.threatNumericIndicator:CreateTexture(nil, 'OVERLAY')
 	frame.threatNumericIndicator.border:SetAllPoints(frame.threatNumericIndicator)
 	frame.threatNumericIndicator.border:SetTexCoord(0, .77, 0, .55)
 	frame.threatNumericIndicator.text:ClearAllPoints()
@@ -56,17 +57,18 @@ for unit, frame in pairs({
 
 	frame.init = function()
 		local font = BC:getDB('global', 'valueFont')
-		frame.levelText:SetFont(font, 13, 'OUTLINE') -- 等级
+		local size = BC:getDB(unit, 'valueFontSize')
+		frame.levelText:SetFont(font, size, 'OUTLINE') -- 等级
 		BC:aura(frame.unit)
 
 		-- 威胁
-		frame.threatNumericIndicator.text:SetFont(font, 13, 'OUTLINE')
+		frame.threatNumericIndicator.text:SetFont(font, size, 'OUTLINE')
 		frame.threatNumericIndicator.bg:SetTexture(BC:file(BC.barList[1]))
 		frame.threatNumericIndicator.border:SetTexture(BC:file('TargetingFrame\\NumericThreatBorder'))
 		if BC:getDB(frame.unit, 'threatLeft') then
-			frame.threatNumericIndicator:SetPoint('TOP', -84, -4)
+			frame.threatNumericIndicator:SetPoint('TOP', -84, -5)
 		else
-			frame.threatNumericIndicator:SetPoint('TOP', -50, -4)
+			frame.threatNumericIndicator:SetPoint('TOP', -50, -5)
 		end
 	end
 
