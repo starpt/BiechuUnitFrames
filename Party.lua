@@ -249,7 +249,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 		-- 定位
 		if id > 1 then
-			local offsetY = ceil((BC:getDB('party', 'maxBuffs') + BC:getDB('party', 'maxDebuffs')) / BC:getDB('party', 'auraRows')) * (BC:getDB('party', 'auraSize') + BC:getDB('party', 'auraSpac'))
+			local offsetY = ceil((MAX_TARGET_BUFFS + MAX_TARGET_DEBUFFS) / BC:getDB('party', 'auraRows')) * (BC:getDB('party', 'auraSize') + 2)
 			BC[party]:SetPoint('TOPLEFT', _G['PartyMemberFrame' .. (id - 1)], 'TOPLEFT', 0, -50 -offsetY - (showCastBar and 18 or 0))
 		end
 	end

@@ -80,6 +80,11 @@ BC.default = {
 		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 5,
+
+		auraRows = 5, -- 一行最多Buff/Debuff
+		auraSize = 20, -- 图标大小
+		auraX = -17, -- 起始X轴位置
+		auraY = -46 , -- 起始Y轴位置
 	},
 	targettarget = {
 		anchor = 'TargetFrame',
@@ -108,6 +113,10 @@ BC.default = {
 		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 5,
+		auraRows = 5, -- 一行最多Buff/Debuff
+		auraSize = 20, -- 图标大小
+		auraX = -17, -- 起始X轴位置
+		auraY = -46 , -- 起始Y轴位置
 	},
 	focustarget = {
 		anchor = 'FocusFrame',
@@ -137,11 +146,8 @@ BC.default = {
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
-		maxBuffs = 32, -- 最多Buff
-		maxDebuffs = 16, -- 最多Debuff
 		auraRows = 16, -- 一行最多Buff/Debuff
-		auraSize = 17, -- 图标大小
-		auraSpac = 1, -- 图标间隔
+		auraSize = 16, -- 图标大小
 		auraX = -15, -- 起始X轴位置
 		auraY = -36, -- 起始Y轴位置
 	},
@@ -432,13 +438,14 @@ function BC:aura(unit)
 	local frame = BC[unit]
 	if not frame then return end
 	local key = unit:gsub('[%d-]', '')
-	local maxBuffs = self:getDB(key, 'maxBuffs') or MAX_TARGET_BUFFS -- 最多Buff
-	local maxDebuffs = self:getDB(key, 'maxDebuffs') or MAX_TARGET_DEBUFFS -- 最多Debuff
+	local maxBuffs = MAX_TARGET_BUFFS -- 最多Buff
+	local maxDebuffs = MAX_TARGET_DEBUFFS -- 最多Debuff
 	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行最多数量
-	local spac = self:getDB(key, 'auraSpac') or 3 -- 间隔
-	local size = self:getDB(key, 'auraSize')
+	local spac = 2 -- 间隔
+	local size = self:getDB(key, 'auraSize') or 21
 	local offsetX = self:getDB(key, 'auraX') -- 起始坐标X
 	local offsetY = self:getDB(key, 'auraY') -- 起始坐标Y
+	local dark = BC:getDB('global', 'dark')
 	local valueFont = self:getDB('global', 'valueFont')
 	local fontFlags = self:getDB('global', 'fontFlags')
 	local selfCooldown = BC:getDB(key, 'selfCooldown')
@@ -447,28 +454,15 @@ function BC:aura(unit)
 	local total = 0
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
-		local buff = _G[name]
-		if not buff then buff = CreateFrame('Button', name, frame) end
+		local buff = _G[name] or CreateFrame('Button', name, frame)
+		buff:SetFrameLevel(5)
 
 		buff.icon = _G[name .. 'Icon']
 		if not buff.icon then
-			buff.icon = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
-			buff.icon:SetAllPoints(buff)
-		end
-
-		buff.icon = _G[name .. 'Icon']
-		if not buff.icon then
-			buff.icon = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
+			buff.icon = buff:CreateTexture(name .. 'Icon', 'BACKGROUND')
 			buff.icon:SetPoint('CENTER')
 		end
-		buff.icon:SetSize(buff:GetWidth() - 2, buff:GetHeight() - 2)
-		-- buff.icon:SetTexCoord(.5, .95, .5, .95)
-
-		buff.border = _G[name .. 'Border']
-		if not buff.border then
-			buff.border = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
-			buff.border:SetAllPoints(buff)
-		end
+		buff.icon:SetTexCoord(.06, .94, .06, .94)
 
 		buff.cooldown = _G[name .. 'Cooldown']
 		if not buff.cooldown then
@@ -476,19 +470,30 @@ function BC:aura(unit)
 			buff.cooldown:SetReverse(true)
 		end
 
-		buff.count = _G[name .. 'Count']
-		if not buff.count then buff.count = buff:CreateFontString(name .. 'Count') end
+		buff.count = _G[name .. 'Count'] or buff:CreateFontString(name .. 'Count', 'OVERLAY')
 		buff.count:SetPoint('BOTTOMRIGHT', 2, -2)
 		buff.count:SetFont(valueFont, (size or 21) * .6, fontFlags)
 
 		buff.stealable = _G[name .. 'Stealable']
 		if not buff.stealable then
-			buff.stealable = buff:CreateTexture(name .. 'Stealable')
+			buff.stealable = buff:CreateTexture(name .. 'Stealable', 'ARTWORK')
 			buff.stealable:SetPoint('CENTER')
 			buff.stealable:SetBlendMode('ADD')
 			buff.stealable:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Stealable')
 		end
 		buff.stealable:Hide()
+
+		buff.border = _G[name .. 'Border']
+		if not buff.border then
+			buff.border = buff:CreateTexture(name .. 'Border', 'BORDER')
+			buff.border:SetAllPoints(buff)
+			buff.border:SetTexture(BC.texture .. 'Border')
+		end
+		if dark then
+			buff.border:SetVertexColor(.1, .1, .1)
+		else
+			buff.border:SetVertexColor(.4, .4, .4)
+		end
 
 		buff:SetScript('OnEnter', function(self)
 			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
@@ -510,23 +515,26 @@ function BC:aura(unit)
 				buff.cooldown._occ_show = not selfCooldown or selfCast
 			end
 
-			if size then
-				local iconSize = selfCast and size or size - 2
-				buff:SetSize(iconSize, iconSize)
-				buff.icon:SetTexture(icon)
-				if offsetX and offsetY then
-					local x = math.fmod(i, rows) -- 横排数
-					if x == 0 then x = rows end
-					local y = ceil(i / rows) -- 列数
-					buff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
-				end
+			local iconSize = selfCast and size or size - 2
+			buff:SetSize(iconSize, iconSize)
+
+			if offsetX and offsetY then
+				local x = math.fmod(i, rows) -- 横排数
+				if x == 0 then x = rows end
+				local y = ceil(i / rows) -- 列数
+				buff:ClearAllPoints()
+				buff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
 			end
 
-			buff.stealable:SetSize(buff:GetWidth() + 2, buff:GetHeight() + 2)
+			buff.icon:SetSize(iconSize - 2, iconSize - 2)
+			buff.icon:SetTexture(icon)
+
+			buff.stealable:SetSize(iconSize + 4, iconSize + 4)
+
 			if type(count) == 'number' and count > 1 then
 				buff.count:SetText(count)
 			else
-				buff.count:SetText('')
+				buff.count:SetText(nil)
 			end
 
 			buff:Show()
@@ -541,14 +549,15 @@ function BC:aura(unit)
 	total = 0
 	for i = 1, maxDebuffs do
 		local name = frame:GetName() .. 'Debuff' .. i
-		local debuff = _G[name]
-		if not debuff then debuff = CreateFrame('Button', name, frame) end
+		local debuff = _G[name] or CreateFrame('Button', name, frame)
+		debuff:SetFrameLevel(5)
 
 		debuff.icon = _G[name .. 'Icon']
 		if not debuff.icon then
-			debuff.icon = debuff:CreateTexture(name .. 'Icon', 'ARTWORK')
-			debuff.icon:SetAllPoints(debuff)
+			debuff.icon = debuff:CreateTexture(name .. 'Icon', 'BACKGROUND')
+			debuff.icon:SetPoint('CENTER')
 		end
+		debuff.icon:SetTexCoord(.06, .94, .06, .94)
 
 		debuff.cooldown = _G[name .. 'Cooldown']
 		if not debuff.cooldown then
@@ -556,14 +565,13 @@ function BC:aura(unit)
 			debuff.cooldown:SetReverse(true)
 		end
 
-		debuff.count = _G[name .. 'Count']
-		if not debuff.count then debuff.count = debuff:CreateFontString(name .. 'Count', 'OVERLAY') end
+		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY')
 		debuff.count:SetPoint('BOTTOMRIGHT', 2, -2)
 		debuff.count:SetFont(valueFont, (size or 21) * .6, fontFlags)
 
 		debuff.stealable = _G[name .. 'Stealable']
 		if not debuff.stealable then
-			debuff.stealable = debuff:CreateTexture(name .. 'Stealable')
+			debuff.stealable = debuff:CreateTexture(name .. 'Stealable', 'ARTWORK')
 			debuff.stealable:SetPoint('CENTER')
 			debuff.stealable:SetBlendMode('ADD')
 			debuff.stealable:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Stealable')
@@ -572,12 +580,15 @@ function BC:aura(unit)
 
 		debuff.border = _G[name .. 'Border']
 		if not debuff.border then
-			debuff.border = debuff:CreateTexture(name .. 'Border', 'OVERLAY')
-			debuff.border:SetTexture('Interface\\Buttons\\UI-Debuff-Overlays')
-			debuff.border:SetTexCoord(.296875, .5703125, 0, .515625)
+			debuff.border = debuff:CreateTexture(name .. 'Border', 'BORDER')
 			debuff.border:SetAllPoints(debuff)
+			debuff.border:SetTexture(BC.texture .. 'Border')
 		end
-		debuff.border:Hide()
+		if dark then
+			debuff.border:SetVertexColor(.1, .1, .1)
+		else
+			debuff.border:SetVertexColor(.4, .4, .4)
+		end
 
 		debuff:SetScript('OnEnter', function(self)
 			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
@@ -589,6 +600,7 @@ function BC:aura(unit)
 
 		local _, icon, count, dispelType, duration, expirationTime, source = UnitDebuff(unit, i)
 		if icon then
+			CooldownFrame_Set(debuff.cooldown, expirationTime - duration, duration, true)
 			local selfCast = source == 'player' or source == 'pet'
 			if UnitCanAttack('player', unit) then -- Dot
 				debuff.cooldown._occ_show = not selfCooldown or selfCast
@@ -597,23 +609,28 @@ function BC:aura(unit)
 				if dispelStealable and canDispel then debuff.stealable:Show() end -- 高亮
 				debuff.cooldown._occ_show = not dispelCooldown or canDispel
 			end
-			CooldownFrame_Set(debuff.cooldown, expirationTime - duration, duration, true)
 
-			if size then
-				local iconSize = selfCast and size or size - 2
-				debuff:SetSize(iconSize, iconSize)
-				debuff.icon:SetTexture(icon)
+			local iconSize = selfCast and size or size - 2
+			debuff:SetSize(iconSize, iconSize)
 
-				if offsetX and offsetY then
-					local x = math.fmod(i, rows) -- 横排数
-					if x == 0 then x = rows end
-					local y = ceil(i / rows) + row -- 列数
-					debuff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
-				end
+			if offsetX and offsetY then
+				local x = math.fmod(i, rows) -- 横排数
+				if x == 0 then x = rows end
+				local y = ceil(i / rows) + row -- 列数
+				debuff:ClearAllPoints()
+				debuff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
 			end
 
-			debuff.stealable:SetSize(debuff:GetWidth() + 2, debuff:GetHeight() + 2)
-			if type(count) == 'number' and count > 1 then debuff.count:SetText(count) end
+			debuff.icon:SetSize(iconSize - 2, iconSize - 2)
+			debuff.icon:SetTexture(icon)
+
+			debuff.stealable:SetSize(iconSize + 4, iconSize + 4)
+
+			if type(count) == 'number' and count > 1 then
+				debuff.count:SetText(count)
+			else
+				debuff.count:SetText(nil)
+			end
 
 			-- 边框
 			if dispelType then
@@ -842,6 +859,10 @@ function BC:dark(unit)
 		end
 	end
 end
+-- 法力条暗黑模式
+hooksecurefunc('UnitFrameManaBar_UpdateType', function(self)
+	BC:dark(self.unit)
+end)
 
 -- 数字单位
 function BC:carry(value)
@@ -890,7 +911,7 @@ function BC:bar(bar)
 	if UnitInVehicle('player') and key == 'pet' or key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
 		bar.unit = key == 'pet' and 'player' or bar.unit
 		if bar.powerType then
-			bar.powerType = key == 'pet' and UnitPowerType('player') or UnitPowerType(unit)
+			bar.powerType = key == 'pet' and UnitPowerType('player') or bar.powerType
 			value = UnitPower(bar.unit, bar.powerType)
 			valueMax = UnitPowerMax(bar.unit, bar.powerType)
 			color = PowerBarColor[bar.powerType]

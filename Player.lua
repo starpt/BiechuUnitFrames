@@ -25,13 +25,6 @@ hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
 	PlayerLevelText:SetPoint('CENTER', BC.player, -62, -16)
 end)
 
--- 法力条暗黑模式
-hooksecurefunc('SetTextStatusBarTextPrefix', function(self)
-	if self == PlayerFrameManaBar and dark then
-		BC:dark('player')
-	end
-end)
-
 -- 定位
 hooksecurefunc(BC.player, 'SetPoint', function(self, ...)
 	if self.moving then -- 载具自动还原
@@ -75,7 +68,7 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druid:SetPoint('TOPRIGHT', -3, -62)
 	BC.player.druid:SetFrameLevel(3)
 
-	BC.player.druid.border = BC.player.druid:CreateTexture(nil, 'ARTWORK')
+	BC.player.druid.border = BC.player.druid:CreateTexture(nil, 'OVERLAY')
 	BC.player.druid.border:SetAllPoints(BC.player.druid)
 
 	BC.player.druidBar = CreateFrame('StatusBar', 'PlayerFrameDruidBar', BC.player.druid)
@@ -91,7 +84,7 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druidBar.RightText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
 	BC.player.druidBar.RightText:SetPoint('RIGHT', -4.5, -1)
 	BC.player.druidBar.SideText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
-	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', -1, -1)
+	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', 2.5, -1)
 end
 
 -- 5秒回蓝
