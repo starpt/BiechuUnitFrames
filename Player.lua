@@ -33,15 +33,18 @@ hooksecurefunc('SetTextStatusBarTextPrefix', function(self)
 end)
 
 -- 定位
-hooksecurefunc(BC.player, 'SetPoint', function(...)
-	if not BC.player.moving and UnitInVehicle('player') then -- 载具自动定位
-		frame.wait = GetTime() + .1 -- 稍后定位
+hooksecurefunc(BC.player, 'SetPoint', function(self, ...)
+	if self.moving then -- 载具自动还原
+		frame.lock = nil
+	else
+		frame.lock = GetTime() + .1 -- 定位刷新频率
 	end
 end)
 
 -- 载具
 hooksecurefunc('PlayerFrame_UpdateArt', function()
 	BC:init('player')
+	BC:init('pet')
 end)
 
 -- 状态栏
@@ -323,7 +326,7 @@ end
 
 -- 宠物
 BC.pet = PetFrame
-BC.pet.flash = PetFrameFlash
+PetFrameFlash:SetAlpha(0)
 
 -- 快乐值图标
 local point, relativeTo, relativePoint, offsetX, offsetY = PetFrameHappiness:GetPoint()
@@ -427,14 +430,14 @@ end)
 
 frame:SetScript('OnUpdate', function(self)
 	local now = GetTime()
-	if UnitInVehicle('player') then
-		if BC.pettarget:IsShown() then BC.pettarget:Hide() end
-		if type(self.wait) == 'number' and self.wait < now then
-			BC:init('player')
-			self.wait = nil
-		end
-		return
+
+	if type(self.lock) == 'number' and self.lock < now then
+		BC:init('player')
+		self.lock = nil
 	end
+
+	if UnitInVehicle('player') then return end
+
 	if self.rate and now < self.rate then return end
 	self.rate = now + .05 -- 刷新率
 
@@ -474,8 +477,10 @@ frame:SetScript('OnUpdate', function(self)
 		end
 	end
 
-	-- BC:update('pettarget')
-	BC:bar(self.healthbar)
-	BC:bar(self.manabar)
-
+	if UnitExists('pettarget') then
+		BC:bar(BC.pettarget.healthbar)
+		BC:bar(BC.pettarget.manabar)
+	else
+		BC.pettarget:Hide()
+	end
 end)

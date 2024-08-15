@@ -2,7 +2,7 @@
 ## Title: BiechuUnitFrames
 ## Notes: 别处头像框架 /bc
 
-## Version: 3.4.3.3
+## Version: 3.4.3.4_beta1
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
 ## X-Website: https://github.com/starpt/BiechuUnitFrames
@@ -21,8 +21,3 @@ Party.lua
 
 # 设置(设置完成后可以禁用)
 Options.lua
-
-
-git config --global config.path D:\\Program\\Nodejs\\.gitconfig
-
-git config --global user.name starpt

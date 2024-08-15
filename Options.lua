@@ -316,7 +316,7 @@ option:downMenu('global', 'config', {
 				info.func = function(self)
 					BC:setDB('config', self.value)
 					UIDropDownMenu_SetSelectedID(down, self:GetID())
-					option:Show()
+					option:init()
 				end
 				UIDropDownMenu_AddButton(info)
 		end

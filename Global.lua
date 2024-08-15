@@ -37,7 +37,7 @@ BC.default = {
 		border = 1,
 		portrait = 0,
 		scale = 1,
-		nameFontSize = 12,
+		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 2,
 	},
@@ -77,7 +77,7 @@ BC.default = {
 		dispelStealable = true,
 		scale = 1,
 		statusBarAlpha = 1,
-		nameFontSize = 12,
+		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 5,
 	},
@@ -105,7 +105,7 @@ BC.default = {
 		dispelStealable = true,
 		scale = 1,
 		statusBarAlpha = 1,
-		nameFontSize = 12,
+		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 5,
 	},
@@ -432,7 +432,7 @@ function BC:aura(unit)
 	local frame = BC[unit]
 	if not frame then return end
 	local key = unit:gsub('[%d-]', '')
-	local maxBuffs = self:getDB(key, 'maxBuffss') or MAX_TARGET_BUFFS -- 最多Buff
+	local maxBuffs = self:getDB(key, 'maxBuffs') or MAX_TARGET_BUFFS -- 最多Buff
 	local maxDebuffs = self:getDB(key, 'maxDebuffs') or MAX_TARGET_DEBUFFS -- 最多Debuff
 	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行最多数量
 	local spac = self:getDB(key, 'auraSpac') or 3 -- 间隔
@@ -454,6 +454,20 @@ function BC:aura(unit)
 		if not buff.icon then
 			buff.icon = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
 			buff.icon:SetAllPoints(buff)
+		end
+
+		buff.icon = _G[name .. 'Icon']
+		if not buff.icon then
+			buff.icon = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
+			buff.icon:SetPoint('CENTER')
+		end
+		buff.icon:SetSize(buff:GetWidth() - 2, buff:GetHeight() - 2)
+		-- buff.icon:SetTexCoord(.5, .95, .5, .95)
+
+		buff.border = _G[name .. 'Border']
+		if not buff.border then
+			buff.border = buff:CreateTexture(name .. 'Icon', 'ARTWORK')
+			buff.border:SetAllPoints(buff)
 		end
 
 		buff.cooldown = _G[name .. 'Cooldown']
@@ -1016,7 +1030,7 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 隐藏框架
-	if self:getDB(key, 'hideFrame') then
+	if self:getDB(key, 'hideFrame') or UnitInVehicle('player') and unit == 'pettarget' then
 		frame:Hide()
 		return
 	end
@@ -1232,8 +1246,8 @@ for _, event in pairs({
 	'PLAYER_ENTERING_WORLD', -- 进入世界
 	'ZONE_CHANGED', -- 区域更改
 	'ZONE_CHANGED_NEW_AREA', -- 传送
-	'UNIT_FLAGS', -- 战斗状态
-	'UNIT_TARGET', -- 目标
+	'UNIT_TARGET', -- 目标切换
+	-- 'UNIT_FLAGS', -- 战斗状态
 }) do
 	BC:RegisterEvent(event)
 end
@@ -1275,10 +1289,8 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 				end
 			end
 		end
-	elseif event == 'UNIT_FLAGS' then
-		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
 	elseif event == 'UNIT_TARGET' then
-		if unit ~= 'player' then self:update((unit == 'player' and 'target' or unit) .. 'target') end
+		self:update((unit == 'player' and 'target' or unit) .. 'target')
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
 		self:incomingHeals(unit)
 	end
