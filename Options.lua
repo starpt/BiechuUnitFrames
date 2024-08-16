@@ -35,7 +35,7 @@ function option:title(parent, text)
 	parent.title:SetText(text)
 end
 
--- 状态数值
+-- 数值样式
 function option:valueStyleList(...)
 	local list = {}
 	for _, i in pairs({...}) do
@@ -165,7 +165,7 @@ function option:init()
 	self.fontFlagsDown:OnShow() -- 字体轮廓
 	self.configDown:OnShow() -- 选择配置
 
-	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框架
+	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框体
 	self.incomingHeals:SetChecked(BC:getDB('global', 'incomingHeals')) -- 显示预配治疗
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.autoNameplate:SetChecked(BC:getDB('global', 'autoNameplate')) -- 进入达拉然自动关闭姓名板
@@ -216,7 +216,7 @@ function option:init()
 	self.party.showLevel:SetChecked(BC:getDB('party', 'showLevel')) -- 显示等级
 	self.party.showCastBar:SetChecked(BC:getDB('party', 'showCastBar')) -- 显示施法条
 	self.party.outRange:SetChecked(BC:getDB('party', 'outRange')) -- 超出范围半透明
-	self.party.raidShowParty:SetChecked(BC:getDB('party', 'raidShowParty')) -- 团队显示小队框架
+	self.party.raidShowParty:SetChecked(BC:getDB('party', 'raidShowParty')) -- 团队显示小队框体
 
 	for _, key in pairs(option.list) do
 		if self[key].drag then self[key].drag:SetChecked(BC:getDB(key, 'drag')) end -- 排战斗中按住Shift拖动
@@ -224,12 +224,15 @@ function option:init()
 		if self[key].combatFlash then self[key].combatFlash:SetChecked(BC:getDB(key, 'combatFlash')) end -- 战斗状态边框红光
 		if self[key].statusBarClass then self[key].statusBarClass:SetChecked(BC:getDB(key, 'statusBarClass')) end -- 状态栏背景职业色(玩家)
 		if self[key].healthBarClass then self[key].healthBarClass:SetChecked(BC:getDB(key, 'healthBarClass')) end -- 生命条职业色(玩家)
-		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 缩放
+		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
 		if self[key].statusBarAlpha then self[key].statusBarAlpha:SetValue(BC:getDB(key, 'statusBarAlpha')) end -- 状态栏透明度
 		if self[key].nameFontSize then self[key].nameFontSize:SetValue(BC:getDB(key, 'nameFontSize')) end -- 名字字体大小
 		if self[key].valueFontSize then self[key].valueFontSize:SetValue(BC:getDB(key, 'valueFontSize')) end -- 数值字体大小
-		if self[key].valueStyleDown then self[key].valueStyleDown:OnShow() end -- 状态数值
-
+		if self[key].valueStyleDown then self[key].valueStyleDown:OnShow() end -- 数值样式
+		if self[key].auraSize then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff图标大小
+		if self[key].auraRows then self[key].auraRows:SetValue(BC:getDB(key, 'auraRows')) end -- 一行Buff/Debuff数量
+		if self[key].auraX then self[key].auraX:SetValue(BC:getDB(key, 'auraX')) end -- 起始X轴位置
+		if self[key].auraY then self[key].auraY:SetValue(BC:getDB(key, 'auraY')) end -- 起始Y轴位置
 		-- 隐藏名字
 		if self[key].hideName then
 			self[key].hideName:SetChecked(BC:getDB(key, 'hideName'))
@@ -242,7 +245,7 @@ function option:init()
 			end
 		end
 
-		if self[key].hideFrame then self[key].hideFrame:SetChecked(BC:getDB(key, 'hideFrame')) end -- 隐藏框架
+		if self[key].hideFrame then self[key].hideFrame:SetChecked(BC:getDB(key, 'hideFrame')) end -- 隐藏框体
 		if self[key].portraitClass then self[key].portraitClass:SetChecked(BC:getDB(key, 'portrait') == 1) end -- 头像显示职业图标(玩家)
 		if self[key].miniIcon then self[key].miniIcon:SetChecked(BC:getDB(key, 'miniIcon')) end -- 显示小图标(职业/种类)
 		if self[key].threatLeft then self[key].threatLeft:SetChecked(BC:getDB(key, 'threatLeft')) end -- 居左显示威胁值
@@ -335,7 +338,7 @@ option.reset:SetScript('OnClick', function()
 	BC:init()
 end)
 
-option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框架
+option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框体
 option:check('global', 'incomingHeals', 'dragSystemFarmes') -- 显示预治疗
 option:check('global', 'autoTab', 'incomingHeals') -- PVP自动TAB选择玩家
 option:check('global', 'autoNameplate', 'autoTab') -- 进入达拉然自动关闭姓名板
@@ -391,7 +394,7 @@ option:check('player', 'druidBarEnergy', 'druidBar', 15, vertical + 6) -- 熊形
 option:downMenu('player', 'border', L.borderList, nil, horizontal + 2, vertical + 8) -- 边框
 option:downMenu('player', 'portrait', L.portraitList, 'border') -- 头像
 
--- 缩放
+-- 框体缩放
 option:slider('player', 'scale', 'portrait', 2, vertical - 40, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
 	value = floor(value * 100 + .5)
 	option.player.scaleText:SetText(L.scale .. ': ' .. value .. '%')
@@ -413,7 +416,7 @@ option:slider('player', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133, 
 	if value ~= BC:getDB('player', 'valueFontSize') then BC:setDB('player', 'valueFontSize', value) end
 end)
 
-option:downMenu('player', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('player', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 --[[ 玩家设置 结束 ]]
 
 --[[ 宠物设置 开始 ]]
@@ -446,7 +449,7 @@ option:slider('pet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133, 16,
 	if value ~= BC:getDB('pet', 'valueFontSize') then BC:setDB('pet', 'valueFontSize', value) end
 end)
 
-option:downMenu('pet', 'valueStyle', option:valueStyleList(1, 2, 3, 4), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('pet', 'valueStyle', option:valueStyleList(1, 2, 3, 4), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 
 -- 恢复默认位置
 option.pet.defaultPoint = CreateFrame('Button', option.pet:GetName() .. 'DefaultPoint', option.pet, 'OptionsButtonTemplate')
@@ -462,7 +465,7 @@ end)
 --[[ 宠物设置 结束 ]]
 
 --[[ 宠物的目标设置 开始 ]]
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
 
 -- 头像显示职业图标(玩家)
 option:check('pettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
@@ -497,7 +500,7 @@ option:slider('pettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 13
 	if value ~= BC:getDB('pettarget', 'valueFontSize') then BC:setDB('pettarget', 'valueFontSize', value) end
 end)
 
-option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 --[[ 宠物的目标设置 结束 ]]
 
 --[[ 目标设置 开始 ]]
@@ -518,7 +521,7 @@ option:check('target', 'selfCooldown', 'threatLeft') -- 只显示自己施放的
 option:check('target', 'dispelCooldown', 'selfCooldown') -- 只显示自己可以驱散的Debuff或Buff数字
 option:check('target', 'dispelStealable', 'dispelCooldown') -- 高亮显示自己可以驱散的Debuff或Buff
 
--- 和玩家框架水平居中
+-- 和玩家框体水平居中
 option.target.centerHorizontally = CreateFrame('Button', option.target:GetName() .. 'CenterHorizontally', option.target, 'OptionsButtonTemplate')
 option.target.centerHorizontally:SetPoint('TOPLEFT', horizontal + 2, -20)
 option.target.centerHorizontally:SetSize(180, 25)
@@ -537,8 +540,8 @@ option.target.centerHorizontally:SetScript('OnClick', function()
 	BC:setDB('target', 'offsetY', 0)
 end)
 
--- 缩放
-option:slider('target', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
+-- 框体缩放
+option:slider('target', 'scale', 'dispelStealable', 5, vertical - 24, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
 	value = floor(value * 100 + .5)
 	option.target.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
@@ -554,7 +557,7 @@ option:slider('target', 'statusBarAlpha', 'scale', 0, vertical - 20, 133, 16, '0
 end)
 
 -- 名字字体大小
-option:slider('target', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
+option:slider('target', 'nameFontSize', nil, horizontal + 4, vertical - 40, 133, 16, 8, 18, 8, 18, 1, function(_, value)
 	value = floor(value)
 	option.target.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('target', 'nameFontSize') then BC:setDB('target', 'nameFontSize', value) end
@@ -567,7 +570,35 @@ option:slider('target', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133, 
 	if value ~= BC:getDB('target', 'valueFontSize') then BC:setDB('target', 'valueFontSize', value) end
 end)
 
-option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
+
+-- Buff/Debuff图标大小
+option:slider('target', 'auraSize', 'valueStyle', 1, vertical - 46, 160, 16, 12, 64, 12, 64, 1, function(self, value)
+	value = floor(value)
+	option.target.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	if value ~= BC:getDB('target', 'auraSize') then BC:setDB('target', 'auraSize', value) end
+end)
+
+-- 一行Buff/Debuff数量
+option:slider('target', 'auraRows', 'auraSize', 0, vertical - 20, 160, 16, 1, 32, 1, 32, 1, function(self, value)
+	value = floor(value)
+	option.target.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	if value ~= BC:getDB('target', 'auraRows') then BC:setDB('target', 'auraRows', value) end
+end)
+
+-- Buff/Debuf起始X轴位置
+option:slider('target', 'auraX', 'auraRows', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.target.auraXText:SetText(L.auraX .. ': ' .. value)
+	if value ~= BC:getDB('target', 'auraX') then BC:setDB('target', 'auraX', value) end
+end)
+
+-- Buff/Debuf起始Y轴位置
+option:slider('target', 'auraY', 'auraX', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.target.auraYText:SetText(L.auraY .. ': ' .. value)
+	if value ~= BC:getDB('target', 'auraY') then BC:setDB('target', 'auraY', value) end
+end)
 --[[ 目标设置 结束 ]]
 
 --[[ 目标的目标设置 开始 ]]
@@ -606,7 +637,7 @@ option:slider('targettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20,
 	if value ~= BC:getDB('targettarget', 'valueFontSize') then BC:setDB('targettarget', 'valueFontSize', value) end
 end)
 
-option:downMenu('targettarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('targettarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 
 -- 恢复默认位置
 option.targettarget.defaultPoint = CreateFrame('Button', option.targettarget:GetName() .. 'DefaultPoint', option.targettarget, 'OptionsButtonTemplate')
@@ -639,7 +670,7 @@ option:check('focus', 'selfCooldown', 'threatLeft') -- 只显示自己施放的B
 option:check('focus', 'dispelCooldown', 'selfCooldown') -- 只显示自己可以驱散的Debuff或Buff数字
 option:check('focus', 'dispelStealable', 'dispelCooldown') -- 高亮显示自己可以驱散的Debuff或Buff
 
--- 与玩家框架垂直对齐
+-- 与玩家框体垂直对齐
 option.focus.alignHorizontally = CreateFrame('Button', option.focus:GetName() .. 'AlignHorizontally', option.focus, 'OptionsButtonTemplate')
 option.focus.alignHorizontally:SetPoint('TOPLEFT', horizontal + 2, -20)
 option.focus.alignHorizontally:SetSize(180, 25)
@@ -648,8 +679,8 @@ option.focus.alignHorizontally:SetScript('OnClick', function()
 	BC:setDB('focus', 'offsetY', 0)
 end)
 
--- 缩放
-option:slider('focus', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
+-- 框体缩放
+option:slider('focus', 'scale', 'dispelStealable', 5, vertical - 24, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
 	value = floor(value * 100 + .5)
 	option.focus.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
@@ -665,7 +696,7 @@ option:slider('focus', 'statusBarAlpha', 'scale', 0, vertical - 20, 133, 16, '0'
 end)
 
 -- 名字字体大小
-option:slider('focus', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, 133, 16, 8, 18, 8, 18, 1, function(_, value)
+option:slider('focus', 'nameFontSize', nil, horizontal + 4, vertical - 40, 133, 16, 8, 18, 8, 18, 1, function(_, value)
 	value = floor(value)
 	option.focus.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'nameFontSize') then BC:setDB('focus', 'nameFontSize', value) end
@@ -678,7 +709,35 @@ option:slider('focus', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133, 1
 	if value ~= BC:getDB('focus', 'valueFontSize') then BC:setDB('focus', 'valueFontSize', value) end
 end)
 
-option:downMenu('focus', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('focus', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
+
+-- Buff/Debuff图标大小
+option:slider('focus', 'auraSize', 'valueStyle', 1, vertical - 46, 160, 16, 12, 64, 12, 64, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraSize') then BC:setDB('focus', 'auraSize', value) end
+end)
+
+-- 一行Buff/Debuff数量
+option:slider('focus', 'auraRows', 'auraSize', 0, vertical - 20, 160, 16, 1, 32, 1, 32, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraRows') then BC:setDB('focus', 'auraRows', value) end
+end)
+
+-- Buff/Debuf起始X轴位置
+option:slider('focus', 'auraX', 'auraRows', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraXText:SetText(L.auraX .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraX') then BC:setDB('focus', 'auraX', value) end
+end)
+
+-- Buff/Debuf起始Y轴位置
+option:slider('focus', 'auraY', 'auraX', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraYText:SetText(L.auraY .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraY') then BC:setDB('focus', 'auraY', value) end
+end)
 --[[ 焦点设置 结束 ]]
 
 --[[ 焦点的目标设置 开始 ]]
@@ -717,7 +776,7 @@ option:slider('focustarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 
 	if value ~= BC:getDB('focustarget', 'valueFontSize') then BC:setDB('focustarget', 'valueFontSize', value) end
 end)
 
-option:downMenu('focustarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('focustarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 
 -- 恢复默认位置
 option.focustarget.defaultPoint = CreateFrame('Button', option.focustarget:GetName() .. 'DefaultPoint', option.focustarget, 'OptionsButtonTemplate')
@@ -733,8 +792,8 @@ end)
 --[[ 焦点的目标设置 结束 ]]
 
 --[[ 队友设置 开始 ]]
-option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
-option:check('party', 'raidShowParty', 'hideFrame') -- 团队显示小队框架
+option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('party', 'raidShowParty', 'hideFrame') -- 团队显示小队框体
 option:check('party', 'drag', 'raidShowParty') -- 非战斗中按住Shift左击拖动
 option:check('party', 'portraitCombat', 'drag') -- 头像上显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat') -- 战斗中边框显示红光
@@ -764,7 +823,7 @@ option.party.defaultPoint:SetScript('OnClick', function()
 	BC:setDB('party', 'offsetY', nil)
 end)
 
--- 缩放
+-- 框体缩放
 option:slider('party', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '50%', '150%', .5, 1.5, .05, function(self, value)
 	value = floor(value * 100 + .5)
 	option.party.scaleText:SetText(L.scale .. ': ' .. value .. '%')
@@ -773,7 +832,7 @@ option:slider('party', 'scale', nil, horizontal + 4, vertical - 40, 133, 16, '50
 end)
 
 -- 隐藏名字
-option:check('party', 'hideName', 'scale', -4,  vertical - 16, nil, function(self)
+option:check('party', 'hideName', 'scale', -4,  vertical - 2, nil, function(self)
 	if self:GetChecked() then
 		BlizzardOptionsPanel_Slider_Disable(option.party.nameFontSize)
 		option.party.nameFontSizeText:SetTextColor(.5, .5, .5)
@@ -785,7 +844,7 @@ option:check('party', 'hideName', 'scale', -4,  vertical - 16, nil, function(sel
 end)
 
 -- 名字字体大小
-option:slider('party', 'nameFontSize', 'hideName', 4, vertical - 24, 133, 16, 6, 16, 6, 16, 1, function(_, value)
+option:slider('party', 'nameFontSize', 'hideName', 4, vertical - 20, 133, 16, 6, 16, 6, 16, 1, function(_, value)
 	value = floor(value)
 	option.party.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('party', 'nameFontSize') then BC:setDB('party', 'nameFontSize', value) end
@@ -798,11 +857,39 @@ option:slider('party', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133, 1
 	if value ~= BC:getDB('party', 'valueFontSize') then BC:setDB('party', 'valueFontSize', value) end
 end)
 
-option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
+
+-- Buff/Debuff图标大小
+option:slider('party', 'auraSize', 'valueStyle', 1, vertical - 46, 160, 16, 8, 32, 8, 32, 1, function(self, value)
+	value = floor(value)
+	option.party.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	if value ~= BC:getDB('party', 'auraSize') then BC:setDB('party', 'auraSize', value) end
+end)
+
+-- 一行Buff/Debuff数量
+option:slider('party', 'auraRows', 'auraSize', 0, vertical - 20, 160, 16, 8, 32, 8, 32, 1, function(self, value)
+	value = floor(value)
+	option.party.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	if value ~= BC:getDB('party', 'auraRows') then BC:setDB('party', 'auraRows', value) end
+end)
+
+-- Buff/Debuf起始X轴位置
+option:slider('party', 'auraX', 'auraRows', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.party.auraXText:SetText(L.auraX .. ': ' .. value)
+	if value ~= BC:getDB('party', 'auraX') then BC:setDB('party', 'auraX', value) end
+end)
+
+-- Buff/Debuf起始Y轴位置
+option:slider('party', 'auraY', 'auraX', 0, vertical - 20, 160, 16, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.party.auraYText:SetText(L.auraY .. ': ' .. value)
+	if value ~= BC:getDB('party', 'auraY') then BC:setDB('party', 'auraY', value) end
+end)
 --[[ 队友设置 结束 ]]
 
 --[[ 队友的宠物设置 开始 ]]
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
 
 -- 隐藏名字
 option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
@@ -830,11 +917,11 @@ option:slider('partypet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 133
 	if value ~= BC:getDB('partypet', 'valueFontSize') then BC:setDB('partypet', 'valueFontSize', value) end
 end)
 
-option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 --[[ 队友的宠物设置 结束 ]]
 
 --[[ 队友目标的设置 开始 ]]
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框架
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
 option:check('partytarget', 'healthBarClass', 'hideFrame') -- 生命条职业色(玩家)
 
 -- 头像显示职业图标(玩家)
@@ -868,5 +955,5 @@ option:slider('partytarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, 
 	if value ~= BC:getDB('partytarget', 'valueFontSize') then BC:setDB('partytarget', 'valueFontSize', value) end
 end)
 
-option:downMenu('partytarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 状态数值
+option:downMenu('partytarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
 --[[ 队友目标的设置 结束 ]]

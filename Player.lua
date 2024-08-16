@@ -8,7 +8,17 @@ BC.player = PlayerFrame
 BC.player.name:SetPoint('TOP', 50, -26.5) -- 名字
 BC.player.borderTexture = PlayerFrameTexture -- 边框
 BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
+
 BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
+hooksecurefunc(BC.player.flash, 'Hide', function(self)
+	if BC:getDB(self.unit, 'combatFlash') and UnitAffectingCombat(self.unit) then
+		self:SetVertexColor(1, 0, 0)
+		self:SetAlpha(.7)
+		if not self:IsShown() then self:Show() end
+	else
+		self:SetAlpha(0)
+	end
+end)
 
 -- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)

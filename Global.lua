@@ -80,9 +80,8 @@ BC.default = {
 		nameFontSize = 14,
 		valueFontSize = 12,
 		valueStyle = 5,
-
-		auraRows = 5, -- 一行最多Buff/Debuff
 		auraSize = 20, -- 图标大小
+		auraRows = 5, -- 一行最多Buff/Debuff
 		auraX = -17, -- 起始X轴位置
 		auraY = -46 , -- 起始Y轴位置
 	},
@@ -173,7 +172,7 @@ BC.default = {
 	},
 }
 
--- 单元框架
+-- 单元框体
 BC.unitList = {
 	'player',
 	'pet',
@@ -325,7 +324,7 @@ function BC:drag(frame, parent, drag, combat, shift, callBack)
 		self.moving = nil
 	end)
 end
--- 自由拖动系统框架
+-- 自由拖动系统框体
 BC:drag(PaperDollFrame, CharacterFrame) -- 角色信息
 BC:drag(ReputationFrame, CharacterFrame) -- 声望
 BC:drag(SkillFrame, CharacterFrame) -- 技能
@@ -440,11 +439,11 @@ function BC:aura(unit)
 	local key = unit:gsub('[%d-]', '')
 	local maxBuffs = MAX_TARGET_BUFFS -- 最多Buff
 	local maxDebuffs = MAX_TARGET_DEBUFFS -- 最多Debuff
-	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行最多数量
-	local spac = 2 -- 间隔
-	local size = self:getDB(key, 'auraSize') or 21
+	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行Buff/Debuff数量
+	local size = self:getDB(key, 'auraSize') -- Buff/Debuff图标大小
 	local offsetX = self:getDB(key, 'auraX') -- 起始坐标X
 	local offsetY = self:getDB(key, 'auraY') -- 起始坐标Y
+	local spac = 2 -- 间隔
 	local dark = BC:getDB('global', 'dark')
 	local valueFont = self:getDB('global', 'valueFont')
 	local fontFlags = self:getDB('global', 'fontFlags')
@@ -1050,7 +1049,7 @@ function BC:update(unit)
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
-	-- 隐藏框架
+	-- 隐藏框体
 	if self:getDB(key, 'hideFrame') or UnitInVehicle('player') and unit == 'pettarget' then
 		frame:Hide()
 		return
@@ -1240,17 +1239,7 @@ function BC:init(unit)
 	end
 
 	-- 战斗状态边框红光
-	if frame.flash then
-		hooksecurefunc(frame.flash, 'Hide', function(self)
-			if BC:getDB(key, 'combatFlash') and UnitAffectingCombat(unit) then
-				self:SetVertexColor(1, 0, 0)
-				self:SetAlpha(.7)
-				self:Show()
-			else
-				self:SetAlpha(0)
-			end
-		end)
-	end
+	if frame.flash then frame.flash:Hide() end
 
 	-- PVP图标
 	if frame.pvpIcon then

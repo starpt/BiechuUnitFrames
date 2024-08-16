@@ -29,7 +29,18 @@ for unit, frame in pairs({
 	frame.name:SetWidth(120)
 	frame.name:SetPoint('CENTER', -50, 17.5)
 
-	frame.flash = _G[frame:GetName() .. 'Flash'] -- 战斗中边框发红光
+	-- 战斗中边框发红光
+	frame.flash = _G[frame:GetName() .. 'Flash']
+	hooksecurefunc(frame.flash, 'Hide', function(self)
+		if BC:getDB(self.unit, 'combatFlash') and UnitAffectingCombat(self.unit) then
+			self:SetVertexColor(1, 0, 0)
+			self:SetAlpha(.7)
+			if not self:IsShown() then self:Show() end
+		else
+			self:SetAlpha(0)
+		end
+	end)
+
 	frame.statusBar = frame.nameBackground -- 状态栏
 
 	-- 体力
