@@ -548,7 +548,8 @@ function BC:aura(unit)
 	total = 0
 	for i = 1, maxDebuffs do
 		local name = frame:GetName() .. 'Debuff' .. i
-		local debuff = _G[name] or CreateFrame('Button', name, frame)
+		local debuff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
+		if not debuff then break end
 		debuff:SetFrameLevel(5)
 
 		debuff.icon = _G[name .. 'Icon']
