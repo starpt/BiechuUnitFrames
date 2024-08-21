@@ -41,6 +41,7 @@ for unit, frame in pairs({
 		end
 	end)
 
+	frame.castBar = _G[frame:GetName() .. 'SpellBar'] -- 施法条
 	frame.statusBar = frame.nameBackground -- 状态栏
 
 	-- 体力

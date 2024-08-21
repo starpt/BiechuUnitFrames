@@ -11,7 +11,7 @@ BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
 
 BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
 hooksecurefunc(BC.player.flash, 'Hide', function(self)
-	if BC:getDB(self.unit, 'combatFlash') and UnitAffectingCombat(self.unit) then
+	if BC:getDB('player', 'combatFlash') and UnitAffectingCombat('player') then
 		self:SetVertexColor(1, 0, 0)
 		self:SetAlpha(.7)
 		if not self:IsShown() then self:Show() end

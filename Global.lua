@@ -19,7 +19,6 @@ BC.default = {
 		fontFlags = L.fontFlagsList[2].value,
 		dragSystemFarmes = true,
 		incomingHeals = true,
-		autoTab = true,
 		autoNameplate = true,
 	},
 	player = {
@@ -37,7 +36,7 @@ BC.default = {
 		border = 1,
 		portrait = 0,
 		scale = 1,
-		nameFontSize = 14,
+		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 2,
 	},
@@ -77,13 +76,13 @@ BC.default = {
 		dispelStealable = true,
 		scale = 1,
 		statusBarAlpha = 1,
-		nameFontSize = 14,
+		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 5,
 		auraSize = 20, -- 图标大小
 		auraRows = 5, -- 一行最多Buff/Debuff
 		auraX = -17, -- 起始X轴位置
-		auraY = -46 , -- 起始Y轴位置
+		auraY = 54 , -- 起始Y轴位置
 	},
 	targettarget = {
 		anchor = 'TargetFrame',
@@ -109,13 +108,13 @@ BC.default = {
 		dispelStealable = true,
 		scale = 1,
 		statusBarAlpha = 1,
-		nameFontSize = 14,
+		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 5,
-		auraRows = 5, -- 一行最多Buff/Debuff
 		auraSize = 20, -- 图标大小
+		auraRows = 5, -- 一行最多Buff/Debuff
 		auraX = -17, -- 起始X轴位置
-		auraY = -46 , -- 起始Y轴位置
+		auraY = 54 , -- 起始Y轴位置
 	},
 	focustarget = {
 		anchor = 'FocusFrame',
@@ -148,7 +147,7 @@ BC.default = {
 		auraRows = 16, -- 一行最多Buff/Debuff
 		auraSize = 16, -- 图标大小
 		auraX = -15, -- 起始X轴位置
-		auraY = -36, -- 起始Y轴位置
+		auraY = 17, -- 起始Y轴位置
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -440,7 +439,7 @@ function BC:aura(unit)
 	local maxBuffs = MAX_TARGET_BUFFS -- 最多Buff
 	local maxDebuffs = MAX_TARGET_DEBUFFS -- 最多Debuff
 	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行Buff/Debuff数量
-	local size = self:getDB(key, 'auraSize') -- Buff/Debuff图标大小
+	local size = self:getDB(key, 'auraSize') or 20 -- Buff/Debuff图标大小
 	local offsetX = self:getDB(key, 'auraX') -- 起始坐标X
 	local offsetY = self:getDB(key, 'auraY') -- 起始坐标Y
 	local spac = 2 -- 间隔
@@ -453,7 +452,8 @@ function BC:aura(unit)
 	local total = 0
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
-		local buff = _G[name] or CreateFrame('Button', name, frame)
+		local buff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
+		if not buff then break end
 		buff:SetFrameLevel(5)
 
 		buff.icon = _G[name .. 'Icon']
@@ -522,7 +522,7 @@ function BC:aura(unit)
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) -- 列数
 				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -617,7 +617,7 @@ function BC:aura(unit)
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) + row -- 列数
 				debuff:ClearAllPoints()
-				debuff:SetPoint('TOPLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
+				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
 			end
 
 			debuff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -649,11 +649,11 @@ function BC:aura(unit)
 
 	-- 施法条定位
 	if frame.castBar then
-		local _, _, relative, offsetX, offsetY = frame.castBar:GetPoint()
+		local _, parent, relative, offsetX, offsetY = frame.castBar:GetPoint()
 		frame.castBar.relative = frame.castBar.relative or relative
 		frame.castBar.offsetX = frame.castBar.offsetX or offsetX
 		frame.castBar.offsetY = frame.castBar.offsetY or offsetY
-		frame.castBar:SetPoint(frame.castBar.relative, frame.castBar.offsetX, frame.castBar.offsetY - ((size or 21) + spac) * (ceil(total / rows) + row))
+		frame.castBar:SetPoint(frame.castBar.relative, frame.castBar.offsetX, frame.castBar.offsetY - (size + spac) * (ceil(total / rows) + row))
 	end
 end
 
@@ -886,6 +886,7 @@ end
 -- 预治疗
 function BC:incomingHeals(unit)
 	local heals = UnitGetIncomingHeals(unit)
+	if type(heals) ~= 'number' then return end
 	for _, v in pairs(self.unitList) do
 		if UnitIsUnit(unit, v) and self[v]:IsShown() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
@@ -1123,6 +1124,7 @@ function BC:init(unit)
 			offsetY = self:GetTop() - anchor:GetTop()
 			relative = 'TOPLEFT'
 		end
+
 		if relative then BC:setDB(key, 'relative', relative) end
 		if offsetX then BC:setDB(key, 'offsetX', floor(offsetX)) end
 		if offsetY then BC:setDB(key, 'offsetY', floor(offsetY)) end
@@ -1257,7 +1259,7 @@ for _, event in pairs({
 	'ZONE_CHANGED', -- 区域更改
 	'ZONE_CHANGED_NEW_AREA', -- 传送
 	'UNIT_TARGET', -- 目标切换
-	-- 'UNIT_FLAGS', -- 战斗状态
+	'UNIT_FLAGS', -- 战斗状态
 }) do
 	BC:RegisterEvent(event)
 end
@@ -1301,6 +1303,8 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 		end
 	elseif event == 'UNIT_TARGET' then
 		self:update((unit == 'player' and 'target' or unit) .. 'target')
+	elseif event == 'UNIT_FLAGS' then
+		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
 		self:incomingHeals(unit)
 	end

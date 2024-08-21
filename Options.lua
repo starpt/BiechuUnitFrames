@@ -229,10 +229,10 @@ function option:init()
 		if self[key].nameFontSize then self[key].nameFontSize:SetValue(BC:getDB(key, 'nameFontSize')) end -- 名字字体大小
 		if self[key].valueFontSize then self[key].valueFontSize:SetValue(BC:getDB(key, 'valueFontSize')) end -- 数值字体大小
 		if self[key].valueStyleDown then self[key].valueStyleDown:OnShow() end -- 数值样式
-		if self[key].auraSize then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff图标大小
-		if self[key].auraRows then self[key].auraRows:SetValue(BC:getDB(key, 'auraRows')) end -- 一行Buff/Debuff数量
-		if self[key].auraX then self[key].auraX:SetValue(BC:getDB(key, 'auraX')) end -- 起始X轴位置
-		if self[key].auraY then self[key].auraY:SetValue(BC:getDB(key, 'auraY')) end -- 起始Y轴位置
+		if self[key].auraSize and BC:getDB(key, 'auraSize') then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff图标大小
+		if self[key].auraRows and BC:getDB(key, 'auraRows') then self[key].auraRows:SetValue(BC:getDB(key, 'auraRows')) end -- 一行Buff/Debuff数量
+		if self[key].auraX and BC:getDB(key, 'auraX') then self[key].auraX:SetValue(BC:getDB(key, 'auraX')) end -- 起始X轴位置
+		if self[key].auraY and BC:getDB(key, 'auraY') then self[key].auraY:SetValue(BC:getDB(key, 'auraY')) end -- 起始Y轴位置
 		-- 隐藏名字
 		if self[key].hideName then
 			self[key].hideName:SetChecked(BC:getDB(key, 'hideName'))
