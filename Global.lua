@@ -147,7 +147,7 @@ BC.default = {
 		auraRows = 16, -- 一行最多Buff/Debuff
 		auraSize = 16, -- 图标大小
 		auraX = -15, -- 起始X轴位置
-		auraY = 17, -- 起始Y轴位置
+		auraY = 20, -- 起始Y轴位置
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -650,13 +650,22 @@ function BC:aura(unit)
 
 	-- 施法条定位
 	if frame.castBar then
-		local _, parent, relative, offsetX, offsetY = frame.castBar:GetPoint()
-		frame.castBar.relative = frame.castBar.relative or relative
-		frame.castBar.offsetX = frame.castBar.offsetX or offsetX
-		frame.castBar.offsetY = frame.castBar.offsetY or offsetY
-		frame.castBar:SetPoint(frame.castBar.relative, frame.castBar.offsetX, frame.castBar.offsetY - (size + spac) * (ceil(total / rows) + row))
+		local offsetY = - (size + spac) * (ceil(total / rows) + row)
+		if key == 'party' then
+			frame.castBar:SetPoint('BOTTOMLEFT', 18, offsetY - 8)
+		else
+			frame.castBar.offsetY = offsetY == 0 and 4 or 22 + offsetY
+		end
 	end
 end
+-- 施法完成
+hooksecurefunc('CastingBarFrame_FinishSpell', function(self)
+	if self.offsetY then
+		local _, _, relative = self:GetPoint()
+		self:SetPoint('TOPLEFT', self:GetParent(), relative, 25.5, self.offsetY)
+	end
+	if type(self.unit) == 'string' and self.unit:match('^party%d$') then self.flash = nil end
+end)
 
 -- 材质切换
 function BC:file(file, dark)
