@@ -2,7 +2,7 @@
 ## Title: BiechuUnitFrames
 ## Notes: 别处头像框体 /bc
 
-## Version: 3.4.3.5_beta3
+## Version: 3.4.3.5_beta4
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
 ## X-Website: https://github.com/starpt/BiechuUnitFrames
