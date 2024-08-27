@@ -654,18 +654,11 @@ function BC:aura(unit)
 		if key == 'party' then
 			frame.castBar:SetPoint('BOTTOMLEFT', 18, offsetY - 8)
 		else
+			frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, offsetY)
 			frame.castBar.offsetY = offsetY == 0 and 4 or 22 + offsetY
 		end
 	end
 end
--- 施法完成
-hooksecurefunc('CastingBarFrame_FinishSpell', function(self)
-	if self.offsetY then
-		local _, _, relative = self:GetPoint()
-		self:SetPoint('TOPLEFT', self:GetParent(), relative, 25.5, self.offsetY)
-	end
-	if type(self.unit) == 'string' and self.unit:match('^party%d$') then self.flash = nil end
-end)
 
 -- 材质切换
 function BC:file(file, dark)

@@ -41,7 +41,14 @@ for unit, frame in pairs({
 		end
 	end)
 
-	frame.castBar = _G[frame:GetName() .. 'SpellBar'] -- 施法条
+	-- 施法条
+	frame.castBar = _G[frame:GetName() .. 'SpellBar']
+	hooksecurefunc(frame.castBar, 'Show', function(self)
+		if self.offsetY then
+			self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, self.offsetY)
+		end
+	end)
+
 	frame.statusBar = frame.nameBackground -- 状态栏
 
 	-- 体力

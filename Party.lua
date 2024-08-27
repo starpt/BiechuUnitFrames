@@ -67,6 +67,9 @@ end)
 hooksecurefunc('CastingBarFrame_OnEvent', function(self, event, unit)
 	if type(unit) == 'string' and unit:match('^party%d$') then self.flash = nil end
 end)
+hooksecurefunc('CastingBarFrame_FinishSpell', function(self)
+	if type(self.unit) == 'string' and self.unit:match('^party%d$') then self.flash = nil end
+end)
 
 -- 队伍友的宠物变化
 hooksecurefunc('PartyMemberFrame_UpdatePet', function(self)
