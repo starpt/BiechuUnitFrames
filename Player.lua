@@ -36,7 +36,7 @@ hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
 end)
 
 -- 定位
-hooksecurefunc(BC.player, 'SetPoint', function(self, ...)
+hooksecurefunc(BC.player, 'SetPoint', function(self)
 	if self.moving then -- 载具自动还原
 		frame.lock = nil
 	else

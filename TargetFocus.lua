@@ -29,6 +29,15 @@ for unit, frame in pairs({
 	frame.name:SetWidth(120)
 	frame.name:SetPoint('CENTER', -50, 17.5)
 
+	-- 定位
+	hooksecurefunc(frame, 'SetPoint', function(self)
+		if not self.moving then
+			self.moving = true
+			BC:init(unit)
+			self.moving = nil
+		end
+	end)
+
 	-- 战斗中边框发红光
 	frame.flash = _G[frame:GetName() .. 'Flash']
 	hooksecurefunc(frame.flash, 'Hide', function(self)
