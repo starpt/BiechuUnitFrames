@@ -2,10 +2,10 @@
 ## Title: BiechuUnitFrames
 ## Notes: 别处头像框体 /bc
 
-## Version: 3.4.3.5_beta5
+## Version: 3.4.3.6_beta1
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
-## X-Website: https://github.com/starpt/BiechuUnitFrames
+## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
 ## X-eMail: starpt@gmail.com
 
 ## SavedVariables: BiechuUnitFramesDB

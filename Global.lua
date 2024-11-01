@@ -888,8 +888,22 @@ end
 
 -- 预治疗
 function BC:incomingHeals(unit)
+	local frame = self[unit]
+	if not frame then return end
+
+	if self:getDB('global', 'incomingHeals') then
+		frame.incomingHealsBar:Show()
+	else
+		frame.incomingHealsBar:Hide()
+		return
+	end
+
 	local heals = UnitGetIncomingHeals(unit)
-	if type(heals) ~= 'number' then return end
+	if type(heals) ~= 'number' then
+		if frame.incomingHealsBar then frame.incomingHealsBar:SetValue(0) end
+		return
+	end
+
 	for _, v in pairs(self.unitList) do
 		if UnitIsUnit(unit, v) and self[v]:IsShown() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
@@ -1234,13 +1248,6 @@ function BC:init(unit)
 			frame.incomingHealsBar:SetValue(0)
 			frame.incomingHealsBar:SetStatusBarTexture(self.texture .. 'UI-IncomingHealsBar')
 		end
-		if self:getDB('global', 'incomingHeals') then
-			frame.incomingHealsBar:Show()
-			self:RegisterEvent('UNIT_HEAL_PREDICTION')
-		else
-			frame.incomingHealsBar:Hide()
-			self:UnregisterEvent('UNIT_HEAL_PREDICTION')
-		end
 	end
 
 	-- 战斗状态边框红光
@@ -1263,6 +1270,9 @@ for _, event in pairs({
 	'ZONE_CHANGED_NEW_AREA', -- 传送
 	'UNIT_TARGET', -- 目标切换
 	'UNIT_FLAGS', -- 战斗状态
+	'PLAYER_TARGET_CHANGED', -- 切换目标
+	'PLAYER_FOCUS_CHANGED', -- 切换焦点
+	'UNIT_HEAL_PREDICTION', -- 治疗预测
 }) do
 	BC:RegisterEvent(event)
 end
@@ -1308,6 +1318,10 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 		self:update((unit == 'player' and 'target' or unit) .. 'target')
 	elseif event == 'UNIT_FLAGS' then
 		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
+	elseif event == 'PLAYER_TARGET_CHANGED' then
+		self:incomingHeals('target')
+	elseif event == 'PLAYER_FOCUS_CHANGED' then
+		self:incomingHeals('focus')
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
 		self:incomingHeals(unit)
 	end
