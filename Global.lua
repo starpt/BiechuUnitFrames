@@ -301,18 +301,22 @@ function BC:setDB(key, name, value)
 end
 
 -- 非战斗中按住Shift拖动
-function BC:drag(frame, parent, drag, combat, shift, callBack)
+function BC:drag(frame, parent, drag, callBack)
 	local mover = parent or frame
 	if not frame or not mover then return end
 
 	frame:SetScript('OnMouseDown', function(self, button)
-		if drag == nil and combat == nil then drag = BC:getDB('global', 'dragSystemFarmes') end
-		if drag and (not combat or not InCombatLockdown()) and (not shift or IsShiftKeyDown()) and button == 'LeftButton' then
-			self.moving = true
-			mover:SetMovable(true) -- 允许移动
-			mover:SetClampedToScreen(true) -- 屏幕内移动
-			mover:StartMoving()
+		if InCombatLockdown() or button ~= 'LeftButton' then return end
+		if type(callBack) == 'function' then
+			if not drag or not IsShiftKeyDown() then return end
+		else
+			if not BC:getDB('global', 'dragSystemFarmes') then return end
 		end
+
+		self.moving = true
+		mover:SetMovable(true) -- 允许移动
+		mover:SetClampedToScreen(true) -- 屏幕内移动
+		mover:StartMoving()
 	end)
 	frame:SetScript('OnMouseUp', function(self)
 		if self.moving then
@@ -1133,7 +1137,7 @@ function BC:init(unit)
 		end
 	end
 	-- 拖动
-	self:drag(frame, key == 'party' and unit ~= 'party1' and PartyMemberFrame1, self:getDB(key, 'drag'), true, true, function(self)
+	self:drag(frame, key == 'party' and unit ~= 'party1' and PartyMemberFrame1, self:getDB(key, 'drag'), function(self)
 		local _, _, relative, offsetX, offsetY = self:GetPoint()
 		-- 有父对像
 		if anchor then
