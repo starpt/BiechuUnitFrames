@@ -763,7 +763,7 @@ function BC:dark(unit)
 		if UnitIsPlayer(unit) and BC:getDB(key, 'statusBarClass') then
 			local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 			frame.statusBar:SetVertexColor(color.r, color.g, color.b)
-			BC.player.statusBar:Show()
+			frame.statusBar:Show()
 		elseif unit == 'player' then
 			BC.player.statusBar:Hide()
 		else
