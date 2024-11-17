@@ -984,7 +984,7 @@ function BC:bar(bar)
 	local valueStyle = self:getDB(key, 'valueStyle')
 	percent = floor(percent * 100 + .5) .. '%'
 
-	bar:SetScript('OnEnter', function(self)
+	bar:HookScript('OnEnter', function(self)
 		if valueStyle > 6 and self.MiddleText then
 			if valueStyle == 8 or valueStyle == 9 then
 				bar.MiddleText:SetText(percent)
@@ -995,7 +995,7 @@ function BC:bar(bar)
 		end
 	end)
 
-	bar:SetScript('OnLeave', function(self)
+	bar:HookScript('OnLeave', function(self)
 		if valueStyle > 6 and self.MiddleText then
 			self.MiddleText:Hide()
 		end
