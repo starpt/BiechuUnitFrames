@@ -10,9 +10,9 @@ BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
 BC.default = {
 	global = {
 		dark = true,
+		newClassIcon = true,
 		healthBarColor = true,
 		nameTextClassColor = true,
-		nameTextOutline = true,
 		carry = 1,
 		nameFont = L.fontList[1].value,
 		valueFont = L.fontList[1].value,
@@ -25,7 +25,6 @@ BC.default = {
 		relative = 'CENTER',
 		offsetX = -223,
 		offsetY = -98,
-		drag = true,
 		combatFlash = true,
 		miniIcon = true,
 		autoTalentEquip = true,
@@ -33,12 +32,13 @@ BC.default = {
 		hidePartyNumber = true,
 		fiveSecondRule = true,
 		druidBar = true,
-		border = 1,
-		portrait = 0,
-		scale = 1,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 2,
+		drag = true,
+		scale = 1,
+		border = 1,
+		portrait = 0,
 	},
 	pet = {
 		anchor = 'PlayerFrame',
@@ -55,34 +55,33 @@ BC.default = {
 		relative = 'BOTTOMRIGHT',
 		offsetX = 58,
 		offsetY = -8,
-		hideName = true,
 		portrait = 1,
-		scale = .6,
+		hideName = true,
 		nameFontSize = 12,
 		valueFontSize = 12,
 		valueStyle = 7,
+		scale = .6,
 	},
 	target = {
-		anchor = 'PlayerFrame',
-		relative = 'TOPLEFT',
-		offsetX = 445,
-		offsetY = 0,
-		drag = true,
+		relative = 'CENTER',
+		offsetX = 223,
+		offsetY = -98,
 		combatFlash = true,
 		miniIcon = true,
 		threatLeft = true,
-		selfCooldown = true,
-		dispelCooldown = true,
-		dispelStealable = true,
-		scale = 1,
 		statusBarAlpha = 1,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 5,
-		auraSize = 20, -- 图标大小
-		auraRows = 5, -- 一行最多Buff/Debuff
-		auraX = -17, -- 起始X轴位置
-		auraY = 54 , -- 起始Y轴位置
+		drag = true,
+		scale = 1,
+		selfCooldown = true,
+		dispelCooldown = true,
+		dispelStealable = true,
+		auraSize = 20,
+		auraRows = 5,
+		auraX = -17,
+		auraY = 54,
 	},
 	targettarget = {
 		anchor = 'TargetFrame',
@@ -95,26 +94,25 @@ BC.default = {
 		valueStyle = 2,
 	},
 	focus = {
-		anchor = 'PlayerFrame',
-		relative = 'TOPLEFT',
-		offsetX = -180,
-		offsetY = 0,
-		drag = true,
+		relative = 'CENTER',
+		offsetX = -418,
+		offsetY = -98,
 		combatFlash = true,
 		miniIcon = true,
 		threatLeft = true,
-		selfCooldown = true,
-		dispelCooldown = true,
-		dispelStealable = true,
-		scale = 1,
 		statusBarAlpha = 1,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 5,
-		auraSize = 20, -- 图标大小
-		auraRows = 5, -- 一行最多Buff/Debuff
-		auraX = -17, -- 起始X轴位置
-		auraY = 54 , -- 起始Y轴位置
+		drag = true,
+		scale = 1,
+		selfCooldown = true,
+		dispelCooldown = true,
+		dispelStealable = true,
+		auraSize = 20,
+		auraRows = 5,
+		auraX = -17,
+		auraY = 54,
 	},
 	focustarget = {
 		anchor = 'FocusFrame',
@@ -130,24 +128,24 @@ BC.default = {
 		relative = 'LEFT',
 		offsetX = 190,
 		offsetY = 325,
-		drag = true,
 		portraitCombat = true,
 		combatFlash = true,
-		showLevel = true,
-		raidShowParty = true,
-		showCastBar = true,
 		outRange = true,
-		selfCooldown = true,
-		dispelCooldown = true,
-		dispelStealable = true,
-		scale = 1,
+		raidShowParty = true,
+		showLevel = true,
+		showCastBar = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
-		auraRows = 16, -- 一行最多Buff/Debuff
-		auraSize = 16, -- 图标大小
-		auraX = -15, -- 起始X轴位置
-		auraY = 20, -- 起始Y轴位置
+		drag = true,
+		scale = 1,
+		selfCooldown = true,
+		dispelCooldown = true,
+		dispelStealable = true,
+		auraRows = 16,
+		auraSize = 16,
+		auraX = -15,
+		auraY = 2,
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -164,10 +162,10 @@ BC.default = {
 		offsetY = 2,
 		portrait = 1,
 		hideName = true,
-		scale = 1,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
+		scale = 1,
 	},
 }
 
@@ -220,6 +218,7 @@ BC.barList = {
 
 -- 头像材质
 BC.portraitList = {
+	[0] = 'New-Class-Icon',
 	[1] = 'TargetingFrame\\UI-Classes-Circles',
 	[2] = 'Cat',
 	[3] = 'Dog',
@@ -246,7 +245,7 @@ BC.creatureList = {
 }
 
 -- 读取变量
-function BC:getDB(key, name)
+function BC:getDB(key, name, real)
 	if type(key) ~= 'string' then return end
 	local db = _G[addonName .. 'DB'] or {}
 	local default = 'Public'
@@ -257,9 +256,9 @@ function BC:getDB(key, name)
 		return db[key][name]
 	end
 	db = db[db.config or default] or {}
-	if type(db) == 'table' and type(db[key]) == 'table' and db[key][name] ~= nil then
+	if type(db) == 'table' and type(db[key]) == 'table' and (db[key][name] ~= nil or real) then
 		return db[key][name]
-	elseif type(self.default[key]) == 'table' and self.default[key][name] ~= nil then
+	elseif type(self.default[key]) == 'table' and (self.default[key][name] ~= nil or real) then
 		return self.default[key][name]
 	end
 end
@@ -444,8 +443,8 @@ function BC:aura(unit)
 	local maxDebuffs = MAX_TARGET_DEBUFFS -- 最多Debuff
 	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行Buff/Debuff数量
 	local size = self:getDB(key, 'auraSize') or 20 -- Buff/Debuff图标大小
-	local offsetX = self:getDB(key, 'auraX') -- 起始坐标X
-	local offsetY = self:getDB(key, 'auraY') -- 起始坐标Y
+	local auraX = self:getDB(key, 'auraX') -- 起始坐标X
+	local auraY = self:getDB(key, 'auraY') -- 起始坐标Y
 	local spac = 2 -- 间隔
 	local dark = BC:getDB('global', 'dark')
 	local valueFont = self:getDB('global', 'valueFont')
@@ -521,12 +520,12 @@ function BC:aura(unit)
 			local iconSize = selfCast and size or size - 2
 			buff:SetSize(iconSize, iconSize)
 
-			if offsetX and offsetY then
+			if auraX and auraY then
 				local x = math.fmod(i, rows) -- 横排数
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) -- 列数
 				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -617,12 +616,12 @@ function BC:aura(unit)
 			local iconSize = selfCast and size or size - 2
 			debuff:SetSize(iconSize, iconSize)
 
-			if offsetX and offsetY then
+			if auraX and auraY then
 				local x = math.fmod(i, rows) -- 横排数
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) + row -- 列数
 				debuff:ClearAllPoints()
-				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', offsetX + x * (size + spac), offsetY - (size + spac) * y)
+				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
 			end
 
 			debuff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -654,12 +653,12 @@ function BC:aura(unit)
 
 	-- 施法条定位
 	if frame.castBar then
-		local offsetY = - (size + spac) * (ceil(total / rows) + row)
+		local auraY = - (size + spac) * (ceil(total / rows) + row)
 		if key == 'party' then
-			frame.castBar:SetPoint('BOTTOMLEFT', 18, offsetY - 8)
+			frame.castBar:SetPoint('BOTTOMLEFT', 18, auraY - 8)
 		else
-			frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, offsetY)
-			frame.castBar.offsetY = offsetY == 0 and 4 or 22 + offsetY
+			auraY = auraY > -28 and -28 or auraY
+			frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, auraY)
 		end
 	end
 end
@@ -675,14 +674,15 @@ function BC:portrait(unit)
 	if not frame or not frame.portrait then return end
 
 	-- 修正默认头像没有对齐问题
+	local dark = BC:getDB('global', 'dark')
 	if unit:match('^party%d$') then
-		if BC:getDB('global', 'dark') then
+		if dark then
 			frame.portrait:SetPoint('TOPLEFT', 6, -8)
 		else
 			frame.portrait:SetPoint('TOPLEFT', 7, -6)
 		end
 	elseif unit == 'focustarget' or unit == 'targettarget' then
-		if BC:getDB('global', 'dark') then
+		if dark then
 			frame.portrait:SetSize(39, 39)
 			frame.portrait:SetPoint('TOPLEFT', 2, -3.5)
 		else
@@ -697,7 +697,7 @@ function BC:portrait(unit)
 		local coord = CLASS_ICON_TCOORDS[select(2, UnitClass(unit))]
 		if type(coord) == 'table' then
 			frame.portrait:SetTexCoord(unpack(coord))
-			frame.portrait:SetTexture(self:file(self.portraitList[1]))
+			frame.portrait:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 		end
 	else
 		frame.portrait:SetTexCoord(0, 1, 0, 1)
@@ -851,7 +851,7 @@ function BC:dark(unit)
 			end
 			local coord = CLASS_ICON_TCOORDS[base]
 			if coord then
-				frame.miniIcon.icon:SetTexture(self:file('TargetingFrame\\UI-Classes-Circles'))
+				frame.miniIcon.icon:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 				frame.miniIcon.icon:SetTexCoord(unpack(coord))
 			end
 		else
@@ -984,22 +984,24 @@ function BC:bar(bar)
 	local valueStyle = self:getDB(key, 'valueStyle')
 	percent = floor(percent * 100 + .5) .. '%'
 
-	bar:HookScript('OnEnter', function(self)
-		if valueStyle > 6 and self.MiddleText then
-			if valueStyle == 8 or valueStyle == 9 then
-				bar.MiddleText:SetText(percent)
-			else
-				self.MiddleText:SetText(BC:carry(value) .. '/' .. BC:carry(valueMax))
-			end
-			self.MiddleText:Show()
+	if not bar.event then
+		if unit == 'player' then
+			bar:HookScript('OnEnter', function(self)
+				BC:setDB('cache', self:GetName(), BC:getDB(key, 'valueStyle'))
+			end)
+			bar:HookScript('OnLeave', function(self)
+				BC:setDB('cache', self:GetName(), nil)
+			end)
+		else
+			bar:SetScript('OnEnter', function(self)
+				BC:setDB('cache', self:GetName(), BC:getDB(key, 'valueStyle'))
+			end)
+			bar:SetScript('OnLeave', function(self)
+				BC:setDB('cache', self:GetName(), nil)
+			end)
 		end
-	end)
-
-	bar:HookScript('OnLeave', function(self)
-		if valueStyle > 6 and self.MiddleText then
-			self.MiddleText:Hide()
-		end
-	end)
+		bar.event = true
+	end
 
 	if valueStyle == 1 then
 		if bar.LeftText then
@@ -1058,6 +1060,16 @@ function BC:bar(bar)
 			bar.SideText:SetText(self:carry(value) .. '/' .. self:carry(valueMax))
 			bar.SideText:Show()
 		end
+	end
+
+	local hover = BC:getDB('cache', bar:GetName())
+	if bar.MiddleText and (hover == 7 or hover == 8 or hover == 9 or hover == 10) then
+		if hover == 9 then
+			bar.MiddleText:SetText(percent)
+		else
+			bar.MiddleText:SetText(self:carry(value) .. '/' .. self:carry(valueMax))
+		end
+		bar.MiddleText:Show()
 	end
 end
 -- 条更新
@@ -1136,9 +1148,11 @@ function BC:init(unit)
 			frame:SetPoint(relative, offsetX, offsetY)
 		end
 	end
+
 	-- 拖动
 	self:drag(frame, key == 'party' and unit ~= 'party1' and PartyMemberFrame1, self:getDB(key, 'drag'), function(self)
 		local _, _, relative, offsetX, offsetY = self:GetPoint()
+
 		-- 有父对像
 		if anchor then
 			offsetX = self:GetLeft() - anchor:GetLeft()
@@ -1147,8 +1161,9 @@ function BC:init(unit)
 		end
 
 		if relative then BC:setDB(key, 'relative', relative) end
-		if offsetX then BC:setDB(key, 'offsetX', floor(offsetX)) end
-		if offsetY then BC:setDB(key, 'offsetY', floor(offsetY)) end
+		if offsetX then BC:setDB(key, 'offsetX', floor(offsetX + .5)) end
+		if offsetY then BC:setDB(key, 'offsetY', floor(offsetY + .5)) end
+		-- print(key, BC:getDB(key, 'relative'), self:GetLeft(), BC:getDB(key, 'offsetX'), BC:getDB(key, 'offsetY'), self:GetTop() - UIParent:GetHeight())
 	end)
 
 	-- 头像上显示战斗信息
@@ -1203,18 +1218,17 @@ function BC:init(unit)
 			frame.miniIcon = CreateFrame('Button', nil, frame)
 			frame.miniIcon:SetPoint('TOPLEFT', 114, 0)
 			frame.miniIcon:SetSize(28, 28)
+			frame.miniIcon:SetAlpha(.8)
 			frame.miniIcon:SetHighlightTexture('Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight')
 
 			frame.miniIcon.border = frame.miniIcon:CreateTexture(nil, 'OVERLAY')
 			frame.miniIcon.border:SetPoint('CENTER', 9, -9)
 			frame.miniIcon.border:SetSize(40, 40)
-			frame.miniIcon.border:SetAlpha(.8)
 
 			frame.miniIcon.icon = frame.miniIcon:CreateTexture(nil, 'ARTWORK')
 			frame.miniIcon.icon:SetPoint('CENTER', .5, 0)
 			frame.miniIcon.icon:SetTexCoord(.06, .94, .06, .94)
 			frame.miniIcon.icon:SetSize(14, 14)
-			frame.miniIcon.icon:SetAlpha(.7)
 
 			frame.miniIcon:SetScript('OnEnter', function(self)
 				if InCombatLockdown() then return end -- 战斗中
