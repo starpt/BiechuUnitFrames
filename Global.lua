@@ -15,7 +15,7 @@ BC.classColor = {
 	['MAGE'] = CreateColor(0.25, 0.78, 0.92),
 	['ROGUE'] = CreateColor(1.0, 0.96, 0.41),
 	['DRUID'] = CreateColor(1.0, 0.49, 0.04),
-	["SHAMAN"] = CreateColor(0.0, 0.44, 0.87),
+	['SHAMAN'] = CreateColor(0.0, 0.44, 0.87),
 	['WARRIOR'] = CreateColor(0.78, 0.61, 0.43),
 }
 
@@ -43,7 +43,7 @@ BC.default = {
 		druidBar = true,
 		nameFontSize = 13,
 		valueFontSize = 12,
-		valueStyle = 2,
+		valueStyle = 9,
 		drag = true,
 		scale = 1,
 		border = 1,
@@ -123,7 +123,7 @@ BC.default = {
 		auraRows = 16,
 		auraSize = 16,
 		auraX = -15,
-		auraY = 2,
+		auraY = 18,
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -334,7 +334,7 @@ local	DISPEL_DEBUFF = {
 		4987,  -- 圣骑士 清洁术
 		528,   -- 牧师 祛病术
 		552,   -- 牧师 驱除疾病
-		526,  -- 萨满 驱毒术
+		2870, -- 萨满 祛病术
 		8170,  -- 萨满 净化图腾
 	},
 	['Magic'] = {
@@ -389,7 +389,7 @@ hooksecurefunc('CooldownFrame_Set', function(self)
 end)
 -- Buff/Debuff
 function BC:aura(unit)
-	local frame = BC[unit]
+	local frame = self[unit]
 	if not frame then return end
 	local key = unit:gsub('[%d-]', '')
 	local maxBuffs = MAX_TARGET_BUFFS -- 最多Buff
@@ -399,12 +399,12 @@ function BC:aura(unit)
 	local auraX = self:getDB(key, 'auraX') -- 起始坐标X
 	local auraY = self:getDB(key, 'auraY') -- 起始坐标Y
 	local spac = 2 -- 间隔
-	local dark = BC:getDB('global', 'dark')
+	local dark = self:getDB('global', 'dark')
 	local valueFont = self:getDB('global', 'valueFont')
 	local fontFlags = self:getDB('global', 'fontFlags')
-	local selfCooldown = BC:getDB(key, 'selfCooldown')
-	local dispelCooldown = BC:getDB(key, 'dispelCooldown')
-	local dispelStealable = BC:getDB(key, 'dispelStealable')
+	local selfCooldown = self:getDB(key, 'selfCooldown')
+	local dispelCooldown = self:getDB(key, 'dispelCooldown')
+	local dispelStealable = self:getDB(key, 'dispelStealable')
 	local total = 0
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
@@ -442,7 +442,7 @@ function BC:aura(unit)
 		if not buff.border then
 			buff.border = buff:CreateTexture(name .. 'Border', 'BORDER')
 			buff.border:SetAllPoints(buff)
-			buff.border:SetTexture(BC.texture .. 'Border')
+			buff.border:SetTexture(self.texture .. 'Border')
 		end
 		if dark then
 			buff.border:SetVertexColor(.1, .1, .1)
@@ -538,7 +538,7 @@ function BC:aura(unit)
 		if not debuff.border then
 			debuff.border = debuff:CreateTexture(name .. 'Border', 'BORDER')
 			debuff.border:SetAllPoints(debuff)
-			debuff.border:SetTexture(BC.texture .. 'Border')
+			debuff.border:SetTexture(self.texture .. 'Border')
 		end
 		if dark then
 			debuff.border:SetVertexColor(.1, .1, .1)
@@ -606,12 +606,16 @@ function BC:aura(unit)
 
 	-- 施法条定位
 	if frame.castBar then
-		local auraY = - (size + spac) * (ceil(total / rows) + row)
+		rows = ceil(total / rows) + row -- 行数
 		if key == 'party' then
-			frame.castBar:SetPoint('BOTTOMLEFT', 18, auraY - 8)
+			frame.castBar:SetPoint('BOTTOMLEFT', 18, - (size + spac) * rows - 8)
 		else
-			auraY = auraY > -28 and -28 or auraY
-			frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, auraY)
+			if rows > 1 then
+				frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, - (size + spac) * rows + 13)
+			else
+				local tot = self[unit .. 'target']
+				frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, tot and tot:IsShown() and -29 or -10)
+			end
 		end
 	end
 end
@@ -928,7 +932,7 @@ function BC:bar(bar)
 	bar:SetScript('OnEnter', function(self)
 		local key = self.unit
 		if type(key) ~= 'string' then return end
-		local valueStyle = BC:getDB(key:gsub('%d-', ''), 'valueStyle')
+		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			local value = self:GetValue()
 			local _, valueMax = self:GetMinMaxValues()
@@ -945,7 +949,7 @@ function BC:bar(bar)
 	bar:SetScript('OnLeave', function(self)
 		local key = self.unit
 		if type(key) ~= 'string' then return end
-		local valueStyle = BC:getDB(key:gsub('%d-', ''), 'valueStyle')
+		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			self.MiddleText:Hide()
 		end
@@ -1076,12 +1080,13 @@ function BC:update(unit)
 		return
 	end
 
-	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' or key == 'party' and (BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
-		if UnitExists(unit) then
+	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' or key == 'party' then
+		if UnitExists(unit) and (BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
 			frame:SetAlpha(1)
-			if not InCombatLockdown() and not frame:IsVisible()	then frame:Show() end
+			if not InCombatLockdown() then frame:Show() end
 		else
 			frame:SetAlpha(0)
+			if not InCombatLockdown() then frame:Hide() end
 		end
 	end
 	if not UnitExists(unit) then return end
@@ -1311,6 +1316,7 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 		end
 	elseif event == 'UNIT_FLAGS' then
 		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
+		self:update(unit)
 	elseif event == 'UNIT_TARGET' then
 		unit = unit == 'player' and 'target' or unit
 		self:update(unit)

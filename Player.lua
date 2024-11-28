@@ -47,7 +47,7 @@ BC.player.healthbar.MiddleText = PlayerFrameHealthBarText
 BC.player.healthbar.LeftText:SetPoint('LEFT', BC.player.healthbar, 4, -.5)
 BC.player.healthbar.RightText:SetPoint('RIGHT', BC.player.healthbar, -.5, -.5)
 BC.player.healthbar.SideText = BC.player.healthbar:CreateFontString()
-BC.player.healthbar.SideText:SetPoint('LEFT', BC.player.healthbar, 'RIGHT', -53, -.5)
+BC.player.healthbar.SideText:SetPoint('LEFT', BC.player.healthbar, 'RIGHT', 3, -.5)
 
 -- 法力
 BC.player.manabar.MiddleText = PlayerFrameManaBarText
@@ -252,11 +252,10 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 		end
 	elseif event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_REGEN_ENABLED' then
 		BC.player.flash:Hide()
+		BC:setDB('cache', 'threat', nil) -- 清空仇恨列表
 	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
-
 		local guid = UnitGUID('player')
 		local _, subevent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId = CombatLogGetCurrentEventInfo()
-
 		if sourceGUID == guid then -- 施法者自己
 			-- print(CombatLogGetCurrentEventInfo())
 			--[[

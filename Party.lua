@@ -292,6 +292,7 @@ end
 for _, event in pairs({
 	'UNIT_LEVEL', -- 升级
 	'UNIT_AURA', -- Buff/Debuff变化
+	'PLAYER_REGEN_ENABLED', -- 结束战斗
 }) do
 	frame:RegisterEvent(event)
 end
@@ -301,6 +302,14 @@ frame:SetScript('OnEvent', function(self, event, unit)
 		if pid then frame:level(BC['party' .. pid]) end
 	elseif event == 'UNIT_AURA' then
 		if pid then BC:aura('party' .. pid) end
+	elseif event == 'PLAYER_REGEN_ENABLED' then
+		if GetNumSubgroupMembers() > 0 then
+			for id = 1, MAX_PARTY_MEMBERS do
+				BC:update('party' .. id) -- 更新队友状态
+				BC:update('party' .. id .. 'pet')  -- 更新队友宠物状态
+				BC:update('party' .. id .. 'target')  -- 更新队友目标状态
+			end
+		end
 	end
 end)
 
