@@ -37,8 +37,18 @@ function option:check(key, name, relative, offsetX, offsetY, text, click)
 	parent[name] = CreateFrame('CheckButton', parent:GetName() .. name:gsub('^%l', string.upper), parent, 'ChatConfigCheckButtonTemplate')
 	parent[name]:SetPoint('TOPLEFT', relative and parent[relative] or parent, offsetX or 0, offsetY or vertical)
 	_G[parent[name]:GetName() .. 'Text']:SetText(L[text or name])
-	parent[name]:SetScript('OnClick', type(click) == 'function' and click or function(self)
+
+	parent[name].Click = type(click) == 'function' and click or function(self)
 		BC:setDB(key, name, self:GetChecked())
+	end
+	parent[name]:SetScript('OnClick', parent[name].Click)
+
+	hooksecurefunc(parent[name], 'SetEnabled', function(self, value)
+		if value then
+			_G[self:GetName() .. 'Text']:SetTextColor(1, 1, 1)
+		else
+			_G[self:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
+		end
 	end)
 end
 
@@ -55,11 +65,23 @@ function option:slider(key, name, relative, offsetX, offsetY, widht, height, low
 	parent[name .. 'Text'] = parent:CreateFontString(parent:GetName() .. name:gsub('^%l', string.upper) .. 'Text', 'ARTWORK', 'GameFontNormalSmall')
 	parent[name .. 'Text']:SetPoint('CENTER', parent[name], 0, 16)
 	if type(change) == 'function' then parent[name]:SetScript('OnValueChanged', change) end
+
+	hooksecurefunc(parent[name], 'SetEnabled', function(self, value)
+		if value then
+			_G[self:GetName() .. 'Text']:SetTextColor(1, .82, 0)
+			_G[self:GetName() .. 'Low']:SetTextColor(1, 1, 1)
+			_G[self:GetName() .. 'High']:SetTextColor(1, 1, 1)
+		else
+			_G[self:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
+			_G[self:GetName() .. 'Low']:SetTextColor(.5, .5, .5)
+			_G[self:GetName() .. 'High']:SetTextColor(.5, .5, .5)
+		end
+	end)
 end
 
 -- 下拉菜单选项初始化
 function option:downMenuInit(down, key, name, menus, width)
-	local text = _G[down:GetName()..'Text']
+	local text = _G[down:GetName() .. 'Text']
 	local function setFont(value)
 		if text and type(value) == 'string' and value:lower():match('%.ttf$') then
 			text:SetFont(value, select(2, text:GetFont()))
@@ -106,23 +128,29 @@ function option:downMenu(key, name, menus, relative, offsetX, offsetY, width, sh
 	-- 下拉选择
 	parent[name .. 'Down'] = CreateFrame('Frame', parent[name]:GetName() .. 'Down', parent, 'UIDropDownMenuTemplate')
 	parent[name .. 'Down']:SetPoint('TOPLEFT', parent[name], -18, -16)
-	parent[name .. 'Down'].OnShow = function(self)
+
+	parent[name].OnShow = function(self)
+		local down = _G[self:GetName() .. 'Down']
 		if type(show) == 'function' then
-			show(self, key, name, menus)
+			show(down, key, name, menus)
 		else
-			option:downMenuInit(self, key, name, menus)
+			option:downMenuInit(down, key, name, menus)
 		end
-		UIDropDownMenu_SetWidth(self, width and width or (isZh and 120 or 200))
+		UIDropDownMenu_SetWidth(down, width and width or (isZh and 120 or 200))
+	end
+
+	parent[name].SetEnabled = function(self, enabled)
+		UIDropDownMenu_SetDropDownEnabled(_G[self:GetName() .. 'Down'], enabled)
+		if enabled then
+			self:SetTextColor(1, .82, 0)
+		else
+			self:SetTextColor(.5, .5, .5)
+		end
 	end
 end
 
 -- 按钮
 function option:button(key, name, relative, offsetX, offsetY, width, click)
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
 	local parent = key == 'global' and self or self[key]
 	parent[name] = CreateFrame('Button', parent:GetName() .. name:gsub('^%l', string.upper), parent, 'UIPanelButtonTemplate')
 	parent[name]:SetPoint('TOPLEFT', relative and parent[relative] or parent, offsetX or 0, offsetY or 0)
@@ -159,10 +187,6 @@ function option:init()
 	local carry = BC:getDB('global', 'carry')
 	local carryCheck = carry == 1 or carry == 2
 	self.carry:SetChecked(carryCheck)
-	if not carryCheck then
-		_G[option.carrySlider:GetName() .. 'Low']:SetTextColor(.5, .5, .5)
-		_G[option.carrySlider:GetName() .. 'High']:SetTextColor(.5, .5, .5)
-	end
 	if isZh then
 		self.carrySlider:SetEnabled(carryCheck)
 		self.carrySlider:SetValue(carryCheck and carry or carry - 2)
@@ -170,10 +194,10 @@ function option:init()
 		self.carrySlider:Hide()
 	end
 
-	self.nameFontDown:OnShow() -- 名字字体
-	self.valueFontDown:OnShow() -- 数值字体
-	self.fontFlagsDown:OnShow() -- 字体轮廓
-	self.configDown:OnShow() -- 选择配置
+	self.nameFont:OnShow() -- 名字字体
+	self.valueFont:OnShow() -- 数值字体
+	self.fontFlags:OnShow() -- 字体轮廓
+	self.config:OnShow() -- 选择配置
 
 	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框体
 	self.incomingHeals:SetChecked(BC:getDB('global', 'incomingHeals')) -- 显示预配治疗
@@ -184,7 +208,6 @@ function option:init()
 
 	-- 显示法力/能量恢复提示
 	if BC.class == 'WARRIOR' then
-		_G[self.player.powerSpark:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
 		self.player.powerSpark:SetChecked(false)
 		self.player.powerSpark:SetEnabled(false)
 	else
@@ -199,21 +222,18 @@ function option:init()
 			self.player.druidBarEnergy:SetEnabled(true)
 			self.player.druidBar:SetChecked(true)
 		else
-			_G[self.player.druidBarEnergy:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
 			self.player.druidBarEnergy:SetEnabled(false)
 			self.player.druidBar:SetChecked(false)
 		end
 	else
 		self.player.druidBar:SetChecked(false)
 		self.player.druidBarEnergy:SetChecked(false)
-		_G[self.player.druidBar:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
-		_G[self.player.druidBarEnergy:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
 		self.player.druidBar:SetEnabled(false)
 		self.player.druidBarEnergy:SetEnabled(false)
 	end
 
-	self.player.borderDown:OnShow() -- 边框
-	self.player.portraitDown:OnShow() -- 头像
+	self.player.border:OnShow() -- 边框
+	self.player.portrait:OnShow() -- 头像
 
 	self.party.outRange:SetChecked(BC:getDB('party', 'outRange')) -- 超出范围半透明
 	self.party.raidShowParty:SetChecked(BC:getDB('party', 'raidShowParty')) -- 团队显示小队框体
@@ -221,7 +241,14 @@ function option:init()
 	self.party.showCastBar:SetChecked(BC:getDB('party', 'showCastBar')) -- 显示施法条
 
 	for _, key in pairs(option.list) do
-		if self[key].hideFrame then self[key].hideFrame:SetChecked(BC:getDB(key, 'hideFrame')) end -- 隐藏框体
+
+		-- 隐藏框体
+		local hideFrame = self[key].hideFrame
+		if hideFrame then
+			hideFrame:SetChecked(BC:getDB(key, 'hideFrame'))
+			hideFrame:Click(hideFrame)
+		end
+
 		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像上显示战斗信息
 		if self[key].combatFlash then self[key].combatFlash:SetChecked(BC:getDB(key, 'combatFlash')) end -- 战斗状态边框红光
 		if self[key].showThreat then self[key].showThreat:SetChecked(BC:getDB(key, 'showThreat')) end -- 显示威胁百分比
@@ -232,32 +259,22 @@ function option:init()
 		if self[key].statusBarAlpha then self[key].statusBarAlpha:SetValue(BC:getDB(key, 'statusBarAlpha')) end -- 状态栏透明度
 		if self[key].nameFontSize then self[key].nameFontSize:SetValue(BC:getDB(key, 'nameFontSize')) end -- 名字字体大小
 		if self[key].valueFontSize then self[key].valueFontSize:SetValue(BC:getDB(key, 'valueFontSize')) end -- 数值字体大小
-		if self[key].valueStyleDown then self[key].valueStyleDown:OnShow() end -- 数值样式
+		if self[key].valueStyleDown then self[key].valueStyle:OnShow() end -- 数值样式
 
 		-- 隐藏名字
-		if self[key].hideName then
-			local hideName = BC:getDB(key, 'hideName')
-			self[key].hideName:SetChecked(hideName)
-			if hideName and self[key].nameFontSize then
-				self[key].nameFontSizeText:SetTextColor(.5, .5, .5)
-				self[key].nameFontSize:SetEnabled(false)
-			end
+		local hideName = self[key].hideName
+		if hideName then
+			hideName:SetChecked(BC:getDB(key, 'hideName'))
+			hideName:Click(hideName)
 		end
 
 		if self[key].drag then self[key].drag:SetChecked(BC:getDB(key, 'drag')) end -- 排战斗中按住Shift拖动
 
 		-- 锚定玩家框体
-		if self[key].anchor then
-			local anchor = BC:getDB(key, 'anchor') == 'PlayerFrame'
-			self[key].anchor:SetChecked(anchor)
-			local scale = self[key].scale
-			if anchor then
-				scale:SetValue(1)
-				self[key].scaleText:SetTextColor(.5, .5, .5)
-			else
-				self[key].scaleText:SetTextColor(1, .82, 0)
-			end
-			scale:SetEnabled(anchor)
+		local anchor = self[key].anchor
+		if anchor then
+			anchor:SetChecked(BC:getDB(key, 'anchor') == 'PlayerFrame')
+			anchor:Click(anchor)
 		end
 
 		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
@@ -290,13 +307,6 @@ option:check('global', 'carry', 'nameTextClassColor', nil, nil, nil, function(se
 	local slider = option.carrySlider
 	if slider:IsVisible() then
 		BC:setDB('global', 'carry', (self:GetChecked() and 0 or 2) + slider:GetValue())
-		if self:GetChecked() then
-			_G[option.carrySlider:GetName() .. 'Low']:SetTextColor(1, 1, 1)
-			_G[option.carrySlider:GetName() .. 'High']:SetTextColor(1, 1, 1)
-		else
-			_G[option.carrySlider:GetName() .. 'Low']:SetTextColor(.5, .5, .5)
-			_G[option.carrySlider:GetName() .. 'High']:SetTextColor(.5, .5, .5)
-		end
 		option.carrySlider:SetEnabled(self:GetChecked())
 	else
 		BC:setDB('global', 'carry', self:GetChecked() and 2 or 0)
@@ -381,11 +391,6 @@ option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量�
 -- 显示自定义德鲁伊法力条
 option:check('player', 'druidBar', 'powerSpark', nil, nil, nil, function(self)
 	BC:setDB('player', 'druidBar', self:GetChecked())
-	if self:GetChecked() then
-		_G[option.player.druidBarEnergy:GetName() .. 'Text']:SetTextColor(1, 1, 1)
-	else
-		_G[option.player.druidBarEnergy:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
-	end
 	option.player.druidBarEnergy:SetEnabled(self:GetChecked())
 end)
 
@@ -475,12 +480,7 @@ option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示�
 -- 隐藏名字
 option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self)
 	BC:setDB('pet', 'hideName', self:GetChecked())
-	if option.pet.nameFontSize then option.pet.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.pet.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.pet.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.pet.nameFontSize then option.pet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
@@ -517,7 +517,19 @@ option:check('pet', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按
 
 
 --[[ 宠物的目标设置 开始 ]]
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+
+-- 隐藏框体
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+	local enabled = self:GetChecked()
+	BC:setDB('pettarget', 'hideFrame', enabled)
+	enabled = not enabled
+	if option.pettarget.portraitClass then option.pettarget.portraitClass:SetEnabled(enabled) end
+	if option.pettarget.healthBarClass then option.pettarget.healthBarClass:SetEnabled(enabled) end
+	if option.pettarget.hideName then option.pettarget.hideName:SetEnabled(enabled) end
+	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(enabled and not BC:getDB('pettarget', 'hideName')) end
+	if option.pettarget.valueFontSize then option.pettarget.valueFontSize:SetEnabled(enabled) end
+	if option.pettarget.valueStyle then option.pettarget.valueStyle:SetEnabled(enabled) end
+end)
 
 -- 头像显示职业图标(玩家)
 option:check('pettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
@@ -529,12 +541,7 @@ option:check('pettarget', 'healthBarClass', 'portraitClass') -- 体力条职业�
 -- 隐藏名字
 option:check('pettarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
 	BC:setDB('pettarget', 'hideName', self:GetChecked())
-	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.pettarget.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.pettarget.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
@@ -670,13 +677,11 @@ option:check('target', 'anchor', 'drag', nil, nil, nil, function(self)
 		offsetX = TargetFrame:GetLeft() - PlayerFrame:GetLeft()
 		offsetY = TargetFrame:GetTop() - PlayerFrame:GetTop()
 		option.target.scale:SetValue(1)
-		option.target.scaleText:SetTextColor(.5, .5, .5)
 		option.target.scale:SetEnabled(false)
 		BC:setDB('target', 'anchor', 'PlayerFrame')
 	else
 		offsetX = TargetFrame:GetLeft()
 		offsetY = TargetFrame:GetTop() - UIParent:GetHeight()
-		option.target.scaleText:SetTextColor(1, .82, 0)
 		option.target.scale:SetEnabled(true)
 		BC:setDB('target', 'anchor', nil)
 	end
@@ -739,12 +744,7 @@ option:check('targettarget', 'healthBarClass', 'portraitClass') -- 体力条职�
 -- 隐藏名字
 option:check('targettarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
 	BC:setDB('targettarget', 'hideName', self:GetChecked())
-	if option.targettarget.nameFontSize then option.targettarget.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.targettarget.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.targettarget.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.targettarget.nameFontSize then option.targettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
@@ -781,8 +781,8 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 
 
 --[[ 队友设置 开始 ]]
-option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
-option:check('party', 'portraitCombat', 'hideFrame') -- 头像上显示战斗信息
+-- option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+option:check('party', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('party', 'healthBarClass', 'combatFlash') -- 体力条职业色(玩家)
 
@@ -799,12 +799,7 @@ option:check('party', 'showCastBar', 'showLevel') -- 显示队友施法条
 -- 隐藏名字
 option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self)
 	BC:setDB('party', 'hideName', self:GetChecked())
-	if option.party.nameFontSize then option.party.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.party.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.party.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.party.nameFontSize then option.party.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
@@ -881,17 +876,22 @@ end)
 
 
 --[[ 队友的宠物设置 开始 ]]
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
+
+-- 隐藏框体
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+	local enabled = self:GetChecked()
+	BC:setDB('partypet', 'hideFrame', enabled)
+	enabled = not enabled
+	if option.partypet.hideName then option.partypet.hideName:SetEnabled(enabled) end
+	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName')) end
+	if option.partypet.valueFontSize then option.partypet.valueFontSize:SetEnabled(enabled) end
+	if option.partypet.valueStyle then option.partypet.valueStyle:SetEnabled(enabled) end
+end)
 
 -- 隐藏名字
 option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
 	BC:setDB('partypet', 'hideName', self:GetChecked())
-	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.partypet.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.partypet.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
@@ -913,23 +913,31 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 
 
 --[[ 队友目标的设置 开始 ]]
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
-option:check('partytarget', 'healthBarClass', 'hideFrame') -- 体力条职业色(玩家)
+
+-- 隐藏框体
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+	local enabled = self:GetChecked()
+	BC:setDB('partytarget', 'hideFrame', enabled)
+	enabled = not enabled
+	if option.partytarget.portraitClass then option.partytarget.portraitClass:SetEnabled(enabled) end
+	if option.partytarget.healthBarClass then option.partytarget.healthBarClass:SetEnabled(enabled) end
+	if option.partytarget.hideName then option.partytarget.hideName:SetEnabled(enabled) end
+	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(enabled and not BC:getDB('partytarget', 'hideName')) end
+	if option.partytarget.valueFontSize then option.partytarget.valueFontSize:SetEnabled(enabled) end
+	if option.partytarget.valueStyle then option.partytarget.valueStyle:SetEnabled(enabled) end
+end)
 
 -- 头像显示职业图标(玩家)
-option:check('partytarget', 'portraitClass', 'healthBarClass', nil, nil, nil, function(self)
+option:check('partytarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
 	BC:setDB('partytarget', 'portrait', self:GetChecked() and 1 or 0)
 end)
 
+option:check('partytarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
+
 -- 隐藏名字
-option:check('partytarget', 'hideName', 'portraitClass', nil, nil, nil, function(self)
+option:check('partytarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
 	BC:setDB('partytarget', 'hideName', self:GetChecked())
-	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(self:GetChecked()) end
-	if self:GetChecked() then
-		option.partytarget.nameFontSizeText:SetTextColor(.5, .5, .5)
-	else
-		option.partytarget.nameFontSizeText:SetTextColor(1, .82, 0)
-	end
+	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小

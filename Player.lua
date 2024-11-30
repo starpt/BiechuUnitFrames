@@ -256,21 +256,6 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
 		local guid = UnitGUID('player')
 		local _, subevent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId = CombatLogGetCurrentEventInfo()
-		if sourceGUID == guid then -- 施法者自己
-			-- print(CombatLogGetCurrentEventInfo())
-			--[[
-			[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
-			[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
-
-
-			[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
-[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
-[15:10:08]1732691408.395 SPELL_CAST_START false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
-[15:10:11]1732691411.319 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
-
- ]]
-		end
-
 
 		if destGUID == guid then -- 施法目标自己
 			if spellId == 13750 then -- 冲动, 加速能量恢复速度
