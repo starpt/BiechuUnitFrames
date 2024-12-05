@@ -67,6 +67,78 @@ if not BC.player.manabar.spark and BC.class ~= 'WARRIOR' then
 	BC.player.manabar.spark.point:SetSize(28, 28)
 end
 
+-- 天赋小图标(点击切换天赋)
+function frame:talent()
+	if not BC.player.miniIcon or not BC.player.miniIcon:IsShown() then return end
+
+	-- 小图标点击
+	BC.player.miniIcon.click = function()
+		local active = GetActiveTalentGroup('player', false) -- 当前天赋
+		if IsShiftKeyDown() then -- 按住Shift 一键脱光
+			EQUIPMENTMANAGER_BAGSLOTS = {} -- 背包空间缓存
+			for _, i in pairs({16, 17, 5, 7, 1, 3, 9, 10, 6, 8}) do
+				local durability = GetInventoryItemDurability(i)
+				if durability and durability > 0 then -- 有耐久度
+					for bag = 0, NUM_BAG_SLOTS do
+						EQUIPMENTMANAGER_BAGSLOTS[bag] = EQUIPMENTMANAGER_BAGSLOTS[bag] or {}
+						for slot = 1, C_Container.GetContainerNumSlots(bag) do
+							if not C_Container.GetContainerItemID(bag, slot) and not EQUIPMENTMANAGER_BAGSLOTS[bag][slot] then -- 背包有空位
+								PickupInventoryItem(i)
+								if bag == 0 then
+									PutItemInBackpack()
+								else
+									PutItemInBag(bag + CONTAINER_BAG_OFFSET)
+								end
+								EQUIPMENTMANAGER_BAGSLOTS[bag][slot] = true
+								break
+							end
+						end
+					end
+				end
+			end
+			C_EquipmentSet.UseEquipmentSet(-1)
+		else
+			SetActiveTalentGroup(3 - active) -- 切换天赋
+			BC.player.miniIcon.update = function() -- 切换天赋回调
+				BC.player.miniIcon.update = nil
+				BC.player.miniIcon:Hide()
+				BC.player.miniIcon:Show()
+			end
+		end
+	end
+
+	BC.player.miniIcon:SetPoint('TOPLEFT', 88, 1)
+	BC.player.miniIcon:SetFrameLevel(4)
+	BC.player.miniIcon.icon:SetPoint('CENTER', 1, 0)
+	if dark then BC.player.miniIcon.border:SetAlpha(.9) end
+
+	local active = GetActiveTalentGroup('player', false) -- 当前天赋
+	local talent = {}
+	local text
+	for i = 1, MAX_TALENT_TABS do
+		local _, name, _, icon, point = GetTalentTabInfo(i, 'player', false, active)
+		text = (text and text .. '/' or '') .. point
+		if not talent.point or talent.point < point then
+			talent = {
+				name = name,
+				icon = icon,
+				point = point,
+			}
+		end
+	end
+	if talent.icon and type(talent.point) == 'number' and talent.point > 0 then
+		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary) .. '(' .. talent.name ..'):', text, 1, 1, 0, 0, 1, 0}}
+		BC.player.miniIcon.icon:SetTexture(talent.icon)
+	else
+		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary)  .. ':', text, 1, 1, 0, 1, 0, 0}}
+		BC.player.miniIcon.icon:SetTexture('Interface\\Icons\\INV_Misc_QuestionMark')
+	end
+	BC.player.miniIcon.tip[2] = {L.shiftKeyDown .. ':', L.nude, 1, 1, 0, 0, 1, 0} -- Shift 一键脱装
+	BC.player.miniIcon.tip[3] = {L.click .. ':', L.switch .. (active == 1 and L.secondary or L.primary), 1, 1, 0, 0, 1, 0}
+
+	if type(BC.player.miniIcon.update) == 'function' then BC.player.miniIcon.update() end -- 切换天赋后回调
+end
+
 -- 德鲁伊法力条
 if BC.class == 'DRUID' and not BC.player.druid then
 	local windth, height = BC.player.manabar:GetSize()
@@ -140,6 +212,7 @@ end
 
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
+	frame:talent() -- 天赋小图标
 
 	-- 德鲁伊法力/能量条
 	if BC.player.druid then
@@ -236,6 +309,8 @@ for _, event in pairs({
 	'PLAYER_ENTERING_WORLD', -- 进入世界
 	'PLAYER_REGEN_DISABLED', -- 开始战斗
 	'PLAYER_REGEN_ENABLED', -- 结束战斗
+	'ACTIVE_TALENT_GROUP_CHANGED', -- 天赋切换
+	'PLAYER_TALENT_UPDATE', -- 天赋点更新
 	'UNIT_PET', -- 宠物变化
 	'COMBAT_LOG_EVENT_UNFILTERED', -- 战斗记录
 	'UNIT_POWER_UPDATE', -- 法力/怒气/能量等 更新
@@ -253,9 +328,24 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 	elseif event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_REGEN_ENABLED' then
 		BC.player.flash:Hide()
 		BC:setDB('cache', 'threat', nil) -- 清空仇恨列表
+	elseif event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' then
+		self:talent()
 	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
 		local guid = UnitGUID('player')
 		local _, subevent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId = CombatLogGetCurrentEventInfo()
+		if sourceGUID == guid then -- 施法者自己
+			-- print(CombatLogGetCurrentEventInfo())
+			--[[
+				[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
+				[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
+
+				[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
+				[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
+				[15:10:08]1732691408.395 SPELL_CAST_START false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
+				[15:10:11]1732691411.319 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
+			]]
+		end
+
 
 		if destGUID == guid then -- 施法目标自己
 			if spellId == 13750 then -- 冲动, 加速能量恢复速度

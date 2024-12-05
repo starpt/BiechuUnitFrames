@@ -478,7 +478,7 @@ function BC:aura(unit)
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) -- 列数
 				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (iconSize + spac), auraY - (size + spac) * y)
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -1111,7 +1111,7 @@ function BC:update(unit)
 
 	self:dark(unit)
 	self:portrait(unit)
-	frame.manabar.powerType = frame.manabar.powerType or UnitPowerType(unit)
+	if not frame.manabar.powerType then frame.manabar.powerType = UnitPowerType(unit) end
 	self:bar(frame.manabar)
 	self:bar(frame.healthbar)
 end

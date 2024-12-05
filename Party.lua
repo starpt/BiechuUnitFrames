@@ -290,6 +290,7 @@ function frame:partyID(unit)
 end
 
 for _, event in pairs({
+	'GROUP_ROSTER_UPDATE', -- 队伍变更
 	'UNIT_LEVEL', -- 升级
 	'UNIT_AURA', -- Buff/Debuff变化
 	'PLAYER_REGEN_ENABLED', -- 结束战斗
@@ -298,7 +299,17 @@ for _, event in pairs({
 end
 frame:SetScript('OnEvent', function(self, event, unit)
 	local pid = self:partyID(unit)
-	if event == 'UNIT_LEVEL' then
+	if event == 'GROUP_ROSTER_UPDATE' then
+		if GetNumSubgroupMembers() > 0 then
+			for id = 1, MAX_PARTY_MEMBERS do
+				local party = BC['party'.. id]
+				local level = UnitLevel('party'.. id)
+				if party and party.level and party.level:IsShown() and level > 0 then
+					party.level:SetText(level)
+				end
+			end
+		end
+	elseif event == 'UNIT_LEVEL' then
 		if pid then frame:level(BC['party' .. pid]) end
 	elseif event == 'UNIT_AURA' then
 		if pid then BC:aura('party' .. pid) end

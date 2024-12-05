@@ -385,7 +385,8 @@ option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
 --[[ 玩家设置 开始 ]]
 option:check('player', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 option:check('player', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
-option:check('player', 'hidePartyNumber', 'combatFlash') -- 在团队中隐藏小队编号
+option:check('player', 'miniIcon', 'combatFlash', nil, nil, 'talentIcon') -- 显示天赋小图标(点击切换天赋)
+option:check('player', 'hidePartyNumber', 'miniIcon') -- 在团队中隐藏小队编号
 option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复提示
 
 -- 显示自定义德鲁伊法力条
@@ -781,8 +782,42 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 
 
 --[[ 队友设置 开始 ]]
--- option:check('party', 'hideFrame', nil, 13, vertical - 8) -- 隐藏框体
-option:check('party', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+
+ -- 隐藏框体
+option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+	local enabled = self:GetChecked()
+	BC:setDB('party', 'hideFrame', enabled)
+	enabled = not enabled
+
+	option.party.portraitCombat:SetEnabled(enabled)
+	option.party.combatFlash:SetEnabled(enabled)
+	option.party.healthBarClass:SetEnabled(enabled)
+	option.party.portraitClass:SetEnabled(enabled)
+	option.party.outRange:SetEnabled(enabled)
+	option.party.raidShowParty:SetEnabled(enabled)
+	option.party.showLevel:SetEnabled(enabled)
+	option.party.showCastBar:SetEnabled(enabled)
+	option.party.hideName:SetEnabled(enabled)
+	option.party.nameFontSize:SetEnabled(enabled and not BC:getDB('party', 'hideName'))
+	option.party.valueFontSize:SetEnabled(enabled)
+	option.party.valueStyle:SetEnabled(enabled)
+
+	option.party.pointDefault:SetEnabled(enabled)
+	option.party.drag:SetEnabled(enabled)
+	option.party.scale:SetEnabled(enabled)
+
+	option.party.selfCooldown:SetEnabled(enabled)
+	option.party.dispelCooldown:SetEnabled(enabled)
+	option.party.dispelStealable:SetEnabled(enabled)
+	option.party.auraSize:SetEnabled(enabled)
+	option.party.auraRows:SetEnabled(enabled)
+	option.party.auraX:SetEnabled(enabled)
+	option.party.auraY:SetEnabled(enabled)
+	-- option.party.scale:SetEnabled(enabled)
+	-- option.party.scale:SetEnabled(enabled)
+end)
+
+option:check('party', 'portraitCombat', 'hideFrame') -- 头像上显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('party', 'healthBarClass', 'combatFlash') -- 体力条职业色(玩家)
 
@@ -882,10 +917,10 @@ option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	local enabled = self:GetChecked()
 	BC:setDB('partypet', 'hideFrame', enabled)
 	enabled = not enabled
-	if option.partypet.hideName then option.partypet.hideName:SetEnabled(enabled) end
-	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName')) end
-	if option.partypet.valueFontSize then option.partypet.valueFontSize:SetEnabled(enabled) end
-	if option.partypet.valueStyle then option.partypet.valueStyle:SetEnabled(enabled) end
+	option.partypet.hideName:SetEnabled(enabled)
+	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
+	option.partypet.valueFontSize:SetEnabled(enabled)
+	option.partypet.valueStyle:SetEnabled(enabled)
 end)
 
 -- 隐藏名字
@@ -919,12 +954,12 @@ option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(se
 	local enabled = self:GetChecked()
 	BC:setDB('partytarget', 'hideFrame', enabled)
 	enabled = not enabled
-	if option.partytarget.portraitClass then option.partytarget.portraitClass:SetEnabled(enabled) end
-	if option.partytarget.healthBarClass then option.partytarget.healthBarClass:SetEnabled(enabled) end
-	if option.partytarget.hideName then option.partytarget.hideName:SetEnabled(enabled) end
-	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(enabled and not BC:getDB('partytarget', 'hideName')) end
-	if option.partytarget.valueFontSize then option.partytarget.valueFontSize:SetEnabled(enabled) end
-	if option.partytarget.valueStyle then option.partytarget.valueStyle:SetEnabled(enabled) end
+	option.partytarget.portraitClass:SetEnabled(enabled)
+	option.partytarget.healthBarClass:SetEnabled(enabled)
+	option.partytarget.hideName:SetEnabled(enabled)
+	option.partytarget.nameFontSize:SetEnabled(enabled and not BC:getDB('partytarget', 'hideName'))
+	option.partytarget.valueFontSize:SetEnabled(enabled)
+	option.partytarget.valueStyle:SetEnabled(enabled)
 end)
 
 -- 头像显示职业图标(玩家)

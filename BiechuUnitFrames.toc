@@ -2,7 +2,7 @@
 ## Title: BiechuUnitFrames
 ## Notes: 别处头像框体 /bc
 
-## Version: 1.15.0_beta5
+## Version: 1.15.1_beta2
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
 ## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
