@@ -22,7 +22,6 @@ BC.classColor = {
 -- 默认设置
 BC.default = {
 	global = {
-		dark = true,
 		newClassIcon = true,
 		healthBarColor = true,
 		nameTextClassColor = true,
@@ -38,6 +37,9 @@ BC.default = {
 		offsetX = -223,
 		offsetY = -98,
 		combatFlash = true,
+		miniIcon = true,
+		autoTalentEquip = true,
+		equipmentIcon = true,
 		hidePartyNumber = true,
 		powerSpark = true,
 		druidBar = true,
@@ -78,7 +80,7 @@ BC.default = {
 		combatFlash = true,
 		showThreat = true,
 		miniIcon = true,
-		statusBarAlpha = 1,
+		statusBarAlpha = .5,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 7,
@@ -97,7 +99,6 @@ BC.default = {
 		relative = 'BOTTOMRIGHT',
 		offsetX = -35,
 		offsetY = -10,
-		portrait = 1,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 2,
@@ -138,8 +139,6 @@ BC.default = {
 		relative = 'TOPRIGHT',
 		offsetX = 150,
 		offsetY = 2,
-		portrait = 1,
-		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
@@ -219,6 +218,53 @@ BC.creatureList = {
 	[13] = 'Interface\\Icons\\Spell_Nature_Polymorph', -- 非战斗宠物
 	[14] = 'Interface\\Icons\\INV_Misc_QuestionMark', -- 未指定
 }
+
+-- 确认
+function BC:comfing(text, click)
+	local frame = _G[addonName .. 'Comfing']
+	if not frame then
+		frame = CreateFrame('Frame', addonName .. 'Comfing')
+		frame:Hide()
+		frame:SetPoint('CENTER')
+		frame:SetSize(320, 72)
+		frame:SetScale(.72)
+		frame:SetFrameStrata('TOOLTIP')
+		frame:SetFrameLevel(100) -- Lots of room to draw under it
+		frame:SetScript('OnKeyDown', function(self, key)
+			if key == 'ESCAPE' then
+				self:Hide()
+			end
+		end)
+
+		frame.border = CreateFrame('Frame', nil, frame, 'DialogBorderOpaqueTemplate')
+		frame.border:SetAllPoints(frame)
+		frame.text = frame:CreateFontString(nil, 'ARTWORK', 'GameFontHighlight')
+		frame.text:SetSize(290, 0)
+		frame.text:SetPoint('TOP', 0, -16)
+
+		frame.accept = CreateFrame('Button', nil, frame, 'UIPanelButtonTemplate')
+		frame.accept:SetSize(128, 21)
+		frame.accept:SetPoint('BOTTOMLEFT', 26, 16)
+		frame.accept:SetText(OKAY) -- 确认
+
+		frame.cancel = CreateFrame('Button', nil, frame, 'UIPanelButtonTemplate')
+		frame.cancel:SetSize(128, 21)
+		frame.cancel:SetPoint('LEFT', frame.accept, 'RIGHT', 12, 0)
+		frame.cancel:SetText(CANCEL) -- 取消
+		frame.cancel:SetScript('OnClick', function()
+			frame:Hide()
+		end)
+	end
+	frame.text:SetText(text)
+	frame:Show()
+
+	frame.accept:SetScript('OnClick', function()
+		if type(click) == 'function' then
+			click()
+		end
+		frame:Hide()
+	end)
+end
 
 -- 读取变量
 function BC:getDB(key, name, real)
@@ -320,6 +366,9 @@ BC:drag(SettingsPanel) -- 设置选项
 BC:drag(AddonList) -- 插件列表
 BC:drag(GossipFrame) -- 对话框
 BC:drag(MerchantFrame) -- 购物框
+hooksecurefunc('PlayerTalentFrame_LoadUI', function() -- 天赋
+	BC:drag(PlayerTalentFrame)
+end)
 hooksecurefunc('MacroFrame_LoadUI', function() -- 宏命令设置
 	BC:drag(MacroFrame)
 end)
@@ -478,7 +527,7 @@ function BC:aura(unit)
 				if x == 0 then x = rows end
 				local y = ceil(i / rows) -- 列数
 				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (iconSize + spac), auraY - (size + spac) * y)
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -1323,6 +1372,7 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 		self:update(unit .. 'target')
 		self:incomingHeals(unit)
 		self:incomingHeals(unit .. 'target')
+		self:threat(unit)
 	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
 		self:incomingHeals(unit)
 	elseif event == 'UNIT_THREAT_LIST_UPDATE' then -- 仇恨列表变化

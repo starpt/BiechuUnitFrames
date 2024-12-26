@@ -15,22 +15,21 @@ function frame:level(party)
 end
 
 -- 超出范围半透明
+local resSpell, rangeSpell
+if BC.class == 'PALADIN' then
+	resSpell = GetSpellInfo(7328)
+	rangeSpell = GetSpellInfo(635)
+elseif BC.class == 'PRIEST' then
+	resSpell = GetSpellInfo(2006)
+	rangeSpell = GetSpellInfo(2050)
+elseif BC.class == 'SHAMAN' then
+	resSpell = GetSpellInfo(2008)
+	rangeSpell = GetSpellInfo(331)
+elseif BC.class == 'DRUID' then
+	resSpell = GetSpellInfo(20484)
+	rangeSpell = GetSpellInfo(774)
+end
 function frame:UnitInRange(unit)
-	local resSpell, rangeSpell
-	if BC.class == 'PALADIN' then
-		resSpell = GetSpellInfo(7328)
-		rangeSpell = GetSpellInfo(635)
-	elseif BC.class == 'PRIEST' then
-		resSpell = GetSpellInfo(2006)
-		rangeSpell = GetSpellInfo(2050)
-	elseif BC.class == 'SHAMAN' then
-		resSpell = GetSpellInfo(2008)
-		rangeSpell = GetSpellInfo(331)
-	elseif BC.class == 'DRUID' then
-		resSpell = GetSpellInfo(20484)
-		rangeSpell = GetSpellInfo(774)
-	end
-
 	if UnitIsUnit('player', unit) then
 		return true
 	elseif UnitIsDeadOrGhost('player') then
@@ -53,7 +52,6 @@ end
 -- 小队背景 允许拖动
 hooksecurefunc('UpdatePartyMemberBackground', function(self)
 	if not PartyMemberBackground then return end
-	-- PartyMemberBackground:Show()
 	local numMembers = GetNumSubgroupMembers()
 	if numMembers > 0 then
 		PartyMemberBackground:SetPoint('BOTTOMLEFT', 'PartyMemberFrame' .. numMembers, -5, -5)
@@ -254,6 +252,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	BC[party].init = function()
 		frame:level(BC[party]) -- 等级
+		frame:outRange(party) -- 超出范围半透明
 		BC:aura(party) -- Buff/Debuff
 
 		-- 显示施法条
@@ -328,12 +327,12 @@ frame:SetScript('OnUpdate', function(self)
 	local now = GetTime()
 	if self.rate and now < self.rate then return end
 	self.rate = now + .02 -- 刷新率
-
+	local outRange = BC:getDB('party', 'outRange')
 	for id = 1, MAX_PARTY_MEMBERS do
 		BC:bar(BC['party' .. id .. 'target'].manabar)
 		BC:bar(BC['party' .. id.. 'target'].healthbar)
 		BC:bar(BC['party' .. id .. 'pet'].manabar)
 		BC:bar(BC['party' .. id.. 'pet'].healthbar)
-		self:outRange('party' .. id)
+		if outRange then self:outRange('party' .. id) end
 	end
 end)

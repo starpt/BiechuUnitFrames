@@ -87,7 +87,7 @@ for unit, frame in pairs({
 	if not frame.threatNumericIndicator then
 		frame.threatNumericIndicator = CreateFrame('Frame', nil, frame)
 		frame.threatNumericIndicator:SetSize(49, 18)
-		frame.threatNumericIndicator:SetPoint('TOP', -84, -5)
+		frame.threatNumericIndicator:SetPoint('TOP', -84, -4.5)
 		frame.threatNumericIndicator:Hide()
 		frame.threatNumericIndicator.bg = frame.threatNumericIndicator:CreateTexture(nil, 'BACKGROUND')
 		frame.threatNumericIndicator.bg:SetSize(37, 14)

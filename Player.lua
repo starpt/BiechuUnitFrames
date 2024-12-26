@@ -67,45 +67,106 @@ if not BC.player.manabar.spark and BC.class ~= 'WARRIOR' then
 	BC.player.manabar.spark.point:SetSize(28, 28)
 end
 
+-- 装备小图标
+function frame:equip()
+	if type(ItemRack) ~= 'table' or type(ItemRackUser) ~= 'table' or type(ItemRackUser.Sets) ~= 'table' then return end
+
+	local sets = {}
+	for i in pairs(ItemRackUser.Sets) do
+		if not i:match('^~') then
+			local show = true
+			for _, k in pairs(ItemRackUser.Hidden) do
+				if i == k then
+					show = nil
+					break
+				end
+			end
+			if show then table.insert(sets, i) end
+		end
+	end
+	table.sort(sets)
+
+	for i = 1, 6 do -- 最多6个装备小图标
+		local equip = _G['EquipSetFrame' .. i]
+		if not equip then
+			equip = CreateFrame('Button', 'EquipSetFrame' .. i, BC.player)
+			equip:SetFrameLevel(3)
+			equip:SetSize(18, 18)
+			equip:SetPoint('TOPLEFT', 96 + 18 * i, -3.5)
+			equip:SetHighlightTexture('Interface\\Buttons\\OldButtonHilight-Square')
+			equip.border = equip:CreateTexture(nil, 'BORDER')
+			equip.border:SetSize(24, 24)
+			equip.border:SetPoint('CENTER')
+			equip.border:SetTexture(BC.texture .. 'UI-SquareButton-Disabled')
+			equip.icon = equip:CreateTexture()
+			equip.icon:SetSize(14, 14)
+			equip.icon:SetPoint('CENTER')
+			equip.icon:SetTexCoord(.06, .94, .06, .94)
+		end
+		equip:Hide()
+	end
+
+	for i, k in pairs(sets) do
+		local equip = _G['EquipSetFrame' .. i]
+		if equip and BC:getDB('player', 'equipmentIcon') then
+			if ItemRackUser.CurrentSet == k then
+				equip:SetAlpha(1)
+			else
+				equip:SetAlpha(.4)
+			end
+			if dark then
+				equip.border:SetVertexColor(0, 0, 0)
+			else
+				equip.border:SetVertexColor(1, 1, 1)
+			end
+			equip.id = i
+			equip.name = k
+			equip.icon:SetTexture(ItemRackUser.Sets[k].icon)
+			equip:Show()
+
+			-- 鼠标悬停
+			equip:SetScript('OnEnter', function(self)
+				if InCombatLockdown() then return end -- 战斗中
+				self:SetAlpha(1)
+				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+				GameTooltip:AddDoubleLine(L.clickEquipment .. ':', self.name, 1, 1, 0, 0, 1, 0)
+				GameTooltip:AddDoubleLine(L.shiftKeyDown .. ':', L.saveEquipment, 1, 1, 0, 0, 1, 0)
+				GameTooltip:Show()
+			end)
+
+			-- 鼠标离开
+			equip:SetScript('OnLeave', function(self)
+				if self.name == ItemRackUser.CurrentSet then
+					self:SetAlpha(1)
+				else
+					self:SetAlpha(.4)
+				end
+				GameTooltip:Hide()
+			end)
+
+			-- 鼠标点击
+			equip:SetScript('OnMouseDown', function(self)
+				if IsShiftKeyDown() then -- 保存方案
+					BC:comfing(L.confirmEquipmentSet:format(self.name), function()
+						for i = 0, 19 do
+							ItemRackUser.Sets[self.name].equip[i] = ItemRack.GetID(i)
+						end
+						ItemRack.UpdateCurrentSet()
+					end)
+				else
+					for i = 1, 6 do -- 最多6个装备小图标
+						_G['EquipSetFrame' .. i]:SetAlpha(.4)
+					end
+					ItemRack.EquipSet(self.name)
+				end
+			end)
+		end
+	end
+end
+
 -- 天赋小图标(点击切换天赋)
 function frame:talent()
 	if not BC.player.miniIcon or not BC.player.miniIcon:IsShown() then return end
-
-	-- 小图标点击
-	BC.player.miniIcon.click = function()
-		local active = GetActiveTalentGroup('player', false) -- 当前天赋
-		if IsShiftKeyDown() then -- 按住Shift 一键脱光
-			EQUIPMENTMANAGER_BAGSLOTS = {} -- 背包空间缓存
-			for _, i in pairs({16, 17, 5, 7, 1, 3, 9, 10, 6, 8}) do
-				local durability = GetInventoryItemDurability(i)
-				if durability and durability > 0 then -- 有耐久度
-					for bag = 0, NUM_BAG_SLOTS do
-						EQUIPMENTMANAGER_BAGSLOTS[bag] = EQUIPMENTMANAGER_BAGSLOTS[bag] or {}
-						for slot = 1, C_Container.GetContainerNumSlots(bag) do
-							if not C_Container.GetContainerItemID(bag, slot) and not EQUIPMENTMANAGER_BAGSLOTS[bag][slot] then -- 背包有空位
-								PickupInventoryItem(i)
-								if bag == 0 then
-									PutItemInBackpack()
-								else
-									PutItemInBag(bag + CONTAINER_BAG_OFFSET)
-								end
-								EQUIPMENTMANAGER_BAGSLOTS[bag][slot] = true
-								break
-							end
-						end
-					end
-				end
-			end
-			C_EquipmentSet.UseEquipmentSet(-1)
-		else
-			SetActiveTalentGroup(3 - active) -- 切换天赋
-			BC.player.miniIcon.update = function() -- 切换天赋回调
-				BC.player.miniIcon.update = nil
-				BC.player.miniIcon:Hide()
-				BC.player.miniIcon:Show()
-			end
-		end
-	end
 
 	BC.player.miniIcon:SetPoint('TOPLEFT', 88, 1)
 	BC.player.miniIcon:SetFrameLevel(4)
@@ -118,25 +179,79 @@ function frame:talent()
 	for i = 1, MAX_TALENT_TABS do
 		local _, name, _, icon, point = GetTalentTabInfo(i, 'player', false, active)
 		text = (text and text .. '/' or '') .. point
-		if not talent.point or talent.point < point then
-			talent = {
+		if type(talent[active]) ~= 'table' or type(talent[active].point) ~= 'number' or talent[active].point < point then
+			talent[active] = {
 				name = name,
 				icon = icon,
 				point = point,
 			}
 		end
+		local _, name, _, icon, point = GetTalentTabInfo(i, 'player', false, 3 - active)
+		if type(talent[3 - active]) ~= 'table' or type(talent[3 - active].point) ~= 'number' or talent[3 - active].point < point then
+			talent[3 - active] = {
+				name = name,
+				point = point,
+			}
+		end
 	end
-	if talent.icon and type(talent.point) == 'number' and talent.point > 0 then
-		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary) .. '(' .. talent.name ..'):', text, 1, 1, 0, 0, 1, 0}}
-		BC.player.miniIcon.icon:SetTexture(talent.icon)
+
+	if type(talent[active].point) == 'number' and talent[active].point > 0 then
+		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary) .. '(' .. talent[active].name ..'):', text, 1, 1, 0, 0, 1, 0}}
 	else
 		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary)  .. ':', text, 1, 1, 0, 1, 0, 0}}
+	end
+
+	if talent[active].icon then
+		BC.player.miniIcon.icon:SetTexture(talent[active].icon)
+	else
 		BC.player.miniIcon.icon:SetTexture('Interface\\Icons\\INV_Misc_QuestionMark')
 	end
-	BC.player.miniIcon.tip[2] = {L.shiftKeyDown .. ':', L.nude, 1, 1, 0, 0, 1, 0} -- Shift 一键脱装
-	BC.player.miniIcon.tip[3] = {L.click .. ':', L.switch .. (active == 1 and L.secondary or L.primary), 1, 1, 0, 0, 1, 0}
 
-	if type(BC.player.miniIcon.update) == 'function' then BC.player.miniIcon.update() end -- 切换天赋后回调
+	BC.player.miniIcon.tip[2] = {L.shiftKeyDown .. ':', L.nude, 1, 1, 0, 0, 1, 0} -- Shift 一键脱装
+
+	if GetNumTalentGroups('player', false) > 1 then -- 可以切换天赋(开启双天赋)
+		BC.player.miniIcon.tip[3] = {L.click .. ':', L.switch .. (active == 1 and L.secondary or L.primary), 1, 1, 0, 0, 1, 0}
+		if BC:getDB('player', 'autoTalentEquip') and talent[3 - active].point > 0 then
+			BC.player.miniIcon.tip[4] = {L.switchAfter .. ':', talent[3 - active].name, 1, 1, 0, 0, 1, 0} -- 切换天赋后
+		end
+	end
+	if type(BC.player.miniIcon.update) == 'function' then BC.player.miniIcon:update() end -- 切换天赋后回调
+
+	-- 小图标点击
+	BC.player.miniIcon.click = function()
+		if IsShiftKeyDown() then -- 按住Shift 一键脱光
+			EQUIPMENTMANAGER_BAGSLOTS = {} -- 背包空间缓存
+			for _, i in pairs({16, 17, 5, 7, 1, 3, 9, 10, 6, 8}) do
+				local durability = GetInventoryItemDurability(i)
+				if durability and durability > 0 then -- 有耐久度
+					for	bag = BACKPACK_CONTAINER, NUM_BAG_FRAMES do
+						EQUIPMENTMANAGER_BAGSLOTS[bag] = EQUIPMENTMANAGER_BAGSLOTS[bag] or {}
+						for slot = 1, C_Container.GetContainerNumSlots(bag) do
+							if not C_Container.GetContainerItemID(bag, slot) and not EQUIPMENTMANAGER_BAGSLOTS[bag][slot] then -- 背包有空位
+								PickupInventoryItem(i)
+								if bag == 0 then
+									PutItemInBackpack()
+								else
+									PutItemInBag(bag + 30) -- CONTAINER_BAG_OFFSET 不等于30
+								end
+								EQUIPMENTMANAGER_BAGSLOTS[bag][slot] = true
+								break
+							end
+						end
+					end
+				end
+			end
+		else
+			SetActiveTalentGroup(3 - active) -- 切换天赋
+			BC.player.miniIcon.update = function(self) -- 切换天赋回调
+				if not self then return end
+				self.update = nil
+				if BC:getDB('player', 'autoTalentEquip') and type(talent[3 - active]) == 'table' and type(talent[3 - active].name) == 'string' then
+					ItemRack.EquipSet(talent[3 - active].name)
+				end
+			end
+		end
+	end
 end
 
 -- 德鲁伊法力条
@@ -212,7 +327,13 @@ end
 
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	frame:talent() -- 天赋小图标
+	frame:talent()
+	frame:equip()
+	if type(ItemRack) == 'table' then
+		hooksecurefunc(ItemRack, 'FireItemRackEvent', frame.equip)
+		hooksecurefunc(ItemRack, 'AddHidden', frame.equip)
+		hooksecurefunc(ItemRack, 'RemoveHidden', frame.equip)
+	end
 
 	-- 德鲁伊法力/能量条
 	if BC.player.druid then
@@ -313,17 +434,17 @@ for _, event in pairs({
 	'PLAYER_TALENT_UPDATE', -- 天赋点更新
 	'UNIT_PET', -- 宠物变化
 	'COMBAT_LOG_EVENT_UNFILTERED', -- 战斗记录
-	'UNIT_POWER_UPDATE', -- 法力/怒气/能量等 更新
+	'UNIT_POWER_FREQUENT', -- 法力/怒气/能量等 更新
 }) do
 	frame:RegisterEvent(event)
 end
 frame:SetScript('OnEvent', function(self, event, unit, ...)
 	if event == 'PLAYER_ENTERING_WORLD' then
-		local power = UnitPower('player')
-		if UnitPowerType('player') == 0 then -- 法力
-			self.lastMana = power
-		elseif UnitPowerType('player') == 3 then -- 能量
-			self.lastEnergy = power
+		if UnitPowerType('player') == 0 or BC.class == 'DRUID' then -- 法力
+			self.lastMana = UnitPower('player', 0)
+		end
+		if UnitPowerType('player') == 3 or BC.class == 'DRUID' then -- 能量
+			self.lastEnergy = UnitPower('player', 3)
 		end
 	elseif event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_REGEN_ENABLED' then
 		BC.player.flash:Hide()
@@ -333,20 +454,6 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
 		local guid = UnitGUID('player')
 		local _, subevent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId = CombatLogGetCurrentEventInfo()
-		if sourceGUID == guid then -- 施法者自己
-			-- print(CombatLogGetCurrentEventInfo())
-			--[[
-				[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
-				[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
-
-				[15:09:27]1732691367.039 SPELL_HEAL false Player-5453-03EE83D0 星沉海底 1297 0 Player-5453-03EE83D0 星沉海底 1297 0 6262 初级治疗石 1 100 92 0 false
-				[15:09:27]1732691367.039 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6262 初级治疗石 1
-				[15:10:08]1732691408.395 SPELL_CAST_START false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
-				[15:10:11]1732691411.319 SPELL_CAST_SUCCESS false Player-5453-03EE83D0 星沉海底 1297 0  nil -2147483648 -2147483648 6201 制造初级治疗石 32
-			]]
-		end
-
-
 		if destGUID == guid then -- 施法目标自己
 			if spellId == 13750 then -- 冲动, 加速能量恢复速度
 				if subevent == 'SPELL_AURA_APPLIED' then -- 冲动 开始
@@ -360,15 +467,14 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 				elseif subevent == 'SPELL_AURA_REMOVED' then -- 激活 结束
 					self.ignore = nil
 				end
-			elseif spellId and GetSpellInfo(spellId) == GetSpellInfo(1454)  then -- 跳过 生命分流
+			elseif subevent == 'SPELL_ENERGIZE' or spellId and GetSpellInfo(spellId) == GetSpellInfo(1454) then -- 法力药水恢复 生命分流 跳过
 				self.skip = true
 			end
 		end
-	elseif event == 'UNIT_POWER_UPDATE' then
-		local powerType = UnitPowerType('player')
+	elseif event == 'UNIT_POWER_FREQUENT' then
 		if unit == 'player' then
 			local now = GetTime()
-			if powerType == 0 then -- 法力
+			if UnitPowerType('player') == 0 or BC.class == 'DRUID' then -- 法力
 				local mana = UnitPower('player', 0)
 				if not self.ignore and type(self.lastMana) == 'number' and mana < self.lastMana then
 					self.waitTime = now + 5
@@ -381,12 +487,14 @@ frame:SetScript('OnEvent', function(self, event, unit, ...)
 					end
 				end
 				self.lastMana = mana
-			elseif powerType == 3 then -- 能量
+			end
+
+			if UnitPowerType('player') == 3 or BC.class == 'DRUID' then -- 能量
 				local energy = UnitPower('player', 3)
 				if type(self.lastEnergy) ~= 'number' or energy > self.lastEnergy then
 					BC:setDB('cache', 'energyTime', now)
 				end
-				self.lastEnergy = energy
+				self.lastEnergy = UnitPower('player', 3)
 			end
 		end
 	elseif event == 'UNIT_PET' then

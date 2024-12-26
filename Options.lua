@@ -204,6 +204,16 @@ function option:init()
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.alwaysCompareItems:SetChecked(GetCVar('alwaysCompareItems') == '1') -- 启用装备对比
 
+
+	-- 切换天赋后装备套装(ItemRack)
+	local hasItemRack = type(ItemRack) == 'table'
+	self.player.autoTalentEquip:SetChecked(hasItemRack and BC:getDB('player', 'autoTalentEquip'))
+	self.player.autoTalentEquip:SetEnabled(hasItemRack and BC:getDB('player', 'miniIcon'))
+
+	-- 显示装备小图标(ItemRack)
+	self.player.equipmentIcon:SetChecked(hasItemRack and BC:getDB('player', 'equipmentIcon'))
+	self.player.equipmentIcon:SetEnabled(hasItemRack)
+
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
 	-- 显示法力/能量恢复提示
@@ -278,8 +288,20 @@ function option:init()
 		end
 
 		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
-		if self[key].selfCooldown then self[key].selfCooldown:SetChecked(BC:getDB(key, 'selfCooldown')) end -- 只显示我施放的Buff/Debuff倒计时(OmniCC)
-		if self[key].dispelCooldown then self[key].dispelCooldown:SetChecked(BC:getDB(key, 'dispelCooldown')) end -- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
+
+		-- 只显示我施放的Buff/Debuff倒计时(OmniCC)
+		local hasOmniCC = type(OmniCC) == 'table'
+		if self[key].selfCooldown then
+			self[key].selfCooldown:SetChecked(hasOmniCC and BC:getDB(key, 'selfCooldown'))
+			self[key].selfCooldown:SetEnabled(hasOmniCC)
+		end
+
+		-- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
+		if self[key].dispelCooldown then
+			self[key].dispelCooldown:SetChecked(hasOmniCC and BC:getDB(key, 'dispelCooldown'))
+			self[key].dispelCooldown:SetEnabled(hasOmniCC)
+		end
+
 		if self[key].dispelStealable then self[key].dispelStealable:SetChecked(BC:getDB(key, 'dispelStealable')) end -- 高亮显示可以驱散的Buff/Debuff
 
 		if self[key].auraSize and BC:getDB(key, 'auraSize') then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff图标大小
@@ -360,9 +382,11 @@ option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
 		return
 	end
 
-	if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
-	option:init()
-	BC:init()
+	BC:comfing(L.confirmResetDefault, function()
+		if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
+		BC:init()
+		option:init()
+	end)
 end)
 
 option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框体
@@ -385,8 +409,16 @@ option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
 --[[ 玩家设置 开始 ]]
 option:check('player', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 option:check('player', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
-option:check('player', 'miniIcon', 'combatFlash', nil, nil, 'talentIcon') -- 显示天赋小图标(点击切换天赋)
-option:check('player', 'hidePartyNumber', 'miniIcon') -- 在团队中隐藏小队编号
+
+-- 显示天赋小图标(点击切换天赋)
+option:check('player', 'miniIcon', 'combatFlash', nil, nil, 'talentIcon', function(self)
+	BC:setDB('player', 'miniIcon', self:GetChecked())
+	option.player.autoTalentEquip:SetEnabled(self:GetChecked() and type(ItemRack) == 'table')
+end)
+
+option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切换天赋后装备套装(ItemRack)
+option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(ItemRack)
+option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
 option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复提示
 
 -- 显示自定义德鲁伊法力条
