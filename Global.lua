@@ -1271,9 +1271,9 @@ function BC:init(unit)
 			frame.miniIcon.border:SetSize(40, 40)
 
 			frame.miniIcon.icon = frame.miniIcon:CreateTexture(nil, 'ARTWORK')
-			frame.miniIcon.icon:SetPoint('CENTER', .5, 0)
-			frame.miniIcon.icon:SetTexCoord(.06, .94, .06, .94)
-			frame.miniIcon.icon:SetSize(14, 14)
+			frame.miniIcon.icon:SetPoint('CENTER', 1, -.5)
+			frame.miniIcon.icon:SetTexCoord(.05, .95, .05, .95)
+			frame.miniIcon.icon:SetSize(13, 13)
 
 			frame.miniIcon:SetScript('OnEnter', function(self)
 				if InCombatLockdown() then return end -- 战斗中

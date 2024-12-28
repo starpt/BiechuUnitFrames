@@ -27,26 +27,19 @@ elseif BC.class == 'SHAMAN' then
 	rangeSpell = GetSpellInfo(331)
 elseif BC.class == 'DRUID' then
 	resSpell = GetSpellInfo(20484)
-	rangeSpell = GetSpellInfo(774)
+	rangeSpell = GetSpellInfo(5185)
 end
-function frame:UnitInRange(unit)
-	if UnitIsUnit('player', unit) then
-		return true
-	elseif UnitIsDeadOrGhost('player') then
-		return false
-	elseif resSpell and UnitIsDeadOrGhost(unit) then
-		return IsSpellInRange(resSpell, unit) == 1
-	elseif rangeSpell then
-		return IsSpellInRange(rangeSpell, unit) == 1
-	else
-		return UnitInRange(unit)
+function frame:range(unit)
+	return UnitIsDead(unit) and resSpell and IsSpellInRange(resSpell, unit) == 1 or rangeSpell and IsSpellInRange(rangeSpell, unit) == 1 or UnitInRange(unit)
+end
+function frame:alpha()
+	for id = 1, MAX_PARTY_MEMBERS do
+		local party = 'party' .. id
+		local alpha = self:range(party) and 1 or .5
+		if UnitExists(party) then BC[party]:SetAlpha(alpha) end
+		if UnitExists(party .. 'target') then BC[party .. 'target']:SetAlpha(alpha) end
+		if UnitExists(party .. 'pet') then BC[party .. 'pet']:SetAlpha(alpha) end
 	end
-end
-function frame:outRange(party)
-	local alpha = BC:getDB('party', 'outRange') and not self:UnitInRange(party) and .5 or 1
-	if UnitExists(party) then BC[party]:SetAlpha(alpha) end
-	if UnitExists(party .. 'target') then BC[party .. 'target']:SetAlpha(alpha) end
-	if UnitExists(party .. 'pet') then BC[party .. 'pet']:SetAlpha(alpha) end
 end
 
 -- 小队背景 允许拖动
@@ -252,8 +245,13 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	BC[party].init = function()
 		frame:level(BC[party]) -- 等级
-		frame:outRange(party) -- 超出范围半透明
 		BC:aura(party) -- Buff/Debuff
+
+		if not BC:getDB('party', 'outRange') then
+			BC[party]:SetAlpha(1)
+			BC[partytarget]:SetAlpha(1)
+			BC[partypet]:SetAlpha(1)
+		end
 
 		-- 显示施法条
 		local showCastBar = BC:getDB('party', 'showCastBar')
@@ -327,12 +325,11 @@ frame:SetScript('OnUpdate', function(self)
 	local now = GetTime()
 	if self.rate and now < self.rate then return end
 	self.rate = now + .02 -- 刷新率
-	local outRange = BC:getDB('party', 'outRange')
 	for id = 1, MAX_PARTY_MEMBERS do
 		BC:bar(BC['party' .. id .. 'target'].manabar)
 		BC:bar(BC['party' .. id.. 'target'].healthbar)
 		BC:bar(BC['party' .. id .. 'pet'].manabar)
 		BC:bar(BC['party' .. id.. 'pet'].healthbar)
-		if outRange then self:outRange('party' .. id) end
 	end
+	if BC:getDB('party', 'outRange') then self:alpha() end
 end)

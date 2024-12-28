@@ -170,7 +170,6 @@ function frame:talent()
 
 	BC.player.miniIcon:SetPoint('TOPLEFT', 88, 1)
 	BC.player.miniIcon:SetFrameLevel(4)
-	BC.player.miniIcon.icon:SetPoint('CENTER', 1, 0)
 	if dark then BC.player.miniIcon.border:SetAlpha(.9) end
 
 	local active = GetActiveTalentGroup('player', false) -- 当前天赋
@@ -197,13 +196,9 @@ function frame:talent()
 
 	if type(talent[active].point) == 'number' and talent[active].point > 0 then
 		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary) .. '(' .. talent[active].name ..'):', text, 1, 1, 0, 0, 1, 0}}
-	else
-		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary)  .. ':', text, 1, 1, 0, 1, 0, 0}}
-	end
-
-	if talent[active].icon then
 		BC.player.miniIcon.icon:SetTexture(talent[active].icon)
 	else
+		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary)  .. ':', text, 1, 1, 0, 1, 0, 0}}
 		BC.player.miniIcon.icon:SetTexture('Interface\\Icons\\INV_Misc_QuestionMark')
 	end
 
@@ -240,6 +235,9 @@ function frame:talent()
 						end
 					end
 				end
+			end
+			for i = 1, 6 do -- 最多6个装备小图标
+				_G['EquipSetFrame' .. i]:SetAlpha(.4)
 			end
 		else
 			SetActiveTalentGroup(3 - active) -- 切换天赋
