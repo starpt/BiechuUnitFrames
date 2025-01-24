@@ -204,7 +204,6 @@ function option:init()
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.alwaysCompareItems:SetChecked(GetCVar('alwaysCompareItems') == '1') -- 启用装备对比
 
-<<<<<<< HEAD
 	-- 切换天赋后装备套装(ItemRack)
 	local hasItemRack = type(ItemRack) == 'table'
 	self.player.autoTalentEquip:SetChecked(hasItemRack and BC:getDB('player', 'autoTalentEquip'))
@@ -214,18 +213,6 @@ function option:init()
 	self.player.equipmentIcon:SetChecked(hasItemRack and BC:getDB('player', 'equipmentIcon'))
 	self.player.equipmentIcon:SetEnabled(hasItemRack)
 
-=======
-
-	-- 切换天赋后装备套装(ItemRack)
-	local hasItemRack = type(ItemRack) == 'table'
-	self.player.autoTalentEquip:SetChecked(hasItemRack and BC:getDB('player', 'autoTalentEquip'))
-	self.player.autoTalentEquip:SetEnabled(hasItemRack and BC:getDB('player', 'miniIcon'))
-
-	-- 显示装备小图标(ItemRack)
-	self.player.equipmentIcon:SetChecked(hasItemRack and BC:getDB('player', 'equipmentIcon'))
-	self.player.equipmentIcon:SetEnabled(hasItemRack)
-
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
 	-- 显示法力/能量恢复提示
@@ -267,26 +254,17 @@ function option:init()
 		-- 隐藏框体
 		local hideFrame = self[key].hideFrame
 		if hideFrame then
-<<<<<<< HEAD
 			if key == 'targettarget' then
 				hideFrame:SetChecked(GetCVar('showTargetOfTarget') ~= '1')
 			else
 				hideFrame:SetChecked(BC:getDB(key, 'hideFrame'))
 			end
 			hideFrame:Click()
-=======
-			hideFrame:SetChecked(BC:getDB(key, 'hideFrame'))
-			hideFrame:Click(hideFrame)
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 		end
 
 		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像上显示战斗信息
 		if self[key].combatFlash then self[key].combatFlash:SetChecked(BC:getDB(key, 'combatFlash')) end -- 战斗状态边框红光
-<<<<<<< HEAD
 		if self[key].showThreat then self[key].showThreat:SetChecked(GetCVar('threatShowNumeric') == '1') end -- 显示威胁百分比
-=======
-		if self[key].showThreat then self[key].showThreat:SetChecked(BC:getDB(key, 'showThreat')) end -- 显示威胁百分比
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 		if self[key].portraitClass then self[key].portraitClass:SetChecked(BC:getDB(key, 'portrait') == 1) end -- 头像显示职业图标(玩家)
 		if self[key].miniIcon then self[key].miniIcon:SetChecked(BC:getDB(key, 'miniIcon')) end -- 显示小图标(职业/种类)
 		if self[key].healthBarClass then self[key].healthBarClass:SetChecked(BC:getDB(key, 'healthBarClass')) end -- 体力条职业色(玩家)
@@ -300,11 +278,7 @@ function option:init()
 		local hideName = self[key].hideName
 		if hideName then
 			hideName:SetChecked(BC:getDB(key, 'hideName'))
-<<<<<<< HEAD
 			hideName:Click()
-=======
-			hideName:Click(hideName)
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 		end
 
 		if self[key].drag then self[key].drag:SetChecked(BC:getDB(key, 'drag')) end -- 排战斗中按住Shift拖动
@@ -313,18 +287,11 @@ function option:init()
 		local anchor = self[key].anchor
 		if anchor then
 			anchor:SetChecked(BC:getDB(key, 'anchor') == 'PlayerFrame')
-<<<<<<< HEAD
 			anchor:Click()
 		end
 
 		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
 		if self[key].showEnemyBuff then self[key].showEnemyBuff:SetChecked(BC:getDB(key, 'showEnemyBuff')) end -- 显示敌对目标模拟Buff
-=======
-			anchor:Click(anchor)
-		end
-
-		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 
 		-- 只显示我施放的Buff/Debuff倒计时(OmniCC)
 		local hasOmniCC = type(OmniCC) == 'table'
@@ -422,7 +389,6 @@ option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
 	BC:comfing(L.confirmResetDefault, function()
 		if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
 		BC:init()
-<<<<<<< HEAD
 		SetCVar('alwaysCompareItems', '1')
 		SetCVar('threatShowNumeric', '1')
 		SetCVar('showTargetOfTarget', '1')
@@ -440,10 +406,6 @@ hooksecurefunc('SetCVar', function(name, value)
 		hideFrame:SetChecked(value ~= '1')
 		hideFrame:Click()
 	end
-=======
-		option:init()
-	end)
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 end)
 
 option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框体
@@ -655,7 +617,6 @@ option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8),
 --[[ 目标设置 开始 ]]
 option:check('target', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 option:check('target', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
-option:check('target', 'showThreat', 'combatFlash')  -- 显示威胁百分比
 
 -- 显示威胁百分比
 option:check('target', 'showThreat', 'combatFlash', nil, nil, nil, function(self)
@@ -924,11 +885,6 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	option.party.auraRows:SetEnabled(enabled)
 	option.party.auraX:SetEnabled(enabled)
 	option.party.auraY:SetEnabled(enabled)
-<<<<<<< HEAD
-=======
-	-- option.party.scale:SetEnabled(enabled)
-	-- option.party.scale:SetEnabled(enabled)
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 end)
 
 option:check('party', 'portraitCombat', 'hideFrame') -- 头像上显示战斗信息
@@ -1028,14 +984,8 @@ end)
 
 -- 隐藏框体
 option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
-<<<<<<< HEAD
 	local enabled = not self:GetChecked()
 	BC:setDB('partypet', 'hideFrame', not enabled)
-=======
-	local enabled = self:GetChecked()
-	BC:setDB('partypet', 'hideFrame', enabled)
-	enabled = not enabled
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
 	option.partypet.valueFontSize:SetEnabled(enabled)
@@ -1070,14 +1020,8 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 
 -- 隐藏框体
 option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
-<<<<<<< HEAD
 	local enabled = not self:GetChecked()
 	BC:setDB('partytarget', 'hideFrame', not enabled)
-=======
-	local enabled = self:GetChecked()
-	BC:setDB('partytarget', 'hideFrame', enabled)
-	enabled = not enabled
->>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 	option.partytarget.portraitClass:SetEnabled(enabled)
 	option.partytarget.healthBarClass:SetEnabled(enabled)
 	option.partytarget.hideName:SetEnabled(enabled)
