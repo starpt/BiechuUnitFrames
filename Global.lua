@@ -6,10 +6,22 @@ BC.charKey = UnitName('player') .. ' - ' .. GetRealmName()
 BC.class = select(2, UnitClass('player'))
 BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
 
+-- 自定义职业色 萨满职业色改为沉蓝色
+BC.classColor = {
+	['HUNTER'] = CreateColor(0.67, 0.83, 0.45),
+	['WARLOCK'] = CreateColor(0.53, 0.53, 0.93),
+	['PRIEST'] = CreateColor(1.0, 1.0, 1.0),
+	['PALADIN'] = CreateColor(0.96, 0.55, 0.73),
+	['MAGE'] = CreateColor(0.25, 0.78, 0.92),
+	['ROGUE'] = CreateColor(1.0, 0.96, 0.41),
+	['DRUID'] = CreateColor(1.0, 0.49, 0.04),
+	['SHAMAN'] = CreateColor(0.0, 0.44, 0.87),
+	['WARRIOR'] = CreateColor(0.78, 0.61, 0.43),
+}
+
 -- 默认设置
 BC.default = {
 	global = {
-		dark = true,
 		newClassIcon = true,
 		healthBarColor = true,
 		nameTextClassColor = true,
@@ -19,7 +31,6 @@ BC.default = {
 		fontFlags = L.fontFlagsList[2].value,
 		dragSystemFarmes = true,
 		incomingHeals = true,
-		autoNameplate = true,
 	},
 	player = {
 		relative = 'CENTER',
@@ -27,14 +38,13 @@ BC.default = {
 		offsetY = -98,
 		combatFlash = true,
 		miniIcon = true,
-		autoTalentEquip = true,
 		equipmentIcon = true,
 		hidePartyNumber = true,
-		fiveSecondRule = true,
+		powerSpark = true,
 		druidBar = true,
 		nameFontSize = 13,
 		valueFontSize = 12,
-		valueStyle = 2,
+		valueStyle = 9,
 		drag = true,
 		scale = 1,
 		border = 1,
@@ -44,7 +54,7 @@ BC.default = {
 		anchor = 'PlayerFrame',
 		relative = 'TOPLEFT',
 		offsetX = 84,
-		offsetY = not UnitInVehicle('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
+		offsetY = -61,
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
@@ -68,13 +78,13 @@ BC.default = {
 		offsetY = -98,
 		combatFlash = true,
 		miniIcon = true,
-		threatLeft = true,
-		statusBarAlpha = 1,
+		statusBarAlpha = .5,
 		nameFontSize = 13,
 		valueFontSize = 12,
-		valueStyle = 5,
+		valueStyle = 7,
 		drag = true,
 		scale = 1,
+		showEnemyBuff = true,
 		selfCooldown = true,
 		dispelCooldown = true,
 		dispelStealable = true,
@@ -88,38 +98,6 @@ BC.default = {
 		relative = 'BOTTOMRIGHT',
 		offsetX = -35,
 		offsetY = -10,
-		portrait = 1,
-		nameFontSize = 10,
-		valueFontSize = 10,
-		valueStyle = 2,
-	},
-	focus = {
-		relative = 'CENTER',
-		offsetX = -418,
-		offsetY = -98,
-		combatFlash = true,
-		miniIcon = true,
-		threatLeft = true,
-		statusBarAlpha = 1,
-		nameFontSize = 13,
-		valueFontSize = 12,
-		valueStyle = 5,
-		drag = true,
-		scale = 1,
-		selfCooldown = true,
-		dispelCooldown = true,
-		dispelStealable = true,
-		auraSize = 20,
-		auraRows = 5,
-		auraX = -17,
-		auraY = 54,
-	},
-	focustarget = {
-		anchor = 'FocusFrame',
-		relative = 'BOTTOMRIGHT',
-		offsetX = -35,
-		offsetY = -10,
-		portrait = 1,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 2,
@@ -145,7 +123,7 @@ BC.default = {
 		auraRows = 16,
 		auraSize = 16,
 		auraX = -15,
-		auraY = 2,
+		auraY = 18,
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -160,8 +138,6 @@ BC.default = {
 		relative = 'TOPRIGHT',
 		offsetX = 150,
 		offsetY = 2,
-		portrait = 1,
-		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
@@ -176,8 +152,6 @@ BC.unitList = {
 	'pettarget',
 	'target',
 	'targettarget',
-	'focus',
-	'focustarget',
 	'party1',
 	'party2',
 	'party3',
@@ -244,6 +218,53 @@ BC.creatureList = {
 	[14] = 'Interface\\Icons\\INV_Misc_QuestionMark', -- 未指定
 }
 
+-- 确认
+function BC:comfing(text, click)
+	local frame = _G[addonName .. 'Comfing']
+	if not frame then
+		frame = CreateFrame('Frame', addonName .. 'Comfing')
+		frame:Hide()
+		frame:SetPoint('CENTER')
+		frame:SetSize(320, 72)
+		frame:SetScale(.72)
+		frame:SetFrameStrata('TOOLTIP')
+		frame:SetFrameLevel(100) -- Lots of room to draw under it
+		frame:SetScript('OnKeyDown', function(self, key)
+			if key == 'ESCAPE' then
+				self:Hide()
+			end
+		end)
+
+		frame.border = CreateFrame('Frame', nil, frame, 'DialogBorderOpaqueTemplate')
+		frame.border:SetAllPoints(frame)
+		frame.text = frame:CreateFontString(nil, 'ARTWORK', 'GameFontHighlight')
+		frame.text:SetSize(290, 0)
+		frame.text:SetPoint('TOP', 0, -16)
+
+		frame.accept = CreateFrame('Button', nil, frame, 'UIPanelButtonTemplate')
+		frame.accept:SetSize(128, 21)
+		frame.accept:SetPoint('BOTTOMLEFT', 26, 16)
+		frame.accept:SetText(OKAY) -- 确认
+
+		frame.cancel = CreateFrame('Button', nil, frame, 'UIPanelButtonTemplate')
+		frame.cancel:SetSize(128, 21)
+		frame.cancel:SetPoint('LEFT', frame.accept, 'RIGHT', 12, 0)
+		frame.cancel:SetText(CANCEL) -- 取消
+		frame.cancel:SetScript('OnClick', function()
+			frame:Hide()
+		end)
+	end
+	frame.text:SetText(text)
+	frame:Show()
+
+	frame.accept:SetScript('OnClick', function()
+		if type(click) == 'function' then
+			click()
+		end
+		frame:Hide()
+	end)
+end
+
 -- 读取变量
 function BC:getDB(key, name, real)
 	if type(key) ~= 'string' then return end
@@ -294,7 +315,7 @@ function BC:setDB(key, name, value)
 		for i = 1, MAX_PARTY_MEMBERS do
 			self:init('party' .. i .. 'target')
 		end
-	else
+	elseif key == 'global' or key == 'config' then
 		self:init()
 	end
 end
@@ -344,18 +365,8 @@ BC:drag(SettingsPanel) -- 设置选项
 BC:drag(AddonList) -- 插件列表
 BC:drag(GossipFrame) -- 对话框
 BC:drag(MerchantFrame) -- 购物框
-hooksecurefunc('TalentFrame_LoadUI', function() -- 天赋
+hooksecurefunc('PlayerTalentFrame_LoadUI', function() -- 天赋
 	BC:drag(PlayerTalentFrame)
-end)
-hooksecurefunc('GlyphFrame_LoadUI', function() -- 雕文
-	BC:drag(GlyphFrame, PlayerTalentFrame)
-end)
-hooksecurefunc('AchievementFrame_LoadUI', function()
-	BC:drag(AchievementFrameHeader, AchievementFrame) -- 成就
-	BC:drag(AchievementFrameCategoriesContainer, AchievementFrame) -- 统计
-end)
-hooksecurefunc('CollectionsJournal_LoadUI', function() -- 藏品
-	BC:drag(CollectionsJournal)
 end)
 hooksecurefunc('MacroFrame_LoadUI', function() -- 宏命令设置
 	BC:drag(MacroFrame)
@@ -364,46 +375,38 @@ end)
 -- 保护性驱散Debuff
 local	DISPEL_DEBUFF = {
 	['Curse'] = {
-		[2782] = true,  -- 德鲁伊 解除诅咒
-		[475] = true,   -- 法师 解除诅咒
-		[51886] = true, -- 萨满 净化灵魂
+		2782,  -- 德鲁伊 解除诅咒
+		475,   -- 法师 解除诅咒
 	},
 	['Disease'] = {
-		[4987] = true,  -- 圣骑士 清洁术
-		[528] = true,   -- 牧师 祛病术
-		[552] = true,   -- 牧师 驱除疾病
-		[526] = (BC.class == 'SHAMAN'),  -- 萨满 驱毒术
-		[8170] = true,  -- 萨满 净化图腾
-		[51886] = true, -- 萨满 净化灵魂
+		4987,  -- 圣骑士 清洁术
+		528,   -- 牧师 祛病术
+		552,   -- 牧师 驱除疾病
+		2870, -- 萨满 祛病术
+		8170,  -- 萨满 净化图腾
 	},
 	['Magic'] = {
-		[4987] = true,  -- 圣骑士 清洁术
-		[527] = true,   -- 牧师 驱散魔法
-		[32375] = true, -- 牧师 群体驱散
-		[19505] = true, -- 术士 吞噬魔法
+		4987,  -- 圣骑士 清洁术
+		527,   -- 牧师 驱散魔法
+		19505, -- 术士 吞噬魔法
 	},
 	['Poison'] = {
-		[2893] = true,  -- 德鲁伊 驱毒术
-		[8946] = true,  -- 德鲁伊 消毒术
-		[4987] = true,  -- 圣骑士 清洁术
-		[526] = true,   -- 萨满 驱毒术
-		[8170] = true,  -- 萨满 净化图腾
-		[51886] = true, -- 萨满 净化灵魂
+		2893,  -- 德鲁伊 驱毒术
+		8946,  -- 德鲁伊 消毒术
+		4987,  -- 圣骑士 清洁术
+		526,   -- 萨满 驱毒术
+		8170,  -- 萨满 净化图腾
 	},
 }
 -- 进攻性驱散Buff
 local	DISPEL_BUFF = {
 	['Magic'] = {
-		[527] = true,   -- 牧师 驱散魔法
-		[32375] = true, -- 牧师 群体驱散
-		[19505] = true, -- 术士 吞噬魔法
-		[30449] = true, -- 法师 法术吸取
-		[19801] = true, -- 猎人 宁神射击
-		[47488] = true, -- 战士 盾牌猛击
-		[370] = true,   -- 萨满 净化术
+		527,   -- 牧师 驱散魔法
+		19505, -- 术士 吞噬魔法
+		370,   -- 萨满 净化术
 	},
 	[''] = { -- 激怒
-		[19801] = true, -- 猎人 宁神射击
+		19801, -- 猎人 宁神射击
 	}
 }
 function BC:dispel(unit, dispelType)
@@ -414,29 +417,29 @@ function BC:dispel(unit, dispelType)
 		spell = DISPEL_DEBUFF[dispelType]
 	end
 	if not spell then return end
-	for id, can in pairs(spell) do
-		if can then
-			local name = GetSpellInfo(id)
-			if name and GetSpellInfo(name) then
-				return name
-			end
+	for _, id in pairs(spell) do
+		if IsPlayerSpell(id) and GetSpellInfo(id) then
+			return id
 		end
 	end
 end
+
 -- 宠物/队友buff/debuff直接显示时隐藏buff鼠标提示
 hooksecurefunc('PartyMemberBuffTooltip_Update', function()
 	PartyMemberBuffTooltip:Hide()
 end)
+
 -- OmniCC 冷却倒计时立即更新
 hooksecurefunc('CooldownFrame_Set', function(self)
-	if self:IsShown() and self._occ_show ~= nil then
+	if self:IsVisible() and self._occ_show ~= nil then
 		self:Hide()
 		self:Show()
 	end
 end)
+
 -- Buff/Debuff
 function BC:aura(unit)
-	local frame = BC[unit]
+	local frame = self[unit]
 	if not frame then return end
 	local key = unit:gsub('[%d-]', '')
 	local maxBuffs = MAX_TARGET_BUFFS -- 最多Buff
@@ -446,16 +449,17 @@ function BC:aura(unit)
 	local auraX = self:getDB(key, 'auraX') -- 起始坐标X
 	local auraY = self:getDB(key, 'auraY') -- 起始坐标Y
 	local spac = 2 -- 间隔
-	local dark = BC:getDB('global', 'dark')
+	local dark = self:getDB('global', 'dark')
 	local valueFont = self:getDB('global', 'valueFont')
 	local fontFlags = self:getDB('global', 'fontFlags')
-	local selfCooldown = BC:getDB(key, 'selfCooldown')
-	local dispelCooldown = BC:getDB(key, 'dispelCooldown')
-	local dispelStealable = BC:getDB(key, 'dispelStealable')
+	local selfCooldown = self:getDB(key, 'selfCooldown')
+	local dispelCooldown = self:getDB(key, 'dispelCooldown')
+	local dispelStealable = self:getDB(key, 'dispelStealable')
 	local total = 0
+	local isEnemyBuff = UnitIsEnemy('player', unit) and self:getDB(key, 'showEnemyBuff')
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
-		local buff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
+		local buff = _G[name] or (key == 'party' or isEnemyBuff) and CreateFrame('Button', name, frame)
 		if not buff then break end
 		buff:SetFrameLevel(5)
 
@@ -464,7 +468,7 @@ function BC:aura(unit)
 			buff.icon = buff:CreateTexture(name .. 'Icon', 'BACKGROUND')
 			buff.icon:SetPoint('CENTER')
 		end
-		buff.icon:SetTexCoord(.06, .94, .06, .94)
+		buff.icon:SetTexCoord(.05, .95, .05, .95)
 
 		buff.cooldown = _G[name .. 'Cooldown']
 		if not buff.cooldown then
@@ -489,7 +493,7 @@ function BC:aura(unit)
 		if not buff.border then
 			buff.border = buff:CreateTexture(name .. 'Border', 'BORDER')
 			buff.border:SetAllPoints(buff)
-			buff.border:SetTexture(BC.texture .. 'Border')
+			buff.border:SetTexture(self.texture .. 'Border')
 		end
 		if dark then
 			buff.border:SetVertexColor(.1, .1, .1)
@@ -497,27 +501,34 @@ function BC:aura(unit)
 			buff.border:SetVertexColor(.4, .4, .4)
 		end
 
-		buff:SetScript('OnEnter', function(self)
-			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-			GameTooltip:SetUnitBuff(unit, i)
-		end)
-		buff:SetScript('OnLeave', function()
-			GameTooltip:Hide()
-		end)
+		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
+		if not icon and isEnemyBuff and unit == 'target' then
+			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations:UnitAura(unit, i, 'HELPFUL')
+		end
 
-		local _, icon, count, dispelType, duration, expirationTime, source = UnitBuff(unit, i)
+		if spellId and (key == 'party' or isEnemyBuff) then
+			buff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+				GameTooltip:SetSpellByID(spellId)
+			end)
+
+			buff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
+		end
+
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
 			local selfCast = source == 'player' or source == 'pet'
 			if UnitCanAttack('player', unit) then -- 进攻驱散
 				local canDispel = self:dispel(unit, dispelType) -- 可以驱散
-				buff.cooldown._occ_show = not dispelCooldown or canDispel -- 倒计时
+				buff.cooldown._occ_show = not dispelCooldown or canDispel or false -- 倒计时
 				if dispelStealable and canDispel then buff.stealable:Show() end -- 高亮
 			elseif UnitIsFriend('player', unit) then -- 施放Buff
 				buff.cooldown._occ_show = not selfCooldown or selfCast
 			end
 
-			local iconSize = selfCast and size or size - 2
+			local iconSize = selfCast and size or size * 0.875
 			buff:SetSize(iconSize, iconSize)
 
 			if auraX and auraY then
@@ -560,7 +571,7 @@ function BC:aura(unit)
 			debuff.icon = debuff:CreateTexture(name .. 'Icon', 'BACKGROUND')
 			debuff.icon:SetPoint('CENTER')
 		end
-		debuff.icon:SetTexCoord(.06, .94, .06, .94)
+		debuff.icon:SetTexCoord(.05, .95, .05, .95)
 
 		debuff.cooldown = _G[name .. 'Cooldown']
 		if not debuff.cooldown then
@@ -585,7 +596,7 @@ function BC:aura(unit)
 		if not debuff.border then
 			debuff.border = debuff:CreateTexture(name .. 'Border', 'BORDER')
 			debuff.border:SetAllPoints(debuff)
-			debuff.border:SetTexture(BC.texture .. 'Border')
+			debuff.border:SetTexture(self.texture .. 'Border')
 		end
 		if dark then
 			debuff.border:SetVertexColor(.1, .1, .1)
@@ -613,7 +624,7 @@ function BC:aura(unit)
 				debuff.cooldown._occ_show = not dispelCooldown or canDispel
 			end
 
-			local iconSize = selfCast and size or size - 2
+			local iconSize = selfCast and size or size * 0.875
 			debuff:SetSize(iconSize, iconSize)
 
 			if auraX and auraY then
@@ -653,12 +664,16 @@ function BC:aura(unit)
 
 	-- 施法条定位
 	if frame.castBar then
-		local auraY = - (size + spac) * (ceil(total / rows) + row)
+		rows = ceil(total / rows) + row -- 行数
 		if key == 'party' then
-			frame.castBar:SetPoint('BOTTOMLEFT', 18, auraY - 8)
+			frame.castBar:SetPoint('BOTTOMLEFT', 18, - (size + spac) * rows - 8)
 		else
-			auraY = auraY > -28 and -28 or auraY
-			frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, auraY)
+			if rows > 1 then
+				frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, - (size + spac) * rows + 13)
+			else
+				local tot = self[unit .. 'target']
+				frame.castBar:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 25.5, tot and tot:IsShown() and -29 or -10)
+			end
 		end
 	end
 end
@@ -681,7 +696,7 @@ function BC:portrait(unit)
 		else
 			frame.portrait:SetPoint('TOPLEFT', 7, -6)
 		end
-	elseif unit == 'focustarget' or unit == 'targettarget' then
+	elseif unit == 'targettarget' then
 		if dark then
 			frame.portrait:SetSize(39, 39)
 			frame.portrait:SetPoint('TOPLEFT', 2, -3.5)
@@ -704,13 +719,7 @@ function BC:portrait(unit)
 		if type(index) == 'number' and index > 1 and UnitIsPlayer(unit) then
 			frame.portrait:SetTexture(self:file(self.portraitList[index], 1))
 		else
-			if UnitInVehicle('player') then
-				if unit == 'pet' then
-					SetPortraitTexture(frame.portrait, 'player')
-				end
-			else
-				SetPortraitTexture(frame.portrait, unit)
-			end
+			SetPortraitTexture(frame.portrait, unit)
 		end
 	end
 end
@@ -737,7 +746,7 @@ function BC:dark(unit)
 			PlayerFrameGroupIndicatorRight:SetTexture(indicator)
 			PlayerFrameGroupIndicatorMiddle:SetTexture(indicator)
 
-		elseif key == 'target' or key == 'focus' then
+		elseif key == 'target' then
 			local classification = UnitClassification(key)
 			if classification == 'elite' or classification == 'worldboss' then
 				index = 4
@@ -750,7 +759,7 @@ function BC:dark(unit)
 			end
 		elseif key == 'pettarget' then
 			index = 5
-		elseif key == 'targettarget' or key == 'focustarget' or key == 'partytarget' then
+		elseif key == 'targettarget' or key == 'partytarget' then
 			index = 6
 		elseif key == 'pet' or key == 'party' or key == 'partypet'then
 			index = 7
@@ -761,7 +770,7 @@ function BC:dark(unit)
 	-- 状态栏
 	if frame.statusBar then
 		if UnitIsPlayer(unit) and BC:getDB(key, 'statusBarClass') then
-			local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
+			local color = self.classColor[select(2, UnitClass(unit))]
 			frame.statusBar:SetVertexColor(color.r, color.g, color.b)
 			frame.statusBar:Show()
 		elseif unit == 'player' then
@@ -793,7 +802,7 @@ function BC:dark(unit)
 	end
 
 	-- 显示小图标(职业/种类)
-	if frame.miniIcon and frame.miniIcon:IsShown() then
+	if frame.miniIcon and frame.miniIcon:IsVisible() then
 		frame.miniIcon:SetScript('OnMouseDown', function(self, button)
 			if unit == 'player' then
 				if type(self.click) == 'function' then self.click() end
@@ -802,7 +811,7 @@ function BC:dark(unit)
 				if server and server ~= '' then name = name .. '-' .. server end
 				if IsShiftKeyDown() then
 					local editbox = ChatEdit_ChooseBoxForSend()
-					if not editbox:IsShown() then ChatEdit_ActivateChat(editbox) end
+					if not editbox:IsVisible() then ChatEdit_ActivateChat(editbox) end
 					editbox:SetFocus()
 					editbox:SetText(name)
 					editbox:HighlightText()
@@ -835,7 +844,7 @@ function BC:dark(unit)
 			if type(frame.miniIcon.update) == 'function' then frame.miniIcon.update() end
 		elseif UnitIsPlayer(unit) then
 			local class, base = UnitClass(unit)
-			local color = RAID_CLASS_COLORS[base]
+			local color = self.classColor[base]
 			if color then
 				frame.miniIcon.tip = {[1] = {L.playerClass .. ':', class, 1, 1, 0, color.r, color.g, color.b}}
 				if UnitFactionGroup('player') == UnitFactionGroup(unit) and not UnitIsUnit('player', unit) then -- 同阵营
@@ -909,7 +918,7 @@ function BC:incomingHeals(unit)
 	end
 
 	for _, v in pairs(self.unitList) do
-		if UnitIsUnit(unit, v) and self[v]:IsShown() and self[v].incomingHealsBar then
+		if UnitIsUnit(unit, v) and self[v] and self[v]:IsVisible() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
 		end
 	end
@@ -919,7 +928,7 @@ end
 function BC:bar(bar)
 	local unit = bar and bar.unit and bar.unit:gsub('-', '')
 	if not unit or not UnitExists(unit) then return end
-	local key = unit == 'vehicle' and 'player' or (UnitInVehicle('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
+	local key = unit:gsub('%d', '')
 	local font = self:getDB('global', 'valueFont')
 	local size = self:getDB(key, 'valueFontSize')
 	local flag = self:getDB('global', 'fontFlags')
@@ -929,8 +938,7 @@ function BC:bar(bar)
 	local _, valueMax = bar:GetMinMaxValues()
 
 	local color
-	if UnitInVehicle('player') and key == 'pet' or key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
-		bar.unit = key == 'pet' and 'player' or bar.unit
+	if key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
 		if bar.powerType then
 			bar.powerType = key == 'pet' and UnitPowerType('player') or bar.powerType
 			value = UnitPower(bar.unit, bar.powerType)
@@ -948,7 +956,7 @@ function BC:bar(bar)
 	local percent = valueMax == 0 and 0 or value / valueMax
 	if not bar.powerType then
 		if self:getDB(key, 'healthBarClass') and UnitIsPlayer(bar.unit) then -- 职业色
-			color = RAID_CLASS_COLORS[select(2, UnitClass(bar.unit))]
+			color = self.classColor[select(2, UnitClass(bar.unit))]
 		elseif self:getDB('global', 'healthBarColor') then -- 生命值百分比变化
 			color = {r = 0, g = 1, b = 0}
 			if percent > .5 then
@@ -979,29 +987,47 @@ function BC:bar(bar)
 		bar.SideText:SetFont(font, size, flag)
 	end
 
-	if UnitIsDeadOrGhost(unit) then return end
+	bar:SetScript('OnEnter', function(self)
+		local key = self.unit
+		if type(key) ~= 'string' then return end
+		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
+		if type(valueStyle) == 'number' and valueStyle > 6 then
+			local value = self:GetValue()
+			local _, valueMax = self:GetMinMaxValues()
+			if valueStyle == 9 then
+				local percent = valueMax == 0 and 0 or value / valueMax
+				percent = floor(percent * 100 + .5) .. '%'
+				self.MiddleText:SetText(percent)
+			else
+				self.MiddleText:SetText(BC:carry(value) .. '/' .. BC:carry(valueMax))
+			end
+			self.MiddleText:Show()
+		end
+	end)
+	bar:SetScript('OnLeave', function(self)
+		local key = self.unit
+		if type(key) ~= 'string' then return end
+		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
+		if type(valueStyle) == 'number' and valueStyle > 6 then
+			self.MiddleText:Hide()
+		end
+	end)
+
+	-- 死亡
+	local frame = self[unit]
+	local dead = UnitIsDeadOrGhost(unit) or not bar.powerType and value <= 0
+	if frame and frame.deadText then
+		if dead then
+			frame.deadText:SetText(DEAD)
+			frame.deadText:Show()
+		else
+			frame.deadText:Hide()
+		end
+	end
+	if dead then return end
 
 	local valueStyle = self:getDB(key, 'valueStyle')
 	percent = floor(percent * 100 + .5) .. '%'
-
-	if not bar.event then
-		if unit == 'player' then
-			bar:HookScript('OnEnter', function(self)
-				BC:setDB('cache', self:GetName(), BC:getDB(key, 'valueStyle'))
-			end)
-			bar:HookScript('OnLeave', function(self)
-				BC:setDB('cache', self:GetName(), nil)
-			end)
-		else
-			bar:SetScript('OnEnter', function(self)
-				BC:setDB('cache', self:GetName(), BC:getDB(key, 'valueStyle'))
-			end)
-			bar:SetScript('OnLeave', function(self)
-				BC:setDB('cache', self:GetName(), nil)
-			end)
-		end
-		bar.event = true
-	end
 
 	if valueStyle == 1 then
 		if bar.LeftText then
@@ -1061,38 +1087,64 @@ function BC:bar(bar)
 			bar.SideText:Show()
 		end
 	end
-
-	local hover = BC:getDB('cache', bar:GetName())
-	if bar.MiddleText and (hover == 7 or hover == 8 or hover == 9 or hover == 10) then
-		if hover == 9 then
-			bar.MiddleText:SetText(percent)
-		else
-			bar.MiddleText:SetText(self:carry(value) .. '/' .. self:carry(valueMax))
-		end
-		bar.MiddleText:Show()
-	end
 end
 -- 条更新
 hooksecurefunc('TextStatusBar_UpdateTextString', function(self)
 	BC:bar(self)
 end)
 
+-- 更新威胁值百分比
+function BC:threat(unit)
+	local frame = self[unit]
+	if not frame then return end
+	local indicator = frame.threatNumericIndicator
+	if not indicator then return end
+
+	local threat = self:getDB('cache', 'threat')
+	if UnitIsDeadOrGhost(unit) or GetCVar('threatShowNumeric') ~= '1' or type(threat) ~= 'table' then
+		indicator:Hide()
+		return
+	end
+
+	local guid = UnitGUID(unit)
+	if not threat[guid] then
+		indicator:Hide()
+		return
+	end
+
+	local _, status, percentage, rawPercentage = unpack(threat[guid])
+	if type(percentage) == 'number' and percentage > 0 and rawPercentage < 255 then
+		indicator.text:SetText(format('%1.0f', percentage) .. '%')
+		indicator.bg:SetVertexColor(GetThreatStatusColor(status))
+		indicator:Show()
+	else
+		indicator:Hide()
+	end
+end
+
 -- 更新
 function BC:update(unit)
-	local frame = unit == 'vehicle' and self.player or self[unit]
+	local frame = self[unit]
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
 	-- 隐藏框体
-	if self:getDB(key, 'hideFrame') or UnitInVehicle('player') and unit == 'pettarget' then
-		frame:Hide()
-		return
-	end
-	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' or key == 'party' and (BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
-		if UnitExists(unit) then
-			frame:Show()
+	if self:getDB(key, 'hideFrame') then
+		if InCombatLockdown() then
+			frame:SetAlpha(0)
 		else
 			frame:Hide()
+		end
+		return
+	end
+
+	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' or key == 'party' then
+		if UnitExists(unit) and (BC:getDB('party', 'raidShowParty') or not UnitInRaid('player')) then
+			frame:SetAlpha(1)
+			if not InCombatLockdown() then frame:Show() end
+		else
+			frame:SetAlpha(0)
+			if not InCombatLockdown() then frame:Hide() end
 		end
 	end
 	if not UnitExists(unit) then return end
@@ -1105,7 +1157,7 @@ function BC:update(unit)
 			if key == 'pettarget' or key == 'partypet' or key == 'partytarget' then frame.name:SetText(UnitName(unit)) end
 			local color
 			if self:getDB('global', 'nameTextClassColor') and UnitIsPlayer(unit) then
-				color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
+				color = self.classColor[select(2, UnitClass(unit))]
 			else
 				color = { r = 1, g = .82, b = 0}
 			end
@@ -1117,7 +1169,7 @@ function BC:update(unit)
 
 	self:dark(unit)
 	self:portrait(unit)
-	frame.manabar.powerType = frame.manabar.powerType or UnitPowerType(unit)
+	if not frame.manabar.powerType then frame.manabar.powerType = UnitPowerType(unit) end
 	self:bar(frame.manabar)
 	self:bar(frame.healthbar)
 end
@@ -1136,34 +1188,36 @@ function BC:init(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 初始定位
-	local anchor = _G[self:getDB(key, 'anchor')]
+	local anchor = self:getDB(key, 'anchor')
 	local relative = self:getDB(key, 'relative')
 	local offsetX = self:getDB(key, 'offsetX')
 	local offsetY = self:getDB(key, 'offsetY')
-	if key ~= 'party' or unit == 'party1' then
-		frame:ClearAllPoints()
-		if anchor and type(relative) == 'string' then
-			frame:SetPoint(relative, anchor, relative, offsetX, offsetY)
-		else
-			frame:SetPoint(relative, offsetX, offsetY)
+	if not InCombatLockdown() then
+		if key ~= 'party' or unit == 'party1' then
+			frame:ClearAllPoints()
+			if anchor and type(relative) == 'string' then
+				frame:SetPoint(relative, anchor, offsetX, offsetY)
+			else
+				frame:SetPoint(relative, offsetX, offsetY)
+			end
 		end
 	end
 
 	-- 拖动
 	self:drag(frame, key == 'party' and unit ~= 'party1' and PartyMemberFrame1, self:getDB(key, 'drag'), function(self)
 		local _, _, relative, offsetX, offsetY = self:GetPoint()
+		local anchor = BC:getDB(key, 'anchor')
 
 		-- 有父对像
-		if anchor then
-			offsetX = self:GetLeft() - anchor:GetLeft()
-			offsetY = self:GetTop() - anchor:GetTop()
+		if type(anchor) == 'string' then
+			offsetX = self:GetLeft() - _G[anchor]:GetLeft()
+			offsetY = self:GetTop() - _G[anchor]:GetTop()
 			relative = 'TOPLEFT'
 		end
 
-		if relative then BC:setDB(key, 'relative', relative) end
-		if offsetX then BC:setDB(key, 'offsetX', floor(offsetX + .5)) end
-		if offsetY then BC:setDB(key, 'offsetY', floor(offsetY + .5)) end
-		-- print(key, BC:getDB(key, 'relative'), self:GetLeft(), BC:getDB(key, 'offsetX'), BC:getDB(key, 'offsetY'), self:GetTop() - UIParent:GetHeight())
+		BC:setDB(key, 'relative', relative)
+		BC:setDB(key, 'offsetX', floor(offsetX + .5))
+		BC:setDB(key, 'offsetY', floor(offsetY + .5))
 	end)
 
 	-- 头像上显示战斗信息
@@ -1178,7 +1232,7 @@ function BC:init(unit)
 			end
 			if not frame.portraitCombatText then
 				frame.portraitCombatText = frame.portraitCombat:CreateFontString(nil, 'OVERLAY', 'NumberFontNormalHuge')
-				frame.portraitCombatText:SetPoint('CENTER', frame.portrait, 'CENTER')
+				frame.portraitCombatText:SetPoint('CENTER', frame.portrait)
 			end
 			CombatFeedback_Initialize(frame.portraitCombat, frame.portraitCombatText, frame.portrait:GetWidth() / 2)
 
@@ -1206,7 +1260,7 @@ function BC:init(unit)
 				frame.portraitCombat:SetScript('OnEvent', nil)
 				frame.portraitCombat:SetScript('OnUpdate', nil)
 			end
-			if frame.portraitCombatText and frame.portraitCombatText:IsShown() then
+			if frame.portraitCombatText and frame.portraitCombatText:IsVisible() then
 				frame.portraitCombatText:Hide()
 			end
 		end
@@ -1226,9 +1280,9 @@ function BC:init(unit)
 			frame.miniIcon.border:SetSize(40, 40)
 
 			frame.miniIcon.icon = frame.miniIcon:CreateTexture(nil, 'ARTWORK')
-			frame.miniIcon.icon:SetPoint('CENTER', .5, 0)
-			frame.miniIcon.icon:SetTexCoord(.06, .94, .06, .94)
-			frame.miniIcon.icon:SetSize(14, 14)
+			frame.miniIcon.icon:SetPoint('CENTER', 1, -.5)
+			frame.miniIcon.icon:SetTexCoord(.05, .95, .05, .95)
+			frame.miniIcon.icon:SetSize(13, 13)
 
 			frame.miniIcon:SetScript('OnEnter', function(self)
 				if InCombatLockdown() then return end -- 战斗中
@@ -1251,9 +1305,19 @@ function BC:init(unit)
 		frame.miniIcon:Hide()
 	end
 
+	-- 死亡
+	if not frame.deadText then
+		frame.deadFrame = CreateFrame('Frame', nil, frame)
+		frame.deadFrame:SetAllPoints(frame.healthbar)
+		frame.deadFrame:SetFrameLevel(5)
+		frame.deadText = frame.deadFrame:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+		frame.deadText:SetPoint('CENTER', 0, key == 'partypet' and -2 or -4)
+	end
+	frame.deadText:SetFont(STANDARD_TEXT_FONT, self:getDB(key, 'valueFontSize') + 2, 'OUTLINE')
+
 	-- 缩放
 	local scale = self:getDB(key, 'scale')
-	if type(scale) == 'number' then frame:SetScale(scale) end
+	if not InCombatLockdown() and type(scale) == 'number' then frame:SetScale(scale) end
 
 	-- 预治疗
 	if frame.healthbar then
@@ -1284,20 +1348,45 @@ end
 
 for _, event in pairs({
 	'PLAYER_ENTERING_WORLD', -- 进入世界
-	'ZONE_CHANGED', -- 区域更改
-	'ZONE_CHANGED_NEW_AREA', -- 传送
 	'UNIT_TARGET', -- 目标切换
 	'UNIT_FLAGS', -- 战斗状态
-	'PLAYER_TARGET_CHANGED', -- 切换目标
-	'PLAYER_FOCUS_CHANGED', -- 切换焦点
 	'UNIT_HEAL_PREDICTION', -- 治疗预测
+	'UNIT_HEALTH', -- 体力变化
+	'UNIT_THREAT_LIST_UPDATE', -- 仇恨列表变化
+	'UNIT_THREAT_SITUATION_UPDATE', -- 仇恨变化
+	'ZONE_CHANGED', -- 区域更改
+	'ZONE_CHANGED_NEW_AREA', -- 传送
 }) do
 	BC:RegisterEvent(event)
 end
 BC:SetScript('OnEvent', function(self, event, unit, ...)
 	if type(unit) == 'string' then unit = unit:gsub('-', '') end
 	if event == 'PLAYER_ENTERING_WORLD' then
+		LibClassicDurations = LibStub('LibClassicDurations', true)
+		LibClassicDurations:RegisterFrame(addonName)
+		LibClassicDurations.RegisterCallback(BC, 'UNIT_BUFF', function(_, unit)
+			self:aura(unit)
+		end)
 		self:init()
+	elseif event == 'UNIT_TARGET' then
+		unit = unit == 'player' and 'target' or unit
+		self:update(unit)
+		self:update(unit .. 'target')
+		self:incomingHeals(unit)
+		self:incomingHeals(unit .. 'target')
+		self:threat(unit)
+	elseif event == 'UNIT_FLAGS' then
+		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
+		self:update(unit)
+	elseif event == 'UNIT_HEAL_PREDICTION' or event == 'UNIT_HEALTH' then -- 治疗预测
+		self:incomingHeals(unit)
+	elseif event == 'UNIT_THREAT_LIST_UPDATE' then -- 仇恨列表变化
+		local threat = self:getDB('cache', 'threat') or {}
+		threat[UnitGUID(unit)] = {UnitDetailedThreatSituation('player', unit)}
+		self:setDB('cache', 'threat', threat)
+		self:threat(unit)
+	elseif event == 'UNIT_THREAT_SITUATION_UPDATE' then
+		if unit == 'player' then self:threat('target') end
 	elseif event == 'ZONE_CHANGED' or event == 'ZONE_CHANGED_NEW_AREA' then
 		-- PVP环境自动设置TAB选择敌对玩家
 		if self:getDB('global', 'autoTab') then
@@ -1308,39 +1397,5 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 				SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
 			end
 		end
-
-		-- 进入达拉然自动关闭姓名板
-		if self:getDB('global', 'autoNameplate') then
-			local cache = self:getDB('cache') or {}
-			if GetZoneText() == L.dalaran then
-				if self:getDB('cache', 'nameplateShowFriends') == nil then
-					self:setDB('cache', 'nameplateShowFriends', GetCVar('nameplateShowFriends'))
-				end
-				if self:getDB('cache', 'nameplateShowEnemies') == nil then
-					self:setDB('cache', 'nameplateShowEnemies', GetCVar('nameplateShowEnemies'))
-				end
-				SetCVar('nameplateShowFriends', '0')
-				SetCVar('nameplateShowEnemies', '0')
-			else
-				if self:getDB('cache', 'nameplateShowFriends') then
-					SetCVar('nameplateShowFriends', self:getDB('cache', 'nameplateShowFriends'))
-					self:setDB('cache', 'nameplateShowFriends', nil)
-				end
-				if self:getDB('cache', 'nameplateShowEnemies') then
-					SetCVar('nameplateShowEnemies', self:getDB('cache', 'nameplateShowEnemies'))
-					self:setDB('cache', 'nameplateShowEnemies', nil)
-				end
-			end
-		end
-	elseif event == 'UNIT_TARGET' then
-		self:update((unit == 'player' and 'target' or unit) .. 'target')
-	elseif event == 'UNIT_FLAGS' then
-		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
-	elseif event == 'PLAYER_TARGET_CHANGED' then
-		self:incomingHeals('target')
-	elseif event == 'PLAYER_FOCUS_CHANGED' then
-		self:incomingHeals('focus')
-	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
-		self:incomingHeals(unit)
 	end
 end)
