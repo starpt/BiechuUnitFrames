@@ -165,7 +165,11 @@ L.showLevel = 'Show level'
 L.outRange = 'Translucent beyond range'
 L.showCastBar = 'Show cast bar'
 L.talentIcon = 'Show mini icon (click to switch talents)'
+<<<<<<< HEAD
 L.autoTalentEquip = 'Automatic talent name equipment set(ItemRack)'
+=======
+L.autoTalentEquip = 'Automatic equipment set(ItemRack)'
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 L.equipmentIcon = 'Show equipment icon(ItemRack)'
 L.hidePartyNumber = 'In raid hide party number'
 L.miniIcon = 'Show mini icons (creature/class)'

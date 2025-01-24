@@ -28,10 +28,17 @@ elseif BC.class == 'DRUID' then
 	resSpell = GetSpellInfo(20484)
 	rangeSpell = GetSpellInfo(5185)
 end
+<<<<<<< HEAD
 function frame:range(unit) -- 是否在范围内
 	return UnitIsDead(unit) and resSpell and IsSpellInRange(resSpell, unit) == 1 or rangeSpell and IsSpellInRange(rangeSpell, unit) == 1 or UnitInRange(unit)
 end
 function frame:alpha() -- 半透明
+=======
+function frame:range(unit)
+	return UnitIsDead(unit) and resSpell and IsSpellInRange(resSpell, unit) == 1 or rangeSpell and IsSpellInRange(rangeSpell, unit) == 1 or UnitInRange(unit)
+end
+function frame:alpha()
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 	for id = 1, MAX_PARTY_MEMBERS do
 		local party = 'party' .. id
 		local alpha = self:range(party) and 1 or .5
@@ -297,8 +304,13 @@ frame:SetScript('OnEvent', function(self, event, unit)
 			for id = 1, MAX_PARTY_MEMBERS do
 				local party = BC['party'.. id]
 				local level = UnitLevel('party'.. id)
+<<<<<<< HEAD
 				if party and party.levelText and party.levelText:IsShown() and level > 0 then
 					party.levelText:SetText(level)
+=======
+				if party and party.level and party.level:IsShown() and level > 0 then
+					party.level:SetText(level)
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 				end
 			end
 		end
@@ -309,9 +321,15 @@ frame:SetScript('OnEvent', function(self, event, unit)
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		if GetNumSubgroupMembers() > 0 then
 			for id = 1, MAX_PARTY_MEMBERS do
+<<<<<<< HEAD
 				BC:update('party' .. id) -- 更新队友
 				BC:init('party' .. id .. 'pet') -- 初始化队友宠物
 				BC:update('party' .. id .. 'target')  -- 更新队友目标
+=======
+				BC:update('party' .. id) -- 更新队友状态
+				BC:update('party' .. id .. 'pet')  -- 更新队友宠物状态
+				BC:update('party' .. id .. 'target')  -- 更新队友目标状态
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 			end
 		end
 	end

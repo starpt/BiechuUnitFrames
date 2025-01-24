@@ -11,7 +11,11 @@ L.party = '├队友'
 L.partypet = '├─队友的宠物'
 L.partytarget = '└─队友的目标'
 L.info = 'QQ讨论群: 377298123'
+<<<<<<< HEAD
 L.cantSaveInCombat = '战斗中无法更改设置'
+=======
+L.cantSaveInCombat = '战斗中无法保存设置'
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 L.confirmResetDefault = '确定要恢复默认设置?'
 L.reset = '重置'
 L.config = '选择配置'
@@ -133,7 +137,11 @@ L.showLevel = '显示等级'
 L.outRange = '超出范围半透明'
 L.showCastBar = '显示施法条'
 L.talentIcon = '显示天赋小图标(点击切换天赋)'
+<<<<<<< HEAD
 L.autoTalentEquip = '切换天赋后装备天赋名套装(ItemRack)'
+=======
+L.autoTalentEquip = '切换天赋后装备套装(ItemRack)'
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 L.equipmentIcon = '显示装备小图标(ItemRack)'
 L.hidePartyNumber = '在团队中隐藏小队编号'
 L.miniIcon = '显示小图标(职业/种类)'

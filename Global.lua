@@ -77,6 +77,7 @@ BC.default = {
 		offsetX = 223,
 		offsetY = -98,
 		combatFlash = true,
+		showThreat = true,
 		miniIcon = true,
 		statusBarAlpha = .5,
 		nameFontSize = 13,
@@ -1101,7 +1102,11 @@ function BC:threat(unit)
 	if not indicator then return end
 
 	local threat = self:getDB('cache', 'threat')
+<<<<<<< HEAD
 	if UnitIsDeadOrGhost(unit) or GetCVar('threatShowNumeric') ~= '1' or type(threat) ~= 'table' then
+=======
+	if UnitIsDeadOrGhost(unit) or not self:getDB(unit:gsub('[%d-]', ''), 'showThreat') or type(threat) ~= 'table' then
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 		indicator:Hide()
 		return
 	end
@@ -1188,11 +1193,19 @@ function BC:init(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 初始定位
+<<<<<<< HEAD
 	local anchor = self:getDB(key, 'anchor')
 	local relative = self:getDB(key, 'relative')
 	local offsetX = self:getDB(key, 'offsetX')
 	local offsetY = self:getDB(key, 'offsetY')
 	if not InCombatLockdown() then
+=======
+	if not InCombatLockdown() then
+		local anchor = self:getDB(key, 'anchor')
+		local relative = self:getDB(key, 'relative')
+		local offsetX = self:getDB(key, 'offsetX')
+		local offsetY = self:getDB(key, 'offsetY')
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 		if key ~= 'party' or unit == 'party1' then
 			frame:ClearAllPoints()
 			if anchor and type(relative) == 'string' then
@@ -1351,11 +1364,16 @@ for _, event in pairs({
 	'UNIT_TARGET', -- 目标切换
 	'UNIT_FLAGS', -- 战斗状态
 	'UNIT_HEAL_PREDICTION', -- 治疗预测
+<<<<<<< HEAD
 	'UNIT_HEALTH', -- 体力变化
 	'UNIT_THREAT_LIST_UPDATE', -- 仇恨列表变化
 	'UNIT_THREAT_SITUATION_UPDATE', -- 仇恨变化
 	'ZONE_CHANGED', -- 区域更改
 	'ZONE_CHANGED_NEW_AREA', -- 传送
+=======
+	'UNIT_THREAT_LIST_UPDATE', -- 仇恨列表变化
+	'UNIT_THREAT_SITUATION_UPDATE', -- 仇恨变化
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 }) do
 	BC:RegisterEvent(event)
 end
@@ -1397,5 +1415,27 @@ BC:SetScript('OnEvent', function(self, event, unit, ...)
 				SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
 			end
 		end
+<<<<<<< HEAD
+=======
+	elseif event == 'UNIT_FLAGS' then
+		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
+		self:update(unit)
+	elseif event == 'UNIT_TARGET' then
+		unit = unit == 'player' and 'target' or unit
+		self:update(unit)
+		self:update(unit .. 'target')
+		self:incomingHeals(unit)
+		self:incomingHeals(unit .. 'target')
+		self:threat(unit)
+	elseif event == 'UNIT_HEAL_PREDICTION' then -- 治疗预测
+		self:incomingHeals(unit)
+	elseif event == 'UNIT_THREAT_LIST_UPDATE' then -- 仇恨列表变化
+		local threat = self:getDB('cache', 'threat') or {}
+		threat[UnitGUID(unit)] = {UnitDetailedThreatSituation('player', unit)}
+		self:setDB('cache', 'threat', threat)
+		self:threat(unit)
+	elseif event == 'UNIT_THREAT_SITUATION_UPDATE' then
+		if unit == 'player' then self:threat('target') end
+>>>>>>> 8447105b03be850e32767cca2b240a2d100e5c38
 	end
 end)
