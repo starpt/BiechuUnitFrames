@@ -226,19 +226,10 @@ function option:init()
 
 	-- 显示自定义德鲁伊法力条
 	if BC.class == 'DRUID' then
-		self.player.druidBarEnergy:SetChecked(BC:getDB('player', 'druidBarEnergy'))
-		if BC:getDB('player', 'druidBar') then
-			self.player.druidBarEnergy:SetEnabled(true)
-			self.player.druidBar:SetChecked(true)
-		else
-			self.player.druidBarEnergy:SetEnabled(false)
-			self.player.druidBar:SetChecked(false)
-		end
+		self.player.druidBar:SetChecked(BC:getDB('player', 'druidBar'))
 	else
 		self.player.druidBar:SetChecked(false)
-		self.player.druidBarEnergy:SetChecked(false)
 		self.player.druidBar:SetEnabled(false)
-		self.player.druidBarEnergy:SetEnabled(false)
 	end
 
 	self.player.border:OnShow() -- 边框
@@ -441,13 +432,8 @@ option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏
 option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复提示
 
 -- 显示自定义德鲁伊法力条
-option:check('player', 'druidBar', 'powerSpark', nil, nil, nil, function(self)
-	BC:setDB('player', 'druidBar', self:GetChecked())
-	option.player.druidBarEnergy:SetEnabled(self:GetChecked())
-end)
-
-option:check('player', 'druidBarEnergy', 'druidBar', 15, vertical + 6) -- 熊形态下显示能量条
-option:check('player', 'healthBarClass', 'druidBarEnergy', -15, vertical + 2) -- 体力条职业色(玩家)
+option:check('player', 'druidBar', 'powerSpark')
+option:check('player', 'healthBarClass', 'druidBar') -- 体力条职业色(玩家)
 option:check('player', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
 -- 名字字体大小

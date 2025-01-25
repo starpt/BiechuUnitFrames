@@ -135,7 +135,6 @@ L.valueStyleList = {
 	[10] = 'None',
 }
 L.druidBar = 'Show custom druid mana bars'
-L.druidBarEnergy = 'Display energy bar in bear form'
 L.hideName = 'Hide Name'
 L.scale = 'Scale'
 L.hideFrame = 'Hide Frame'

@@ -273,6 +273,7 @@ if BC.class == 'DRUID' and not BC.player.druid then
 
 	BC.player.druidBar = CreateFrame('StatusBar', 'PlayerFrameDruidBar', BC.player.druid)
 	BC.player.druidBar.unit = 'player'
+	BC.player.druidBar.powerType = 0
 	BC.player.druidBar:SetSize(windth - 1, height - 4)
 	BC.player.druidBar:SetPoint('LEFT', 3.5 , 0)
 	BC.player.druidBar:SetFrameLevel(3)
@@ -308,16 +309,13 @@ function frame:spark(bar, now)
 		bar.spark:Hide()
 		return
 	end
-
 	bar.spark:Show()
-
 	local interval = self.interval or 2 -- 恢复间隔
-
 	if bar.powerType == 0 then
 		local manaTime = BC:getDB('cache', 'manaTime')
 		if type(self.waitTime) == 'number' and self.waitTime > now then
 			bar.spark.point:SetPoint('CENTER', bar.spark, 'LEFT', bar.spark:GetWidth() * (self.waitTime - now) / 5, 0)
-		elseif type(manaTime) == 'number' and energyTime > now then
+		elseif type(manaTime) == 'number' and now > manaTime then
 			bar.spark.point:SetPoint('CENTER', bar.spark, 'LEFT', bar.spark:GetWidth() * (mod(now - manaTime, interval) / interval), 0)
 		else
 			bar.spark:Hide()
@@ -520,7 +518,6 @@ frame:SetScript('OnUpdate', function(self)
 	if BC.player.druid then
 		if powerType ~= 0 and BC:getDB('player', 'druidBar') then
 			BC.player.druid:Show()
-			BC.player.druidBar.powerType = powerType == 1 and BC:getDB('player', 'druidBarEnergy') and 3 or 0
 			BC:bar(BC.player.druidBar)
 			self:spark(BC.player.druidBar, now)
 		else

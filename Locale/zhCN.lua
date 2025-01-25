@@ -103,7 +103,6 @@ L.valueStyleList = {
 	[10] = '都不显示',
 }
 L.druidBar = '显示自定义德鲁伊法力条'
-L.druidBarEnergy = '熊形态下显示能量条'
 L.hideName = '隐藏名字'
 L.scale = '框体缩放'
 L.hideFrame = '隐藏框体'
