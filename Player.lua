@@ -181,7 +181,7 @@ function frame:talent()
 	for i = 1, MAX_TALENT_TABS do
 		local _, name, _, icon, point = GetTalentTabInfo(i, 'player', false, active)
 		text = (text and text .. '/' or '') .. point
-		if point > 0 and (type(talent[active]) ~= 'table' or type(talent[active].point) ~= 'number' or talent[active].point < point) then
+		if point > 0 and (type(talent[active]) ~= 'table' or talent[active].point < point) then
 			talent[active] = {
 				name = name,
 				icon = icon,
@@ -189,7 +189,7 @@ function frame:talent()
 			}
 		end
 		_, name, _, _, point = GetTalentTabInfo(i, 'player', false, passive)
-		if point > 0 and (type(talent[passive]) ~= 'table' or type(talent[passive].point) ~= 'number' or talent[passive].point < point) then
+		if point > 0 and (type(talent[passive]) ~= 'table' or talent[passive].point < point) then
 			talent[passive] = {
 				name = name,
 				point = point,
@@ -197,7 +197,7 @@ function frame:talent()
 		end
 	end
 
-	if talent[active] == 'table' and type(talent[active].name) == 'string' then
+	if type(talent[active]) == 'table' and type(talent[active].name) == 'string' then
 		BC.player.miniIcon.tip = {[1] = {(active == 1 and L.primary or L.secondary) .. '(' .. talent[active].name ..'):', text, 1, 1, 0, 0, 1, 0}}
 		BC.player.miniIcon.icon:SetTexture(talent[active].icon)
 	else
@@ -209,7 +209,7 @@ function frame:talent()
 
 	if GetNumTalentGroups('player', false) > 1 then -- 可以切换天赋(开启双天赋)
 		BC.player.miniIcon.tip[3] = {L.click .. ':', L.switch .. (active == 1 and L.secondary or L.primary), 1, 1, 0, 0, 1, 0}
-		if BC:getDB('player', 'autoTalentEquip') and talent[passive] == 'table' and type(talent[passive].name) == 'string' then
+		if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and type(talent[passive].name) == 'string' then
 			BC.player.miniIcon.tip[4] = {L.switchAfter .. ':', talent[passive].name, 1, 1, 0, 0, 1, 0} -- 切换天赋后
 		end
 	end
