@@ -215,13 +215,13 @@ function option:init()
 
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
-	-- 显示法力/能量恢复提示
+	-- 显示法力/能量恢复闪动
 	if BC.class == 'WARRIOR' then
 		self.player.powerSpark:SetChecked(false)
 		self.player.powerSpark:SetEnabled(false)
 	else
 		self.player.powerSpark:SetChecked(BC:getDB('player', 'powerSpark'))
-		self.player.powerSpark:SetEnabled(true)
+		self.player.powerSpark:SetEnabled(type(PowerSparkDB) ~= 'table' or not PowerSparkDB.enabled)
 	end
 
 	-- 显示自定义德鲁伊法力条
@@ -305,7 +305,10 @@ function option:init()
 		if self[key].auraY and BC:getDB(key, 'auraY') then self[key].auraY:SetValue(BC:getDB(key, 'auraY')) end -- Buff/Debuff Y轴位置
 	end
 end
-option:SetScript('OnShow', option.init)
+option:RegisterEvent('VARIABLES_LOADED')
+option:SetScript('OnEvent', function(self, event)
+	if event == 'VARIABLES_LOADED' then self:init() end
+end)
 
 --[[ 全局设置 开始 ]]
 option:title(option, addonName .. ' v' .. GetAddOnMetadata(addonName, 'Version'))
@@ -429,7 +432,7 @@ end)
 option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切换天赋后装备套装(ItemRack)
 option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(ItemRack)
 option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
-option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复提示
+option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复闪动
 
 -- 显示自定义德鲁伊法力条
 option:check('player', 'druidBar', 'powerSpark')

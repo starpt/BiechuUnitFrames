@@ -59,14 +59,11 @@ BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -.5)
 
 -- 法力/能量恢复
 if not BC.player.manabar.spark and BC.class ~= 'WARRIOR' then
-	BC.player.manabar.spark = CreateFrame('StatusBar', nil, BC.player.manabar)
-	-- BC.player.manabar.spark:SetAllPoints(BC.player.manabar)
-	BC.player.manabar.spark:SetSize(BC.player.manabar:GetSize())
-	BC.player.manabar.spark:SetPoint('CENTER')
-	BC.player.manabar.spark.point = BC.player.manabar.spark:CreateTexture()
-	BC.player.manabar.spark.point:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
-	BC.player.manabar.spark.point:SetBlendMode('ADD')
-	BC.player.manabar.spark.point:SetSize(28, 28)
+	BC.player.manabar.spark = BC.player.manabar:CreateTexture()
+	BC.player.manabar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
+	BC.player.manabar.spark:SetBlendMode('ADD')
+	BC.player.manabar.spark:SetSize(28, 28)
+	BC.player.manabar.spark:SetAlpha(.8)
 end
 
 -- 装备小图标
@@ -287,24 +284,22 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druidBar.SideText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
 	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', 2.5, -1)
 
-	BC.player.druidBar.spark = CreateFrame('StatusBar', nil, BC.player.druidBar)
-	BC.player.druidBar.spark:SetAllPoints(BC.player.druidBar)
-	BC.player.druidBar.spark:SetFrameLevel(5)
-	BC.player.druidBar.spark.point = BC.player.druidBar.spark:CreateTexture()
-	BC.player.druidBar.spark.point:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
-	BC.player.druidBar.spark.point:SetBlendMode('ADD')
-	BC.player.druidBar.spark.point:SetSize(28, 28)
+	BC.player.druidBar.spark = BC.player.druidBar:CreateTexture()
+	BC.player.druidBar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
+	BC.player.druidBar.spark:SetBlendMode('ADD')
+	BC.player.druidBar.spark:SetSize(28, 28)
+	BC.player.druidBar.spark:SetAlpha(.8)
 end
 
--- 显示法力/能量恢复提示
+-- 显示法力/能量恢复闪动
 function frame:spark(bar, now)
-	if not bar.spark then return end
-	local powerMax = UnitPower('player', bar.powerType) >= UnitPowerMax('player', bar.powerType)
-	if not BC:getDB('player', 'powerSpark')
-		or UnitIsDeadOrGhost('player') -- 死亡
-		or bar.powerType ~= 0 and bar.powerType ~= 3 -- 非法力和能量
-		or bar.powerType == 0 and powerMax -- 满法力
-		or powerMax and not IsStealthed() and not UnitCanAttack('player', 'target') -- 满能量只在潜行或者有可攻击目标才显示
+	if not bar.spark or type(PowerSparkDB) == 'table' and PowerSparkDB.enabled then return end
+	if not BC:getDB('player', 'powerSpark') or
+		UnitIsDeadOrGhost('player') or
+		bar.powerType ~= 0 and bar.powerType ~= 3 or
+		not InCombatLockdown() and UnitPower('player', bar.powerType) >= UnitPowerMax('player', bar.powerType) and (
+			bar.powerType == 0 or
+			bar.powerType == 3 and not IsStealthed() and not UnitCanAttack('player', 'target'))
 	then
 		bar.spark:Hide()
 		return
@@ -314,16 +309,16 @@ function frame:spark(bar, now)
 	if bar.powerType == 0 then
 		local manaTime = BC:getDB('cache', 'manaTime')
 		if type(self.waitTime) == 'number' and self.waitTime > now then
-			bar.spark.point:SetPoint('CENTER', bar.spark, 'LEFT', bar.spark:GetWidth() * (self.waitTime - now) / 5, 0)
+			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (self.waitTime - now) / 5, 0)
 		elseif type(manaTime) == 'number' and now > manaTime then
-			bar.spark.point:SetPoint('CENTER', bar.spark, 'LEFT', bar.spark:GetWidth() * (mod(now - manaTime, interval) / interval), 0)
+			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (mod(now - manaTime, interval) / interval), 0)
 		else
 			bar.spark:Hide()
 		end
 	else
 		local energyTime = BC:getDB('cache', 'energyTime')
 		if type(energyTime) == 'number' and now > energyTime then
-			bar.spark.point:SetPoint('CENTER', bar.spark, 'LEFT', bar.spark:GetWidth() * (mod(now - energyTime, interval) / interval), 0)
+			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (mod(now - energyTime, interval) / interval), 0)
 		end
 	end
 end
