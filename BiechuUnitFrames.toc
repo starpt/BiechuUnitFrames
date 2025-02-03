@@ -1,9 +1,9 @@
 ## Interface: 11506
 ## Title: BiechuUnitFrames
-## Notes: 别处头像框体
+## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.7
+## Version: 1.15.8
 ## X-Localizations: enUS, zhCN
 ## Author: starpt
 ## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes

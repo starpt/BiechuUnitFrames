@@ -305,9 +305,9 @@ function option:init()
 		if self[key].auraY and BC:getDB(key, 'auraY') then self[key].auraY:SetValue(BC:getDB(key, 'auraY')) end -- Buff/Debuff Y轴位置
 	end
 end
-option:RegisterEvent('VARIABLES_LOADED')
+option:RegisterEvent('PLAYER_ENTERING_WORLD')
 option:SetScript('OnEvent', function(self, event)
-	if event == 'VARIABLES_LOADED' then self:init() end
+	if event == 'PLAYER_ENTERING_WORLD' then self:init() end
 end)
 
 --[[ 全局设置 开始 ]]
