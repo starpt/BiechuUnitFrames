@@ -276,12 +276,13 @@ function option:init()
 
 		-- 锚定玩家框体
 		local anchor = self[key].anchor
+		local scale = self[key].scale -- 框体缩放
 		if anchor then
 			anchor:SetChecked(BC:getDB(key, 'anchor') == 'PlayerFrame')
-			anchor:Click()
+			if scale then scale:SetEnabled(BC:getDB(key, 'anchor') ~= 'PlayerFrame') end -- 框体缩放
 		end
 
-		if self[key].scale then self[key].scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
+		if scale then scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
 		if self[key].showEnemyBuff then self[key].showEnemyBuff:SetChecked(BC:getDB(key, 'showEnemyBuff')) end -- 显示敌对目标模拟Buff
 
 		-- 只显示我施放的Buff/Debuff倒计时(OmniCC)
