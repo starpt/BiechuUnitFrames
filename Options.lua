@@ -215,15 +215,6 @@ function option:init()
 
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
-	-- 显示法力/能量恢复闪动
-	if BC.class == 'WARRIOR' then
-		self.player.powerSpark:SetChecked(false)
-		self.player.powerSpark:SetEnabled(false)
-	else
-		self.player.powerSpark:SetChecked(BC:getDB('player', 'powerSpark'))
-		self.player.powerSpark:SetEnabled(type(PowerSparkDB) ~= 'table' or not PowerSparkDB.enabled)
-	end
-
 	-- 显示自定义德鲁伊法力条
 	if BC.class == 'DRUID' then
 		self.player.druidBar:SetChecked(BC:getDB('player', 'druidBar'))
@@ -433,10 +424,9 @@ end)
 option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切换天赋后装备套装(ItemRack)
 option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(ItemRack)
 option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
-option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复闪动
 
 -- 显示自定义德鲁伊法力条
-option:check('player', 'druidBar', 'powerSpark')
+option:check('player', 'druidBar', 'hidePartyNumber')
 option:check('player', 'healthBarClass', 'druidBar') -- 体力条职业色(玩家)
 option:check('player', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 

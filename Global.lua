@@ -40,7 +40,6 @@ BC.default = {
 		miniIcon = true,
 		equipmentIcon = true,
 		hidePartyNumber = true,
-		powerSpark = true,
 		druidBar = true,
 		nameFontSize = 13,
 		valueFontSize = 12,

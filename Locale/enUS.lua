@@ -102,7 +102,6 @@ L.showThreat = 'Show numeric threat'
 L.statusBarClass = 'Status bar background professional color'
 L.statusBarAlpha = 'Status bar alpha'
 L.healthBarClass = 'Health bar background class color'
-L.powerSpark = 'Mana/Energy spark'
 L.border = 'Border'
 L.borderList = {
 	[1] = 'Normal',

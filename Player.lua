@@ -57,15 +57,6 @@ BC.player.manabar.RightText:SetPoint('RIGHT', BC.player.manabar, -.5, -.5)
 BC.player.manabar.SideText = BC.player.manabar:CreateFontString()
 BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -.5)
 
--- 法力/能量恢复
-if not BC.player.manabar.spark and BC.class ~= 'WARRIOR' then
-	BC.player.manabar.spark = BC.player.manabar:CreateTexture()
-	BC.player.manabar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
-	BC.player.manabar.spark:SetBlendMode('ADD')
-	BC.player.manabar.spark:SetSize(28, 28)
-	BC.player.manabar.spark:SetAlpha(.8)
-end
-
 -- 装备小图标
 function frame:equip()
 	if type(ItemRack) ~= 'table' or type(ItemRackUser) ~= 'table' or type(ItemRackUser.Sets) ~= 'table' then return end
@@ -271,8 +262,8 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druidBar = CreateFrame('StatusBar', 'PlayerFrameDruidBar', BC.player.druid)
 	BC.player.druidBar.unit = 'player'
 	BC.player.druidBar.powerType = 0
-	BC.player.druidBar:SetSize(windth - 1, height - 4)
-	BC.player.druidBar:SetPoint('LEFT', 3.5 , 0)
+	BC.player.druidBar:SetSize(windth, height - 4)
+	BC.player.druidBar:SetPoint('LEFT', 2, 0)
 	BC.player.druidBar:SetFrameLevel(3)
 
 	BC.player.druidBar.MiddleText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
@@ -284,43 +275,6 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druidBar.SideText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
 	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', 2.5, -1)
 
-	BC.player.druidBar.spark = BC.player.druidBar:CreateTexture()
-	BC.player.druidBar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
-	BC.player.druidBar.spark:SetBlendMode('ADD')
-	BC.player.druidBar.spark:SetSize(28, 28)
-	BC.player.druidBar.spark:SetAlpha(.8)
-end
-
--- 显示法力/能量恢复闪动
-function frame:spark(bar, now)
-	if not bar.spark or type(PowerSparkDB) == 'table' and PowerSparkDB.enabled then return end
-	if not BC:getDB('player', 'powerSpark') or
-		UnitIsDeadOrGhost('player') or
-		bar.powerType ~= 0 and bar.powerType ~= 3 or
-		not InCombatLockdown() and UnitPower('player', bar.powerType) >= UnitPowerMax('player', bar.powerType) and (
-			bar.powerType == 0 or
-			bar.powerType == 3 and not IsStealthed() and not UnitCanAttack('player', 'target'))
-	then
-		bar.spark:Hide()
-		return
-	end
-	bar.spark:Show()
-	local interval = self.interval or 2 -- 恢复间隔
-	if bar.powerType == 0 then
-		local manaTime = BC:getDB('cache', 'manaTime')
-		if type(self.waitTime) == 'number' and self.waitTime > now then
-			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (self.waitTime - now) / 5, 0)
-		elseif type(manaTime) == 'number' and now > manaTime then
-			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (mod(now - manaTime, interval) / interval), 0)
-		else
-			bar.spark:Hide()
-		end
-	else
-		local energyTime = BC:getDB('cache', 'energyTime')
-		if type(energyTime) == 'number' and now > energyTime then
-			bar.spark:SetPoint('CENTER', bar, 'LEFT', bar:GetWidth() * (mod(now - energyTime, interval) / interval), 0)
-		end
-	end
 end
 
 BC.player.init = function()
@@ -438,67 +392,11 @@ for _, event in pairs({
 end
 frame:SetScript('OnEvent', function(self, event, unit)
 	local now = GetTime()
-	if event == 'PLAYER_ENTERING_WORLD' then
-		if UnitPowerType('player') == 0 or BC.class == 'DRUID' then -- 法力
-			self.lastMana = UnitPower('player', 0)
-			local manaTime = BC:getDB('cache', 'manaTime')
-			if type(manaTime) ~= 'number' or manaTime > now then BC:setDB('cache', 'manaTime', now) end
-		end
-		if UnitPowerType('player') == 3 or BC.class == 'DRUID' then -- 能量
-			self.lastEnergy = UnitPower('player', 3)
-			local energyTime = BC:getDB('cache', 'energyTime')
-			if type(energyTime) ~= 'number' or energyTime > now then BC:setDB('cache', 'energyTime', now) end
-		end
-	elseif event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_REGEN_ENABLED' then
+	if event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_REGEN_ENABLED' then
 		BC.player.flash:Hide()
 		BC:setDB('cache', 'threat', nil) -- 清空仇恨列表
 	elseif event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' then
 		self:talent()
-	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
-		local guid = UnitGUID('player')
-		local _, subevent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId = CombatLogGetCurrentEventInfo()
-		if destGUID == guid then -- 施法目标自己
-			if spellId == 13750 then -- 冲动, 加速能量恢复速度
-				if subevent == 'SPELL_AURA_APPLIED' then -- 冲动 开始
-					self.interval = 1
-				elseif subevent == 'SPELL_AURA_REMOVED' then -- 冲动 结束
-					self.interval = nil
-				end
-			elseif spellId == 29166 then -- 忽视 激活期间 5秒回蓝等待
-				if subevent == 'SPELL_AURA_APPLIED' then -- 激活 开始
-					self.ignore = true
-				elseif subevent == 'SPELL_AURA_REMOVED' then -- 激活 结束
-					self.ignore = nil
-				end
-			elseif subevent == 'SPELL_ENERGIZE' then -- 法力药水恢复 生命分流 跳过
-				self.skip = true
-			end
-		end
-	elseif event == 'UNIT_POWER_UPDATE' then
-		if unit == 'player' then
-			if UnitPowerType('player') == 0 or BC.class == 'DRUID' then -- 法力
-				local mana = UnitPower('player', 0)
-				if not self.ignore and type(self.lastMana) == 'number' and mana < self.lastMana then
-					self.waitTime = now + 5
-				elseif type(self.lastMana) == 'number' and mana > self.lastMana then -- 法力增加
-					if self.skip then -- 跳过非2秒回蓝, 比如 生命分流
-						self.skip = nil
-					else
-						self.waitTime = nil
-						BC:setDB('cache', 'manaTime', now)
-					end
-				end
-				self.lastMana = mana
-			end
-
-			if UnitPowerType('player') == 3 or BC.class == 'DRUID' then -- 能量
-				local energy = UnitPower('player', 3)
-				if type(self.lastEnergy) ~= 'number' or energy > self.lastEnergy then
-					BC:setDB('cache', 'energyTime', now)
-				end
-				self.lastEnergy = UnitPower('player', 3)
-			end
-		end
 	elseif event == 'UNIT_PET' then
 		if unit == 'player' then BC:update('pet') end
 	end
@@ -514,13 +412,10 @@ frame:SetScript('OnUpdate', function(self)
 		if powerType ~= 0 and BC:getDB('player', 'druidBar') then
 			BC.player.druid:Show()
 			BC:bar(BC.player.druidBar)
-			self:spark(BC.player.druidBar, now)
 		else
 			BC.player.druid:Hide()
 		end
 	end
-
-	self:spark(BC.player.manabar, now)
 
 	if UnitExists('pettarget') then
 		BC:bar(BC.pettarget.healthbar)
