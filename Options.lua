@@ -2,15 +2,17 @@ local addonName = ...
 local BC = _G[addonName]
 local L = _G[addonName .. 'Locale']
 local isZh = GetLocale() == 'zhCN' or GetLocale() == 'zhTW'
-local vertical = -31
-local horizontal = 322
 local option = CreateFrame('Frame', addonName .. 'Option')
 local category = Settings.RegisterCanvasLayoutCategory(option, addonName)
 Settings.RegisterAddOnCategory(category)
 
 -- 命令行
-SlashCmdList[addonName] = function()
-	Settings.OpenToCategory(category.ID)
+SlashCmdList[addonName] = function(msg)
+	if option[msg] then
+		Settings.OpenToCategory(option[msg].ID)
+	else
+		Settings.OpenToCategory(category.ID)
+	end
 end
 _G['SLASH_' .. addonName .. '1'] = '/bc'
 
@@ -20,6 +22,54 @@ function option:title(parent, text)
 	parent.title:SetPoint('TOPLEFT', 16, -16)
 	parent.title:SetText(text)
 end
+
+-- 选项卡
+option.list = {
+	'player',
+	'pet',
+	'pettarget',
+	'target',
+	'targettarget',
+	'focus',
+	'focustarget',
+	'party',
+	'partypet',
+	'partytarget',
+}
+for index, name in pairs(option.list) do
+	option[name] = CreateFrame('Frame', option:GetName() .. name:gsub('^%l', string.upper))
+	Settings.RegisterCanvasLayoutSubcategory(category, option[name], L[name])
+	option[name].ID = category.ID + index
+	option:title(option[name], L[name]:gsub('[├├─└─]', ''))
+end
+
+-- 暴雪变量修改
+hooksecurefunc('SetCVar', function(name, value, button)
+	if name == 'alwaysCompareItems' then -- 启用装备对比
+		option.alwaysCompareItems:SetChecked(value == '1')
+	elseif name == 'showTargetOfTarget' then -- 目标的目标
+		if button ~= 'LeftButton' then
+			BC:setDB('targettarget', 'hideFrame', value == '0' or nil)
+			option.targettarget.hideFrame:SetChecked(value == '0')
+			option.targettarget.hideFrame:Click()
+		end
+	elseif name == 'hidePartyInRaid' then -- 团队显示小队框体
+		if button ~= 'LeftButton' then
+			BC:setDB('party', 'raidShowParty', value == '0' or false)
+			option.party.raidShowParty:SetChecked(value == '0')
+			option.party.raidShowParty:Click()
+		end
+	elseif name == 'showPartyPets' then -- 队友的宠物
+		if button ~= 'LeftButton' then
+			BC:setDB('partypet', 'hideFrame', value == '0' or nil)
+			option.partypet.hideFrame:SetChecked(value == '0')
+			option.partypet.hideFrame:Click()
+		end
+	end
+end)
+
+local vertical = -31 -- 竖直间隔
+local horizontal = 322 -- 水平间隔
 
 -- 数值样式
 function option:valueStyleList(...)
@@ -31,6 +81,16 @@ function option:valueStyleList(...)
 	return list
 end
 
+-- 战斗警告
+function option:combatAlert(func)
+	if InCombatLockdown() then
+		if type(func) == 'function' then func() end
+		RaidNotice_AddMessage(RaidWarningFrame, '', { r = 1, g = 0, b = 0 })
+		RaidNotice_AddMessage(RaidWarningFrame, L['cantSaveInCombat'], { r = 1, g = 0, b = 0 })
+		return true
+	end
+end
+
 -- 勾选
 function option:check(key, name, relative, offsetX, offsetY, text, click)
 	local parent = key == 'global' and self or self[key]
@@ -39,7 +99,7 @@ function option:check(key, name, relative, offsetX, offsetY, text, click)
 	_G[parent[name]:GetName() .. 'Text']:SetText(L[text or name])
 
 	parent[name].Click = type(click) == 'function' and click or function(self)
-		BC:setDB(key, name, self:GetChecked())
+		BC:setDB(key, name, self:GetChecked() and true or false)
 	end
 	parent[name]:SetScript('OnClick', parent[name].Click)
 
@@ -159,23 +219,6 @@ function option:button(key, name, relative, offsetX, offsetY, width, click)
 	if type(click) == 'function' then parent[name]:SetScript('OnClick', click) end
 end
 
--- 选项卡
-option.list = {
-	'player',
-	'pet',
-	'pettarget',
-	'target',
-	'targettarget',
-	'party',
-	'partypet',
-	'partytarget',
-}
-for _, name in pairs(option.list) do
-	option[name] = CreateFrame('Frame', option:GetName() .. name:gsub('^%l', string.upper))
-	Settings.RegisterCanvasLayoutSubcategory(category, option[name], L[name])
-	option:title(option[name], L[name]:gsub('[├├─└─]', ''))
-end
-
 -- 初始设置
 function option:init()
 	self.dark:SetChecked(BC:getDB('global', 'dark')) -- 暗黑风格
@@ -201,19 +244,25 @@ function option:init()
 
 	self.dragSystemFarmes:SetChecked(BC:getDB('global', 'dragSystemFarmes')) -- 自由拖动系统框体
 	self.incomingHeals:SetChecked(BC:getDB('global', 'incomingHeals')) -- 显示预配治疗
-	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
 	self.alwaysCompareItems:SetChecked(GetCVar('alwaysCompareItems') == '1') -- 启用装备对比
+	self.autoTab:SetChecked(BC:getDB('global', 'autoTab')) -- PVP自动TAB选择玩家
+	self.autoDalaran:SetChecked(BC:getDB('global', 'autoDalaran')) -- 达拉然自动关闭姓名板
 
-	-- 切换天赋后装备套装(ItemRack)
-	local hasItemRack = type(ItemRack) == 'table'
-	self.player.autoTalentEquip:SetChecked(hasItemRack and BC:getDB('player', 'autoTalentEquip'))
-	self.player.autoTalentEquip:SetEnabled(hasItemRack and BC:getDB('player', 'miniIcon'))
+	-- 切换天赋后装备套装
+	self.player.autoTalentEquip:SetChecked(BC:getDB('player', 'autoTalentEquip'))
+	self.player.autoTalentEquip:SetEnabled(BC:getDB('player', 'miniIcon'))
 
-	-- 显示装备小图标(ItemRack)
-	self.player.equipmentIcon:SetChecked(hasItemRack and BC:getDB('player', 'equipmentIcon'))
-	self.player.equipmentIcon:SetEnabled(hasItemRack)
 
+	self.player.equipmentIcon:SetChecked(BC:getDB('player', 'equipmentIcon')) -- 显示装备小图标
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
+
+	-- 法力条显示5秒恢复
+	if BC.class == 'WARRIOR' or BC.class == 'ROGUE' or BC.class == 'DEATHKNIGHT' then
+		self.player.fiveSecondRule:SetChecked(false)
+		self.player.fiveSecondRule:SetEnabled(false)
+	else
+		self.player.fiveSecondRule:SetChecked(BC:getDB('player', 'fiveSecondRule'))
+	end
 
 	-- 显示自定义德鲁伊法力条
 	if BC.class == 'DRUID' then
@@ -225,8 +274,6 @@ function option:init()
 
 	self.player.border:OnShow() -- 边框
 	self.player.portrait:OnShow() -- 头像
-
-	self.party.outRange:SetChecked(BC:getDB('party', 'outRange')) -- 超出范围半透明
 	self.party.raidShowParty:SetChecked(BC:getDB('party', 'raidShowParty')) -- 团队显示小队框体
 	self.party.showLevel:SetChecked(BC:getDB('party', 'showLevel')) -- 显示等级
 	self.party.showCastBar:SetChecked(BC:getDB('party', 'showCastBar')) -- 显示施法条
@@ -236,19 +283,16 @@ function option:init()
 		-- 隐藏框体
 		local hideFrame = self[key].hideFrame
 		if hideFrame then
-			if key == 'targettarget' then
-				hideFrame:SetChecked(GetCVar('showTargetOfTarget') ~= '1')
-			else
-				hideFrame:SetChecked(BC:getDB(key, 'hideFrame'))
-			end
+			hideFrame:SetChecked(BC:getDB(key, 'hideFrame'))
 			hideFrame:Click()
 		end
 
 		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像上显示战斗信息
 		if self[key].combatFlash then self[key].combatFlash:SetChecked(BC:getDB(key, 'combatFlash')) end -- 战斗状态边框红光
-		if self[key].showThreat then self[key].showThreat:SetChecked(GetCVar('threatShowNumeric') == '1') end -- 显示威胁百分比
+		if self[key].threatLeft then self[key].threatLeft:SetChecked(BC:getDB(key, 'threatLeft')) end -- 居左显示威胁值
 		if self[key].portraitClass then self[key].portraitClass:SetChecked(BC:getDB(key, 'portrait') == 1) end -- 头像显示职业图标(玩家)
 		if self[key].miniIcon then self[key].miniIcon:SetChecked(BC:getDB(key, 'miniIcon')) end -- 显示小图标(职业/种类)
+		if self[key].outRange then self[key].outRange:SetChecked(BC:getDB(key, 'outRange')) end -- 超出范围半透明
 		if self[key].healthBarClass then self[key].healthBarClass:SetChecked(BC:getDB(key, 'healthBarClass')) end -- 体力条职业色(玩家)
 		if self[key].statusBarClass then self[key].statusBarClass:SetChecked(BC:getDB(key, 'statusBarClass')) end -- 状态栏背景职业色(玩家)
 		if self[key].statusBarAlpha then self[key].statusBarAlpha:SetValue(BC:getDB(key, 'statusBarAlpha')) end -- 状态栏透明度
@@ -274,7 +318,6 @@ function option:init()
 		end
 
 		if scale then scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
-		if self[key].showEnemyBuff then self[key].showEnemyBuff:SetChecked(BC:getDB(key, 'showEnemyBuff')) end -- 显示敌对目标模拟Buff
 
 		-- 只显示我施放的Buff/Debuff倒计时(OmniCC)
 		local hasOmniCC = type(OmniCC) == 'table'
@@ -317,7 +360,7 @@ option:check('global', 'nameTextClassColor', 'healthBarColor') -- 名字颜色�
 -- 数值单位
 option:check('global', 'carry', 'nameTextClassColor', nil, nil, nil, function(self)
 	local slider = option.carrySlider
-	if slider:IsVisible() then
+	if slider:IsShown() then
 		BC:setDB('global', 'carry', (self:GetChecked() and 0 or 2) + slider:GetValue())
 		option.carrySlider:SetEnabled(self:GetChecked())
 	else
@@ -355,6 +398,7 @@ option:downMenu('global', 'config', {
 				info.text = menus[i].text
 				info.value = menus[i].value
 				info.func = function(self)
+					if option:combatAlert() then return end
 					BC:setDB('config', self.value)
 					UIDropDownMenu_SetSelectedID(down, self:GetID())
 					option:init()
@@ -367,43 +411,27 @@ end)
 
 -- 重置
 option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:comfing(L.confirmResetDefault, function()
 		if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
 		BC:init()
 		SetCVar('alwaysCompareItems', '1')
-		SetCVar('threatShowNumeric', '1')
 		SetCVar('showTargetOfTarget', '1')
 		option:init()
 	end)
 end)
 
-hooksecurefunc('SetCVar', function(name, value)
-	if name == 'alwaysCompareItems' then -- 启用装备对比
-		option.alwaysCompareItems:SetChecked(value == '1')
-	elseif name == 'threatShowNumeric' then
-		option.target.showThreat:SetChecked(value == '1') -- 目标 显示威胁百分比
-	elseif name == 'showTargetOfTarget' then -- 目标的目标 隐藏框体
-		local hideFrame = option.targettarget.hideFrame
-		hideFrame:SetChecked(value ~= '1')
-		hideFrame:Click()
-	end
-end)
-
 option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框体
 option:check('global', 'incomingHeals', 'dragSystemFarmes') -- 显示预治疗
-option:check('global', 'autoTab', 'incomingHeals') -- PVP自动TAB选择玩家
 
--- 启用装备对比
-option:check('global', 'alwaysCompareItems', 'autoTab', nil, nil, nil, function(self)
+option:check('global', 'alwaysCompareItems', 'incomingHeals', nil, nil, nil, function(self)
 	SetCVar('alwaysCompareItems', self:GetChecked() and '1' or '0')
 end)
 
--- 支持宝
+option:check('global', 'autoTab', 'alwaysCompareItems') -- PVP自动TAB选择玩家
+option:check('global', 'autoDalaran', 'autoTab') -- 达拉然自动关闭姓名板
+
+-- 支付宝
 option.alipay = option:CreateTexture()
 option.alipay:SetTexture(BC.texture .. 'Alipay')
 option.alipay:SetSize(128, 128)
@@ -418,15 +446,17 @@ option:check('player', 'combatFlash', 'portraitCombat') -- 战斗状态边框红
 -- 显示天赋小图标(点击切换天赋)
 option:check('player', 'miniIcon', 'combatFlash', nil, nil, 'talentIcon', function(self)
 	BC:setDB('player', 'miniIcon', self:GetChecked())
-	option.player.autoTalentEquip:SetEnabled(self:GetChecked() and type(ItemRack) == 'table')
+	option.player.autoTalentEquip:SetEnabled(self:GetChecked())
 end)
 
-option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切换天赋后装备套装(ItemRack)
-option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(ItemRack)
+option:check('player', 'autoTalentEquip', 'miniIcon', 12, vertical + 4) -- 切换天赋后装备套装
+option.player.autoTalentEquip:SetScale(.9)
+option:check('player', 'equipmentIcon', 'miniIcon', nil, vertical - 18) -- 显示装备小图标
 option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
+option:check('player', 'fiveSecondRule', 'hidePartyNumber') -- 法力条显示5秒恢复
 
 -- 显示自定义德鲁伊法力条
-option:check('player', 'druidBar', 'hidePartyNumber')
+option:check('player', 'druidBar', 'fiveSecondRule')
 option:check('player', 'healthBarClass', 'druidBar') -- 体力条职业色(玩家)
 option:check('player', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
@@ -448,11 +478,7 @@ option:downMenu('player', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, v
 
 -- 恢复左上角位置
 option:button('player', 'pointTargetLeftTop', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('player', 'relative', 'TOPLEFT')
 	BC:setDB('player', 'offsetX', -19)
 	BC:setDB('player', 'offsetY', -4)
@@ -470,11 +496,7 @@ end)
 
 -- 恢复水平居中位置
 option:button('player', 'pointTargetCenter', 'pointTargetLeftTop', 154, 0, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('player', 'relative', 'CENTER')
 	BC:setDB('player', 'offsetX', -223)
 	BC:setDB('player', 'offsetY', -98)
@@ -495,10 +517,18 @@ option:check('player', 'drag', 'pointTargetLeftTop', -2, vertical - 4) -- 非战
 
 -- 框体缩放
 option:slider('player', 'scale', 'drag', 4, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
+	if option:combatAlert(function() self:SetValue(BC:getDB('player', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.player.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('player', 'scale') then BC:setDB('player', 'scale', value) end
+
+	if BC:getDB('target', 'anchor') then
+		option.target.scale:SetValue(value)
+	end
+	if BC:getDB('focus', 'anchor') then
+		option.focus.scale:SetValue(value)
+	end
 end)
 
 option:downMenu('player', 'border', L.borderList, 'scale', -1, vertical - 8) -- 边框
@@ -510,8 +540,8 @@ option:downMenu('player', 'portrait', L.portraitList, 'border') -- 头像
 option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 
 -- 隐藏名字
-option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self)
-	BC:setDB('pet', 'hideName', self:GetChecked())
+option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self, button)
+	if button then BC:setDB('pet', 'hideName', self:GetChecked() and true or false) end
 	if option.pet.nameFontSize then option.pet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -533,11 +563,7 @@ option:downMenu('pet', 'valueStyle', option:valueStyleList(1, 2, 3, 4), 'valueFo
 
 -- 恢复默认位置
 option:button('pet', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('pet', 'point', nil)
 	BC:setDB('pet', 'relative', nil)
 	BC:setDB('pet', 'offsetX', nil)
@@ -551,16 +577,17 @@ option:check('pet', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按
 --[[ 宠物的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
-	local enabled = self:GetChecked()
-	BC:setDB('pettarget', 'hideFrame', enabled)
-	enabled = not enabled
-	if option.pettarget.portraitClass then option.pettarget.portraitClass:SetEnabled(enabled) end
-	if option.pettarget.healthBarClass then option.pettarget.healthBarClass:SetEnabled(enabled) end
-	if option.pettarget.hideName then option.pettarget.hideName:SetEnabled(enabled) end
-	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(enabled and not BC:getDB('pettarget', 'hideName')) end
-	if option.pettarget.valueFontSize then option.pettarget.valueFontSize:SetEnabled(enabled) end
-	if option.pettarget.valueStyle then option.pettarget.valueStyle:SetEnabled(enabled) end
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('pettarget', 'hideFrame')) end) then return end
+	local enabled = not self:GetChecked()
+	if button then BC:setDB('pettarget', 'hideFrame', not enabled) end
+	option.pettarget.portraitClass:SetEnabled(enabled)
+	option.pettarget.healthBarClass:SetEnabled(enabled)
+	option.pettarget.outRange:SetEnabled(enabled)
+	option.pettarget.hideName:SetEnabled(enabled)
+	option.pettarget.nameFontSize:SetEnabled(enabled and not BC:getDB('pettarget', 'hideName'))
+	option.pettarget.valueFontSize:SetEnabled(enabled)
+	option.pettarget.valueStyle:SetEnabled(enabled)
 end)
 
 -- 头像显示职业图标(玩家)
@@ -569,10 +596,11 @@ option:check('pettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(
 end)
 
 option:check('pettarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
+option:check('pettarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('pettarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
-	BC:setDB('pettarget', 'hideName', self:GetChecked())
+option:check('pettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('pettarget', 'hideName', self:GetChecked() and true or false) end
 	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -597,14 +625,10 @@ option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8),
 --[[ 目标设置 开始 ]]
 option:check('target', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
 option:check('target', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
-
--- 显示威胁百分比
-option:check('target', 'showThreat', 'combatFlash', nil, nil, nil, function(self)
-	SetCVar('threatShowNumeric', self:GetChecked() and '1' or '0')
-end)
+option:check('target', 'threatLeft', 'combatFlash') -- 居左显示威胁值
 
 -- 头像显示职业图标(玩家)
-option:check('target', 'portraitClass', 'showThreat', nil, nil, nil, function(self)
+option:check('target', 'portraitClass', 'threatLeft', nil, nil, nil, function(self)
 	BC:setDB('target', 'portrait', self:GetChecked() and 1 or 0)
 end)
 
@@ -638,13 +662,7 @@ option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, v
 
 -- 和玩家框体水平对齐
 option:button('target', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
-	option.player.scale:SetValue(1)
-	option.target.scale:SetValue(1)
+	if option:combatAlert() then return end
 	if BC:getDB('target', 'anchor') then
 		BC:setDB('target', 'offsetY', 0)
 	else
@@ -665,13 +683,7 @@ end)
 
 -- 和玩家框体水平居中
 option:button('target', 'pointPlayerCenter', 'pointPlayerAlignment', 164, 0, 160, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
-	option.player.scale:SetValue(1)
-	option.target.scale:SetValue(1)
+	if option:combatAlert() then return end
 	local relative
 	if BC:getDB('target', 'anchor') then
 		relative = PlayerFrame:GetPoint()
@@ -684,7 +696,8 @@ option:button('target', 'pointPlayerCenter', 'pointPlayerAlignment', 164, 0, 160
 		end
 
 		BC:setDB('player', 'relative', relative)
-		BC:setDB('player', 'offsetX', floor(UIParent:GetWidth() - BC:getDB('target', 'offsetX') - TargetFrame:GetWidth() + 0.5)/2)
+		local scale = BC:getDB('player', 'scale')
+		BC:setDB('player', 'offsetX', floor(UIParent:GetWidth() - BC:getDB('target', 'offsetX')*scale - TargetFrame:GetWidth()*scale + 0.5)/scale/2)
 		BC:setDB('target', 'offsetY', 0)
 	else
 		relative = BC:getDB('player', 'relative')
@@ -708,11 +721,14 @@ option:check('target', 'drag', 'pointPlayerAlignment', -2, vertical - 4) -- 非�
 
 -- 锚定玩家框体
 option:check('target', 'anchor', 'drag', nil, nil, nil, function(self)
+	option.player.scale:SetValue(1)
+	BC:setDB('player', 'scale', 1)
+	option.target.scale:SetValue(1)
+	BC:setDB('target', 'scale', 1)
 	local offsetX, offsetY
 	if self:GetChecked() then
 		offsetX = TargetFrame:GetLeft() - PlayerFrame:GetLeft()
 		offsetY = TargetFrame:GetTop() - PlayerFrame:GetTop()
-		option.target.scale:SetValue(1)
 		option.target.scale:SetEnabled(false)
 		BC:setDB('target', 'anchor', 'PlayerFrame')
 	else
@@ -728,14 +744,14 @@ end)
 
 -- 框体缩放
 option:slider('target', 'scale', 'anchor', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
+	if option:combatAlert(function() self:SetValue(BC:getDB('target', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.target.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('target', 'scale') then BC:setDB('target', 'scale', value) end
 end)
 
-option:check('target', 'showEnemyBuff', 'scale', -4, vertical - 8) -- 显示敌对目标模拟Buff
-option:check('target', 'selfCooldown', 'showEnemyBuff') -- 只显示我施放的Buff/Debuff倒计时(OmniCC)
+option:check('target', 'selfCooldown', 'scale', -4, vertical - 8) -- 只显示我施放的Buff/Debuff倒计时(OmniCC)
 option:check('target', 'dispelCooldown', 'selfCooldown') -- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
 option:check('target', 'dispelStealable', 'dispelCooldown') -- 高亮显示可以驱散的Buff/Debuff
 
@@ -772,13 +788,16 @@ end)
 --[[ 目标的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('targettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	if (GetCVar('showTargetOfTarget') ~= '1') == enabled then
-		SetCVar('showTargetOfTarget', enabled and '1' or '0')
+	if button then
+		BC:setDB('targettarget', 'hideFrame', not enabled or nil)
+		SetCVar('showTargetOfTarget', enabled and '1' or '0', button)
 	end
 	option.targettarget.portraitClass:SetEnabled(enabled)
 	option.targettarget.healthBarClass:SetEnabled(enabled)
+	option.targettarget.outRange:SetEnabled(enabled)
 	option.targettarget.hideName:SetEnabled(enabled)
 	option.targettarget.nameFontSize:SetEnabled(enabled and not BC:getDB('targettarget', 'hideName'))
 	option.targettarget.valueFontSize:SetEnabled(enabled)
@@ -788,15 +807,16 @@ option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(s
 end)
 
 -- 头像显示职业图标(玩家)
-option:check('targettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
-	BC:setDB('targettarget', 'portrait', self:GetChecked() and 1 or 0)
+option:check('targettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self, button)
+	if button then BC:setDB('targettarget', 'portrait', self:GetChecked() and 1 or 0) end
 end)
 
 option:check('targettarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
+option:check('targettarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('targettarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
-	BC:setDB('targettarget', 'hideName', self:GetChecked())
+option:check('targettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('targettarget', 'hideName', self:GetChecked() and true or false) end
 	if option.targettarget.nameFontSize then option.targettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -818,11 +838,7 @@ option:downMenu('targettarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8),
 
 -- 恢复默认位置
 option:button('targettarget', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('targettarget', 'point', nil)
 	BC:setDB('targettarget', 'relative', nil)
 	BC:setDB('targettarget', 'offsetX', nil)
@@ -833,14 +849,223 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 --[[ 目标的目标设置 结束 ]]
 
 
+--[[ 焦点设置 开始 ]]
+option:check('focus', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+option:check('focus', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
+option:check('focus', 'threatLeft', 'combatFlash') -- 居左显示威胁值
+
+-- 头像显示职业图标(玩家)
+option:check('focus', 'portraitClass', 'threatLeft', nil, nil, nil, function(self)
+	BC:setDB('focus', 'portrait', self:GetChecked() and 1 or 0)
+end)
+
+option:check('focus', 'miniIcon', 'portraitClass') -- 显示职业小图标(玩家)/NPC种类小图标
+option:check('focus', 'healthBarClass', 'miniIcon') -- 体力条职业色(玩家)
+option:check('focus', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
+
+-- 状态栏透明度
+option:slider('focus', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .1, function(self, value)
+	value = floor(value * 10 + 0.5)
+	value = value / 10
+	if value ~= BC:getDB('focus', 'statusBarAlpha') then BC:setDB('focus', 'statusBarAlpha', value) end
+	option.focus.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
+end)
+
+-- 名字字体大小
+option:slider('focus', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+	value = floor(value + .5)
+	if value ~= BC:getDB('focus', 'nameFontSize') then BC:setDB('focus', 'nameFontSize', value) end
+	option.focus.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+end)
+
+-- 数值字体大小
+option:slider('focus', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+	value = floor(value + .5)
+	if value ~= BC:getDB('focus', 'valueFontSize') then BC:setDB('focus', 'valueFontSize', value) end
+	option.focus.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+end)
+
+option:downMenu('focus', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
+
+-- 和玩家框体水平对齐
+option:button('focus', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, function()
+	if option:combatAlert() then return end
+	if BC:getDB('focus', 'anchor') then
+		BC:setDB('focus', 'offsetY', 0)
+	else
+		local relative = BC:getDB('player', 'relative')
+		local offsetX
+		if string.match(relative, 'LEFT') then
+			offsetX = FocusFrame:GetLeft()
+		elseif string.match(relative, 'RIGHT') then
+			offsetX = FocusFrame:GetRight() - UIParent:GetWidth()
+		else
+			offsetX = FocusFrame:GetLeft() - (UIParent:GetWidth() - FocusFrame:GetWidth()) / 2
+		end
+		BC:setDB('focus', 'relative', relative)
+		BC:setDB('focus', 'offsetX', floor(offsetX + .5))
+		BC:setDB('focus', 'offsetY', BC:getDB('player', 'offsetY'))
+	end
+end)
+
+-- 和玩家框体垂直对齐
+option:button('focus', 'pointPlayerVertical', 'pointPlayerAlignment', 164, 0, 160, function()
+	if option:combatAlert() then return end
+	if BC:getDB('focus', 'anchor') then
+		BC:setDB('focus', 'offsetX', 42)
+	else
+		local relative = BC:getDB('player', 'relative')
+		local offsetY
+		if string.match(relative, 'TOP') then
+			offsetY = FocusFrame:GetTop() - UIParent:GetHeight()
+		elseif string.match(relative, 'BOTTOM') then
+			offsetY = FocusFrame:GetBottom()
+		else
+			offsetY = FocusFrame:GetTop() - (UIParent:GetHeight() + FocusFrame:GetHeight()) / 2
+		end
+		BC:setDB('focus', 'relative', relative)
+		BC:setDB('focus', 'offsetX', BC:getDB('player', 'offsetX') + 42)
+		BC:setDB('focus', 'offsetY', floor(offsetY + .5))
+	end
+end)
+
+option:check('focus', 'drag', 'pointPlayerAlignment', -2, vertical - 4) -- 非战斗中按住Shift左击拖动
+
+-- 锚定玩家框体
+option:check('focus', 'anchor', 'drag', nil, nil, nil, function(self)
+	option.player.scale:SetValue(1)
+	BC:setDB('player', 'scale', 1)
+	option.focus.scale:SetValue(1)
+	BC:setDB('focus', 'scale', 1)
+
+	local offsetX, offsetY
+	if self:GetChecked() then
+		offsetX = FocusFrame:GetLeft() - PlayerFrame:GetLeft()
+		offsetY = FocusFrame:GetTop() - PlayerFrame:GetTop()
+		option.focus.scale:SetEnabled(false)
+		BC:setDB('focus', 'anchor', 'PlayerFrame')
+	else
+		offsetX = FocusFrame:GetLeft()
+		offsetY = FocusFrame:GetTop() - UIParent:GetHeight()
+		option.focus.scale:SetEnabled(true)
+		BC:setDB('focus', 'anchor', nil)
+	end
+	BC:setDB('focus', 'relative', 'TOPLEFT')
+	BC:setDB('focus', 'offsetX', floor(offsetX + .5))
+	BC:setDB('focus', 'offsetY', floor(offsetY + .5))
+end)
+
+-- 框体缩放
+option:slider('focus', 'scale', 'anchor', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
+	if option:combatAlert(function() self:SetValue(BC:getDB('focus', 'scale')) end) then return end
+	value = floor(value * 100 + .5)
+	option.focus.scaleText:SetText(L.scale .. ': ' .. value .. '%')
+	value = value / 100
+	if value ~= BC:getDB('focus', 'scale') then BC:setDB('focus', 'scale', value) end
+end)
+
+option:check('focus', 'selfCooldown', 'scale', -4, vertical - 8) -- 只显示我施放的Buff/Debuff倒计时(OmniCC)
+option:check('focus', 'dispelCooldown', 'selfCooldown') -- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
+option:check('focus', 'dispelStealable', 'dispelCooldown') -- 高亮显示可以驱散的Buff/Debuff
+
+-- Buff/Debuff图标大小
+option:slider('focus', 'auraSize', 'dispelStealable', 4, vertical - 20, nil, nil, 12, 64, 12, 64, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraSize') then BC:setDB('focus', 'auraSize', value) end
+end)
+
+-- 一行Buff/Debuff数量
+option:slider('focus', 'auraRows', 'auraSize', 0, vertical - 20, nil, nil, 1, 32, 1, 32, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraRows') then BC:setDB('focus', 'auraRows', value) end
+end)
+
+-- Buff/Debuf起始X轴位置
+option:slider('focus', 'auraX', 'auraRows', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraXText:SetText(L.auraX .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraX') then BC:setDB('focus', 'auraX', value) end
+end)
+
+-- Buff/Debuf起始Y轴位置
+option:slider('focus', 'auraY', 'auraX', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
+	value = floor(value)
+	option.focus.auraYText:SetText(L.auraY .. ': ' .. value)
+	if value ~= BC:getDB('focus', 'auraY') then BC:setDB('focus', 'auraY', value) end
+end)
+--[[ 焦点设置 结束 ]]
+
+
+--[[ 焦点的目标设置 开始 ]]
+
+-- 隐藏框体
+option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('focustarget', 'hideFrame')) end) then return end
+	local enabled = not self:GetChecked()
+	if button then BC:setDB('focustarget', 'hideFrame', not enabled) end
+	option.focustarget.portraitClass:SetEnabled(enabled)
+	option.focustarget.healthBarClass:SetEnabled(enabled)
+	option.focustarget.outRange:SetEnabled(enabled)
+	option.focustarget.hideName:SetEnabled(enabled)
+	option.focustarget.nameFontSize:SetEnabled(enabled and not BC:getDB('focustarget', 'hideName'))
+	option.focustarget.valueFontSize:SetEnabled(enabled)
+	option.focustarget.valueStyle:SetEnabled(enabled)
+	option.focustarget.pointDefault:SetEnabled(enabled)
+	option.focustarget.drag:SetEnabled(enabled)
+end)
+
+-- 头像显示职业图标(玩家)
+option:check('focustarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self, button)
+	if button then BC:setDB('focustarget', 'portrait', self:GetChecked() and 1 or 0) end
+end)
+
+option:check('focustarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
+option:check('focustarget', 'outRange', 'healthBarClass') -- 超出范围半透明
+
+-- 隐藏名字
+option:check('focustarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('focustarget', 'hideName', self:GetChecked() and true or false) end
+	if option.focustarget.nameFontSize then option.focustarget.nameFontSize:SetEnabled(not self:GetChecked()) end
+end)
+
+-- 名字字体大小
+option:slider('focustarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+	value = floor(value + .5)
+	option.focustarget.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	if value ~= BC:getDB('focustarget', 'nameFontSize') then BC:setDB('focustarget', 'nameFontSize', value) end
+end)
+
+-- 数值字体大小
+option:slider('focustarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+	value = floor(value + .5)
+	option.focustarget.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	if value ~= BC:getDB('focustarget', 'valueFontSize') then BC:setDB('focustarget', 'valueFontSize', value) end
+end)
+
+option:downMenu('focustarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
+
+-- 恢复默认位置
+option:button('focustarget', 'pointDefault', nil, horizontal + 2, -20, nil, function()
+	if option:combatAlert() then return end
+	BC:setDB('focustarget', 'point', nil)
+	BC:setDB('focustarget', 'relative', nil)
+	BC:setDB('focustarget', 'offsetX', nil)
+	BC:setDB('focustarget', 'offsetY', nil)
+end)
+
+option:check('focustarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按住Shift左击拖动
+--[[ 焦点的目标设置 结束 ]]
+
+
 --[[ 队友设置 开始 ]]
 
  -- 隐藏框体
-option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
-	local enabled = self:GetChecked()
-	BC:setDB('party', 'hideFrame', enabled)
-	enabled = not enabled
-
+option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'hideFrame')) end) then return end
+	local enabled = not self:GetChecked()
+	if button then BC:setDB('party', 'hideFrame', not enabled or nil) end
 	option.party.portraitCombat:SetEnabled(enabled)
 	option.party.combatFlash:SetEnabled(enabled)
 	option.party.healthBarClass:SetEnabled(enabled)
@@ -853,11 +1078,9 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	option.party.nameFontSize:SetEnabled(enabled and not BC:getDB('party', 'hideName'))
 	option.party.valueFontSize:SetEnabled(enabled)
 	option.party.valueStyle:SetEnabled(enabled)
-
 	option.party.pointDefault:SetEnabled(enabled)
 	option.party.drag:SetEnabled(enabled)
 	option.party.scale:SetEnabled(enabled)
-
 	option.party.selfCooldown:SetEnabled(enabled)
 	option.party.dispelCooldown:SetEnabled(enabled)
 	option.party.dispelStealable:SetEnabled(enabled)
@@ -865,9 +1088,35 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	option.party.auraRows:SetEnabled(enabled)
 	option.party.auraX:SetEnabled(enabled)
 	option.party.auraY:SetEnabled(enabled)
+
+	option.partypet.hideFrame:SetEnabled(enabled)
+	local enabledPet = not BC:getDB('partypet', 'hideFrame')
+	option.partypet.hideName:SetEnabled(enabled and enabledPet)
+	option.partypet.nameFontSize:SetEnabled(enabled and enabledPet and not BC:getDB('partypet', 'hideName'))
+	option.partypet.valueFontSize:SetEnabled(enabled and enabledPet)
+	option.partypet.valueStyle:SetEnabled(enabled and enabledPet)
+
+	option.partytarget.hideFrame:SetEnabled(enabled)
+	local enabledTarget = not BC:getDB('partytarget', 'hideFrame')
+	option.partytarget.portraitClass:SetEnabled(enabled and enabledTarget)
+	option.partytarget.healthBarClass:SetEnabled(enabled and enabledTarget)
+	option.partytarget.outRange:SetEnabled(enabled and enabledTarget)
+	option.partytarget.hideName:SetEnabled(enabled and enabledTarget)
+	option.partytarget.nameFontSize:SetEnabled(enabled and enabledTarget and not BC:getDB('partytarget', 'hideName'))
+	option.partytarget.valueFontSize:SetEnabled(enabled and enabledTarget)
+	option.partytarget.valueStyle:SetEnabled(enabled and enabledTarget)
+
 end)
 
-option:check('party', 'portraitCombat', 'hideFrame') -- 头像上显示战斗信息
+-- 团队显示小队框体
+option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self, button)
+	local enabled = self:GetChecked() and true or false
+	if button then
+		BC:setDB('party', 'raidShowParty', enabled)
+		SetCVar('hidePartyInRaid', enabled and '0' or '1', button)
+	end
+end)
+option:check('party', 'portraitCombat', 'raidShowParty') -- 头像上显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('party', 'healthBarClass', 'combatFlash') -- 体力条职业色(玩家)
 
@@ -877,13 +1126,12 @@ option:check('party', 'portraitClass', 'healthBarClass', nil, nil, nil, function
 end)
 
 option:check('party', 'outRange', 'portraitClass') -- 超出范围半透明
-option:check('party', 'raidShowParty', 'outRange') -- 团队显示小队框体
-option:check('party', 'showLevel', 'raidShowParty') -- 显示等级
+option:check('party', 'showLevel', 'outRange') -- 显示等级
 option:check('party', 'showCastBar', 'showLevel') -- 显示队友施法条
 
 -- 隐藏名字
-option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self)
-	BC:setDB('party', 'hideName', self:GetChecked())
+option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self, button)
+	if button then BC:setDB('party', 'hideName', self:GetChecked() and true or false) end
 	if option.party.nameFontSize then option.party.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -905,11 +1153,7 @@ option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, ve
 
 -- 恢复默认位置
 option:button('party', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('party', 'point', nil)
 	BC:setDB('party', 'relative', nil)
 	BC:setDB('party', 'offsetX', nil)
@@ -920,10 +1164,14 @@ option:check('party', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中�
 
 -- 框体缩放
 option:slider('party', 'scale', 'drag', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
+	if option:combatAlert(function() self:SetValue(BC:getDB('party', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.party.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
-	if value ~= BC:getDB('party', 'scale') then BC:setDB('party', 'scale', value) end
+	if value ~= BC:getDB('party', 'scale') then
+		BC:setDB('party', 'scale', value)
+		BC:setDB('partytarget', 'scale', value)
+	end
 end)
 
 option:check('party', 'selfCooldown', 'scale', -4, vertical - 8, 'buffCooldown') -- 只显示我施放的Buff倒计时(OmniCC)
@@ -963,9 +1211,13 @@ end)
 --[[ 队友的宠物设置 开始 ]]
 
 -- 隐藏框体
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('partypet', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	BC:setDB('partypet', 'hideFrame', not enabled)
+	if button then
+		BC:setDB('partypet', 'hideFrame', not enabled or nil)
+		SetCVar('showPartyPets', enabled and '1' or '0', button)
+	end
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
 	option.partypet.valueFontSize:SetEnabled(enabled)
@@ -973,8 +1225,8 @@ option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 end)
 
 -- 隐藏名字
-option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
-	BC:setDB('partypet', 'hideName', self:GetChecked())
+option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self, button)
+	if button then BC:setDB('partypet', 'hideName', self:GetChecked() and true or false) end
 	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -999,11 +1251,13 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 --[[ 队友目标的设置 开始 ]]
 
 -- 隐藏框体
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('partytarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	BC:setDB('partytarget', 'hideFrame', not enabled)
+	if button then BC:setDB('partytarget', 'hideFrame', not enabled or nil) end
 	option.partytarget.portraitClass:SetEnabled(enabled)
 	option.partytarget.healthBarClass:SetEnabled(enabled)
+	option.partytarget.outRange:SetEnabled(enabled)
 	option.partytarget.hideName:SetEnabled(enabled)
 	option.partytarget.nameFontSize:SetEnabled(enabled and not BC:getDB('partytarget', 'hideName'))
 	option.partytarget.valueFontSize:SetEnabled(enabled)
@@ -1016,10 +1270,11 @@ option:check('partytarget', 'portraitClass', 'hideFrame', nil, nil, nil, functio
 end)
 
 option:check('partytarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
+option:check('partytarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('partytarget', 'hideName', 'healthBarClass', nil, nil, nil, function(self)
-	BC:setDB('partytarget', 'hideName', self:GetChecked())
+option:check('partytarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('partytarget', 'hideName', self:GetChecked()) end
 	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
