@@ -1,23 +1,21 @@
-## Interface: 11506
+## Interface: 11507
 ## Title: BiechuUnitFrames
 ## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.10_beta1
-## X-Localizations: enUS, zhCN
+## Version: 1.15.10_beta2
 ## Author: starpt
+## SavedVariables: BiechuUnitFramesDB
+## X-Localizations: enUS, zhCN
 ## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
 ## X-eMail: starpt@gmail.com
-
-## SavedVariables: BiechuUnitFramesDB
-
-# 多语言支持
-Locale\enUS.lua
-Locale\zhCN.lua
+## X-LoadOn-Slash: /bc
 
 # 敌对目标Buff图标
 LibClassicDurations\LibClassicDurations.xml
 
+Locale\enUS.lua
+Locale\zhCN.lua
 Global.lua
 Player.lua
 Target.lua

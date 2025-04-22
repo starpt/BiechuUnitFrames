@@ -1,9 +1,9 @@
-local addonName = ...
-local BC = _G[addonName]
+local BC = _G[...]
 local frame = CreateFrame('Frame')
 
 -- 等级
 function frame:level(party)
+	if not party or not party.levelText then return end
 	local level = UnitLevel(party.unit)
 	if BC:getDB('party', 'showLevel') and level > 0 then
 		party.levelText:SetText(level)
@@ -13,33 +13,19 @@ function frame:level(party)
 	end
 end
 
--- 超出范围半透明
-local resSpell, rangeSpell
-if BC.class == 'PALADIN' then
-	resSpell = GetSpellInfo(7328)
-	rangeSpell = GetSpellInfo(635)
-elseif BC.class == 'PRIEST' then
-	resSpell = GetSpellInfo(2006)
-	rangeSpell = GetSpellInfo(2050)
-elseif BC.class == 'SHAMAN' then
-	resSpell = GetSpellInfo(2008)
-	rangeSpell = GetSpellInfo(331)
-elseif BC.class == 'DRUID' then
-	resSpell = GetSpellInfo(20484)
-	rangeSpell = GetSpellInfo(5185)
-end
-function frame:range(unit) -- 是否在范围内
-	return UnitIsDead(unit) and resSpell and IsSpellInRange(resSpell, unit) == 1 or rangeSpell and IsSpellInRange(rangeSpell, unit) == 1 or UnitInRange(unit)
-end
-function frame:alpha() -- 半透明
-	for id = 1, MAX_PARTY_MEMBERS do
-		local party = 'party' .. id
-		local alpha = self:range(party) and 1 or .5
-		if UnitExists(party) then BC[party]:SetAlpha(alpha) end
-		if UnitExists(party .. 'target') then BC[party .. 'target']:SetAlpha(alpha) end
-		if UnitExists(party .. 'pet') then BC[party .. 'pet']:SetAlpha(alpha) end
-	end
-end
+-- 禁止队友施法完成后动画
+hooksecurefunc('CastingBarFrame_OnEvent', function(self, event, unit)
+	if type(unit) == 'string' and unit:match('^party%d$') then self.flash = nil end
+end)
+hooksecurefunc('CastingBarFrame_FinishSpell', function(self)
+	if type(self.unit) == 'string' and self.unit:match('^party%d$') then self.flash = nil end
+end)
+
+-- 队友的宠物变化
+hooksecurefunc('PartyMemberFrame_UpdatePet', function(self)
+	local party = type(self.unit) == 'string' and self.unit:match('^party%d$')
+	if party then BC:init(party .. 'pet') end
+end)
 
 -- 小队背景 允许拖动
 hooksecurefunc('UpdatePartyMemberBackground', function(self)
@@ -53,49 +39,16 @@ hooksecurefunc('UpdatePartyMemberBackground', function(self)
 	end
 end)
 
--- 禁止队友施法完成后动画
-hooksecurefunc('CastingBarFrame_OnEvent', function(self, event, unit)
-	if type(unit) == 'string' and unit:match('^party%d$') then self.flash = nil end
-end)
-hooksecurefunc('CastingBarFrame_FinishSpell', function(self)
-	if type(self.unit) == 'string' and self.unit:match('^party%d$') then self.flash = nil end
-end)
-
--- 队伍友的宠物变化
-hooksecurefunc('PartyMemberFrame_UpdatePet', function(self)
-	if UnitIsConnected(self.unit) then BC:init(self.unit .. 'pet') end
-end)
-
 for id = 1, MAX_PARTY_MEMBERS do
 	-- 队友
 	local party = 'party'.. id
 	BC[party] = _G['PartyMemberFrame'.. id]
 	BC[party].borderTexture = _G['PartyMemberFrame'.. id .. 'Texture'] -- 边框
-	BC[party].pvpIcon = _G['PartyMemberFrame'..id..'PVPIcon'] -- PVP状态图标
-
-	-- 战斗中边框发红光
-	BC[party].flash = _G['PartyMemberFrame'.. id .. 'Flash']
-	if not BC[party].flash then
-		BC[party].flash = BC[party]:CreateTexture()
-		BC[party].flash.unit = unit
-		BC[party].flash:SetPoint('TOPLEFT', BC[party], -24, 0)
-		BC[party].flash:SetSize(242, 93)
-		BC[party].flash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
-		BC[party].flash:SetTexCoord(0, 0.9453125, 0, 0.181640625)
-	end
-	hooksecurefunc(BC[party].flash, 'Hide', function(self)
-		if BC:getDB('party', 'combatFlash') and UnitAffectingCombat(self.unit) then
-			self:SetVertexColor(1, 0, 0)
-			self:SetAlpha(.7)
-			if not self:IsVisible() then self:Show() end
-		else
-			self:SetAlpha(0)
-		end
-	end)
-
+	BC[party].pvpIcon = _G['PartyMemberFrame' .. id .. 'PVPIcon'] -- PVP状态图标
+	BC[party].flash = _G['PartyMemberFrame'.. id .. 'Flash'] -- 战斗中边框发红光
 
 	-- 等级文字
-	BC[party].levelText = BC[party]:CreateFontString(BC[party]:GetName() .. 'Level', 'OVERLAY', 'GameNormalNumberFont')
+	BC[party].levelText = BC[party]:CreateFontString(BC[party]:GetName() .. 'Level', 'OVERLAY', 'GameFontNormalSmall')
 	BC[party].levelText:SetPoint('BOTTOM', BC[party], 'BOTTOMLEFT', 6, 3)
 	BC[party].levelText:SetFont(STANDARD_TEXT_FONT, 10, 'OUTLINE')
 
@@ -133,7 +86,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 	end)
 
 	-- 施法条
-	BC[party].castBar = CreateFrame('StatusBar', BC[party]:GetName() .. 'CastBar', BC[party], 'SmallCastingBarFrameTemplate')
+	BC[party].castBar = CreateFrame('StatusBar', BC[party]:GetName() .. 'CastBar', BC[party], 'CastingBarFrameTemplate')
 	BC[party].castBar:SetSize(94, 6)
 	BC[party].castBar.Border:SetDrawLayer('OVERLAY')
 	BC[party].castBar.Border:ClearAllPoints()
@@ -145,6 +98,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 	BC[party].castBar.Icon:SetSize(8, 8)
 	BC[party].castBar.Icon:SetTexCoord(.05, .95, .05, .95)
 	BC[party].castBar.Text:SetDrawLayer('OVERLAY')
+	BC[party].castBar.Text:SetFont(STANDARD_TEXT_FONT, 8)
 	BC[party].castBar.Text:ClearAllPoints()
 	BC[party].castBar.Text:SetPoint('CENTER')
 	BC[party].castBar.Spark:SetSize(24, 24)
@@ -156,8 +110,6 @@ for id = 1, MAX_PARTY_MEMBERS do
 	local partypet = party .. 'pet'
 	BC[partypet] = _G['PartyMemberFrame'.. id .. 'PetFrame']
 	BC[partypet].borderTexture = _G['PartyMemberFrame'.. id .. 'PetFrameTexture'] -- 边框
-	BC[partypet]:SetAlpha(0)
-	BC[partypet]:Show()
 
 	-- 名字
 	BC[partypet].name:ClearAllPoints()
@@ -185,8 +137,9 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	-- 队友的目标
 	local partytarget = party .. 'target'
-	BC[partytarget] = CreateFrame('Button', 'Party'.. id ..'TargetFrame', BC[party], 'SecureUnitButtonTemplate')
+	BC[partytarget] = CreateFrame('Button', 'Party'.. id .. 'TargetFrame', UIParent, 'SecureUnitButtonTemplate')
 	BC[partytarget]:SetSize(100, 45)
+	BC[partytarget]:SetFrameLevel(3)
 	BC[partytarget].unit = partytarget
 
 	-- 边框
@@ -236,31 +189,23 @@ for id = 1, MAX_PARTY_MEMBERS do
 	BC[partytarget]:SetScript('OnLeave', function(self)
 		GameTooltip:Hide()
 	end)
-
 	SecureUnitButton_OnLoad(BC[partytarget], partytarget) -- 点击选择
 
 	BC[party].init = function()
 		frame:level(BC[party]) -- 等级
 		BC:aura(party) -- Buff/Debuff
 
-		if not BC:getDB('party', 'outRange') then
-			BC[party]:SetAlpha(1)
-			BC[partytarget]:SetAlpha(1)
-			BC[partypet]:SetAlpha(1)
-		end
-
 		-- 显示施法条
 		local showCastBar = BC:getDB('party', 'showCastBar')
-		if BC[party].castBar then
-			if showCastBar then
-				BC[party].castBar:SetStatusBarTexture(BC:file(BC.barList[1]))
-				BC[party].castBar.Border:SetTexture(BC:file(BC.barList[3]))
-				BC[party].castBar.BorderShield:SetTexture(BC:file(BC.barList[4]))
-				BC[party].castBar.Text:SetFont(BC[party].castBar.Text:GetFont(), 9)
-				CastingBarFrame_SetUnit(BC[party].castBar, party, true, true)
-			else
-				CastingBarFrame_SetUnit(BC[party].castBar)
-			end
+		BC[party].castBar.showTradeSkills = showCastBar
+		BC[party].castBar.showShield = showCastBar
+		if showCastBar then
+			BC[party].castBar:SetStatusBarTexture(BC:file(BC.barList[1]))
+			BC[party].castBar.Border:SetTexture(BC:file(BC.barList[3]))
+			BC[party].castBar.BorderShield:SetTexture(BC:file(BC.barList[4]))
+			CastingBarFrame_SetUnit(BC[party].castBar, party, true, true)
+		else
+			CastingBarFrame_SetUnit(BC[party].castBar)
 		end
 
 		-- 定位
@@ -271,61 +216,38 @@ for id = 1, MAX_PARTY_MEMBERS do
 	end
 end
 
--- 获取小队id
-function frame:partyID(unit)
-	if type(unit) == 'string' and UnitExists(unit) and UnitInParty(unit) and not UnitIsUnit('player', unit) then
-		for id = 1, MAX_PARTY_MEMBERS do
-			if UnitIsUnit(unit, 'party' .. id) then
-				return id
-			end
-		end
-	end
-end
-
 for _, event in pairs({
-	'GROUP_ROSTER_UPDATE', -- 队伍变更
-	'UNIT_LEVEL', -- 升级
 	'UNIT_AURA', -- Buff/Debuff变化
-	'PLAYER_REGEN_ENABLED', -- 结束战斗
+	'UNIT_LEVEL', -- 升级
+	'GROUP_ROSTER_UPDATE', -- 队伍变更
 }) do
 	frame:RegisterEvent(event)
 end
 frame:SetScript('OnEvent', function(self, event, unit)
-	local pid = self:partyID(unit)
-	if event == 'GROUP_ROSTER_UPDATE' then
-		if GetNumSubgroupMembers() > 0 then
-			for id = 1, MAX_PARTY_MEMBERS do
-				local party = BC['party'.. id]
-				local level = UnitLevel('party'.. id)
-				if party and party.levelText and party.levelText:IsShown() and level > 0 then
-					party.levelText:SetText(level)
-				end
-			end
-		end
+	local party = type(unit) =='string' and unit:match('^party%d$')
+	if event == 'UNIT_AURA' then
+		if party then BC:aura(party) end
 	elseif event == 'UNIT_LEVEL' then
-		if pid then frame:level(BC['party' .. pid]) end
-	elseif event == 'UNIT_AURA' then
-		if pid then BC:aura('party' .. pid) end
-	elseif event == 'PLAYER_REGEN_ENABLED' then
-		if GetNumSubgroupMembers() > 0 then
-			for id = 1, MAX_PARTY_MEMBERS do
-				BC:update('party' .. id) -- 更新队友
-				BC:init('party' .. id .. 'pet') -- 初始化队友宠物
-				BC:update('party' .. id .. 'target')  -- 更新队友目标
-			end
+		if party and BC[party] then self:level(BC[party]) end
+	elseif event == 'GROUP_ROSTER_UPDATE' then
+		for id = 1, GetNumSubgroupMembers() do
+			self:level(BC['party'.. id])
+			BC:update('party' .. id)
+			BC:update('party' .. id .. 'target')
 		end
 	end
 end)
 
-frame:SetScript('OnUpdate', function(self, rate)
+frame:SetScript('OnUpdate', function(self)
+	if GetNumSubgroupMembers() == 0 then return end
 	local now = GetTime()
 	if self.rate and now < self.rate then return end
 	self.rate = now + .02 -- 刷新率
-	for id = 1, MAX_PARTY_MEMBERS do
-		BC:bar(BC['party' .. id .. 'target'].manabar)
-		BC:bar(BC['party' .. id.. 'target'].healthbar)
-		BC:bar(BC['party' .. id .. 'pet'].manabar)
-		BC:bar(BC['party' .. id.. 'pet'].healthbar)
+
+	for id = 1, GetNumSubgroupMembers() do
+		-- BC:bar(BC['party' .. id.. 'target'].healthbar)
+		-- BC:bar(BC['party' .. id .. 'target'].manabar)
+		-- BC:bar(BC['party' .. id.. 'pet'].healthbar)
+		-- BC:bar(BC['party' .. id .. 'pet'].manabar)
 	end
-	if BC:getDB('party', 'outRange') then self:alpha() end
 end)
