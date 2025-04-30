@@ -1,14 +1,15 @@
-## Interface: 30403
+## Interface: 30404
 ## Title: BiechuUnitFrames
-## Notes: 别处头像框体 /bc
+## Notes: Biechu Unit Frames
+## Notes-zhCN: 别处头像框体
 
-## Version: 3.43.1
-## X-Localizations: enUS, zhCN
+## Version: 3.4.0_bate
 ## Author: starpt
+## SavedVariables: BiechuUnitFramesDB
+## X-Localizations: enUS, zhCN
 ## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
 ## X-eMail: starpt@gmail.com
-
-## SavedVariables: BiechuUnitFramesDB
+## X-LoadOn-Slash: /bc
 
 # 多语言支持
 Locale\enUS.lua
