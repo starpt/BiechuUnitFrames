@@ -15,6 +15,10 @@ hooksecurefunc('TargetFrame_Update', function(self)
 	end
 end)
 
+hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
+	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16) end
+end)
+
 for unit, frame in pairs({
 	target = TargetFrame,
 	focus = FocusFrame,
@@ -32,8 +36,8 @@ for unit, frame in pairs({
 
 	frame.flash = _G[frame:GetName() .. 'Flash'] -- 战斗中边框发红光
 	frame.statusBar = frame.nameBackground -- 状态栏
-	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 	frame.deadText:SetPoint('CENTER', frame.healthbar, 0, -4) -- 死亡
+	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 
 	-- 体力
 	frame.healthbar.MiddleText = frame.textureFrame.HealthBarText

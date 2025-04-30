@@ -9,7 +9,7 @@ BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
 BC.default = {
 	global = {
 		healthBarColor = true,
-		nameTextClassColor = true,
+		nameClassColor = true,
 		carry = 1,
 		nameFont = L.fontList[1].value,
 		valueFont = L.fontList[1].value,
@@ -25,8 +25,10 @@ BC.default = {
 		offsetY = -98,
 		combatFlash = true,
 		miniIcon = true,
+		autoTalentEquip = true,
 		equipmentIcon = true,
 		hidePartyNumber = true,
+		fiveSecondRule = true,
 		druidBar = true,
 		nameFontSize = 13,
 		valueFontSize = 12,
@@ -40,7 +42,7 @@ BC.default = {
 		anchor = 'PlayerFrame',
 		relative = 'TOPLEFT',
 		offsetX = 84,
-		offsetY = -61,
+		offsetY = not UnitInVehicle('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
@@ -166,7 +168,7 @@ BC.default = {
 }
 
 -- 单元框体
-BC.unitTable = {
+BC.unitList = {
 	'player',
 	'pet',
 	'pettarget',
@@ -241,19 +243,6 @@ function BC:file(file, dark)
 	return 'Interface\\'.. ((dark or BC:getDB('global', 'dark')) and 'AddOns\\' .. addonName .. '\\Textures\\' .. file:gsub('.-([^\\/]-%.?[^%.\\/]*)$', '%1') or file)
 end
 
--- 自定义职业色 萨满职业色改为沉蓝色
-BC.classColor = {
-	['HUNTER'] = CreateColor(.67, .83, .45),
-	['WARLOCK'] = CreateColor(.53, .53, .93),
-	['PRIEST'] = CreateColor(1, 1, 1),
-	['PALADIN'] = CreateColor(.96, .55, .73),
-	['MAGE'] = CreateColor(.25, .78, .92),
-	['ROGUE'] = CreateColor(1, .96, .41),
-	['DRUID'] = CreateColor(1, .49, .04),
-	['SHAMAN'] = CreateColor(0, .44, .87),
-	['WARRIOR'] = CreateColor(.78, .61, .43),
-}
-
 -- 格式化单位
 function BC:formatUnit(unit)
 	return type(unit) == 'string' and unit:gsub('-', ''):gsub('^partypet(%d)$', 'party%1pet')
@@ -263,14 +252,14 @@ end
 function BC:getDB(key, name)
 	if type(key) ~= 'string' then return end
 	local db = BiechuUnitFramesDB or {}
-	local default = 'Public'
-	if key == 'config' then
-		return db.config or default
-	elseif key == 'cache' then
-		db[key] = db[key] or {}
-		return db[key][name]
+	if key == 'cache' then
+		db.cache = db.cache or {}
+		return db.cache[name]
 	end
-	db = db[db.config or default] or {}
+	db.config = db.config or {}
+	local config = db.config[self.charKey] or 'Public'
+	if key == 'config' then return config end
+	db = db[config] or {}
 	if type(db) == 'table' and type(db[key]) == 'table' and db[key][name] ~= nil then
 		return db[key][name]
 	elseif type(self.default[key]) == 'table' then
@@ -282,21 +271,26 @@ end
 function BC:setDB(key, name, value)
 	if type(key) ~= 'string' then return end
 	local db = BiechuUnitFramesDB or {}
-	local charKey = db.config or 'Public'
+
+	if key == 'cache' then
+		db.cache = db.cache or {}
+		db.cache[name] = value
+		return
+	end
+
+	db.config = db.config or {}
+	local config = db.config[self.charKey] or 'Public'
 	if key == 'config' then
-		db[key] = name
-	elseif key == 'cache' then
-		db[key] = db[key] or {}
-		db[key][name] = value
+		db.config[self.charKey] = name
 	elseif key == 'reset' then
-		db[charKey] = nil
+		db[config] = nil
 	else
-		db[charKey] = db[charKey] or {}
-		db[charKey][key] = db[charKey][key] or {}
+		db[config] = db[config] or {}
+		db[config][key] = db[config][key] or {}
 		if self.default[key] and self.default[key][name] == value then
-			db[charKey][key][name] = nil
+			db[config][key][name] = nil
 		else
-			db[charKey][key][name] = value
+			db[config][key][name] = value
 		end
 	end
 	BiechuUnitFramesDB = db
@@ -711,6 +705,7 @@ function BC:portrait(unit)
 	if not (frame and frame.portrait) then return end
 	local key = unit:gsub('%d', '')
 	local index = self:getDB(key, 'portrait')
+
 	if index == 1 and UnitIsPlayer(unit) then
 		local coord = CLASS_ICON_TCOORDS[select(2, UnitClass(unit))]
 		if type(coord) == 'table' then
@@ -722,7 +717,15 @@ function BC:portrait(unit)
 		if type(index) == 'number' and index > 1 and UnitIsPlayer(unit) then
 			frame.portrait:SetTexture(self:file(self.portraitList[index], 1))
 		else
-			SetPortraitTexture(frame.portrait, unit)
+			if UnitInVehicle('player') then
+				if unit == 'pet' then
+					SetPortraitTexture(frame.portrait, 'player')
+				elseif unit == 'player' then
+					SetPortraitTexture(frame.portrait, 'pet')
+				end
+			else
+				SetPortraitTexture(frame.portrait, unit)
+			end
 		end
 	end
 end
@@ -801,17 +804,18 @@ function BC:miniIcon(unit)
 						end
 					end
 				end
-				if type(ItemRackUser) == 'table' then
-					for i = 1, 6 do -- 最多6个装备小图标
-						_G['EquipSetFrame' .. i]:SetAlpha(.4)
+				for i = 1, 6 do
+					equip = _G['EquipSetFrame' .. i]
+					if equip then
+						equip:SetAlpha(.4)
+						equip.isEquipped = nil
 					end
-					ItemRackUser.CurrentSet = nil
 				end
 			else
 				SetActiveTalentGroup(passive) -- 切换天赋
 				frame.miniIcon.callBack = function() -- 切换天赋回调
 					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and type(talent[passive].name) == 'string' then
-						EquipmentManager_EquipSet(talent[passive].name)
+						C_EquipmentSet.UseEquipmentSet(C_EquipmentSet.GetEquipmentSetID(talent[passive].name))
 						frame.miniIcon.callBack = nil
 					end
 				end
@@ -896,7 +900,7 @@ function BC:dark(unit)
 	-- 状态栏
 	if frame.statusBar then
 		if UnitIsPlayer(unit) and BC:getDB(key, 'statusBarClass') then
-			local color = self.classColor[select(2, UnitClass(unit))]
+			local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 			frame.statusBar:SetVertexColor(color.r, color.g, color.b)
 			frame.statusBar:Show()
 		elseif unit == 'player' then
@@ -956,7 +960,7 @@ end
 function BC:bar(bar)
 	local unit = bar and self:formatUnit(bar.unit)
 	if not unit or not UnitExists(unit) then return end
-	local key = unit:gsub('%d', '')
+	local key = unit == 'vehicle' and 'player' or (UnitInVehicle('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
 	local font = self:getDB('global', 'valueFont')
 	local size = self:getDB(key, 'valueFontSize')
 	local flag = self:getDB('global', 'fontFlags')
@@ -966,7 +970,8 @@ function BC:bar(bar)
 	local _, valueMax = bar:GetMinMaxValues()
 
 	local color
-	if key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
+	if UnitInVehicle('player') and key == 'pet' or key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
+		bar.unit = key == 'pet' and 'player' or bar.unit
 		if bar.powerType then
 			bar.powerType = key == 'pet' and UnitPowerType('player') or bar.powerType
 			value = UnitPower(bar.unit, bar.powerType)
@@ -984,7 +989,7 @@ function BC:bar(bar)
 	local percent = valueMax == 0 and 0 or value / valueMax
 	if not bar.powerType then
 		if self:getDB(key, 'healthBarClass') and UnitIsPlayer(bar.unit) then -- 职业色
-			color = self.classColor[select(2, UnitClass(bar.unit))]
+			color = RAID_CLASS_COLORS[select(2, UnitClass(bar.unit))]
 		elseif self:getDB('global', 'healthBarColor') then -- 生命值百分比变化
 			color = {r = 0, g = 1, b = 0}
 			if percent > .5 then
@@ -1018,6 +1023,13 @@ function BC:bar(bar)
 	bar:SetScript('OnEnter', function(self)
 		local key = self.unit
 		if type(key) ~= 'string' then return end
+		if UnitInVehicle('player') then
+			if key == 'player' then
+				key = 'pet'
+			elseif key == 'vehicle' then
+				key = 'player'
+			end
+		end
 		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			local value = self:GetValue()
@@ -1035,6 +1047,13 @@ function BC:bar(bar)
 	bar:SetScript('OnLeave', function(self)
 		local key = self.unit
 		if type(key) ~= 'string' then return end
+		if UnitInVehicle('player') then
+			if key == 'player' then
+				key = 'pet'
+			elseif key == 'vehicle' then
+				key = 'player'
+			end
+		end
 		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			if self.MiddleText then self.MiddleText:Hide() end
@@ -1125,7 +1144,7 @@ end)
 function BC:update(unit)
 	unit = self:formatUnit(unit)
 	if not unit then return end
-	local frame = self[unit]
+	local frame = unit == 'vehicle' and self.player or self[unit]
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
@@ -1146,7 +1165,8 @@ function BC:update(unit)
 			end
 		end
 	end
-	if self:getDB(key, 'hideFrame') then
+
+	if self:getDB(key, 'hideFrame') or UnitInVehicle('player') and unit == 'pettarget' then
 		frame:SetAlpha(0)
 		return
 	end
@@ -1165,8 +1185,8 @@ function BC:update(unit)
 		else
 			if key == 'pettarget' or key == 'partypet' or key == 'partytarget' then frame.name:SetText(UnitName(unit)) end
 			local color
-			if self:getDB('global', 'nameTextClassColor') and UnitIsPlayer(unit) then
-				color = self.classColor[select(2, UnitClass(unit))]
+			if self:getDB('global', 'nameClassColor') and UnitIsPlayer(unit) then
+				color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 			else
 				color = { r = 1, g = .82, b = 0}
 			end
@@ -1201,7 +1221,7 @@ function BC:incomingHeals(unit)
 		return
 	end
 
-	for _, v in pairs(self.unitTable) do
+	for _, v in pairs(self.unitList) do
 		if UnitIsUnit(unit, v) and self[v] and self[v]:IsVisible() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
 		end
@@ -1212,7 +1232,7 @@ end
 function BC:init(unit)
 	unit = self:formatUnit(unit)
 	if not unit then
-		for _, u in pairs(self.unitTable) do
+		for _, u in pairs(self.unitList) do
 			self:init(u)
 		end
 		return

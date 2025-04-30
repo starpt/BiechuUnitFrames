@@ -224,7 +224,7 @@ function option:init()
 	self.dark:SetChecked(BC:getDB('global', 'dark')) -- 暗黑风格
 	self.newClassIcon:SetChecked(BC:getDB('global', 'newClassIcon')) -- 新风格职业图标
 	self.healthBarColor:SetChecked(BC:getDB('global', 'healthBarColor')) -- 体力条颜色按生命值变化
-	self.nameTextClassColor:SetChecked(BC:getDB('global', 'nameTextClassColor')) -- 名字颜色职业色(玩家)
+	self.nameClassColor:SetChecked(BC:getDB('global', 'nameClassColor')) -- 名字颜色职业色(玩家)
 
 	-- 数值单位
 	local carry = BC:getDB('global', 'carry')
@@ -355,10 +355,10 @@ option.info:SetText(L.info)
 option:check('global', 'dark', 'title', -1, vertical - 8) -- 使用暗黑材质
 option:check('global', 'newClassIcon', 'dark') -- 使用新职业图标
 option:check('global', 'healthBarColor', 'newClassIcon') -- 体力条颜色按生命值变化
-option:check('global', 'nameTextClassColor', 'healthBarColor') -- 名字颜色职业色(玩家)
+option:check('global', 'nameClassColor', 'healthBarColor') -- 名字颜色职业色(玩家)
 
 -- 数值单位
-option:check('global', 'carry', 'nameTextClassColor', nil, nil, nil, function(self)
+option:check('global', 'carry', 'nameClassColor', nil, nil, nil, function(self)
 	local slider = option.carrySlider
 	if slider:IsShown() then
 		BC:setDB('global', 'carry', (self:GetChecked() and 0 or 2) + slider:GetValue())
@@ -413,10 +413,9 @@ end)
 option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
 	if option:combatAlert() then return end
 	BC:comfing(L.confirmResetDefault, function()
-		if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
-		BC:init()
 		SetCVar('alwaysCompareItems', '1')
 		SetCVar('showTargetOfTarget', '1')
+		BC:setDB('reset')
 		option:init()
 	end)
 end)

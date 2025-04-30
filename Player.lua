@@ -10,6 +10,29 @@ BC.player.borderTexture = PlayerFrameTexture -- 边框
 BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
 BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
 
+-- 等级
+PlayerLevelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
+hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
+	PlayerLevelText:SetPoint('CENTER', BC.player, -62, -16)
+end)
+
+-- 定位
+-- hooksecurefunc(BC.player, 'SetPoint', function(self)
+-- 	if self.moving then -- 载具自动还原
+-- 		frame.lock = nil
+-- 	else
+-- 		frame.lock = GetTime() + .1 -- 定位刷新频率
+-- 	end
+-- end)
+
+-- 载具
+hooksecurefunc('PlayerFrame_UpdateArt', function(...)
+	print('PlayerFrame_UpdateArt', ...)
+	BC:init('player')
+	BC:init('pet')
+end)
+
+
 -- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)
 PlayerFrameGroupIndicatorText:SetPoint('LEFT', 20, -3)
@@ -24,9 +47,6 @@ end)
 BC.player.statusBar = BC.player:CreateTexture(nil, 'BACKGROUND')
 BC.player.statusBar:SetSize(119, 19)
 BC.player.statusBar:SetPoint('TOPLEFT', BC.player, 105, -22)
-
--- 等级
-PlayerLevelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
 
 -- 体力
 BC.player.healthbar.MiddleText = PlayerFrameHealthBarText
@@ -45,11 +65,11 @@ BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -.5)
 
 -- 装备小图标
 function frame:equip()
-	local index = 0
 	for i = 1, 6 do
 		local equip = _G['EquipSetFrame' .. i]
 		if not equip then
 			equip = CreateFrame('Button', 'EquipSetFrame' .. i, BC.player)
+			equip:SetFrameLevel(4)
 			equip:SetSize(18, 18)
 			equip:SetPoint('TOPLEFT', 96 + 18 * i, -3.5)
 			equip:SetHighlightTexture('Interface\\Buttons\\OldButtonHilight-Square')
@@ -62,55 +82,61 @@ function frame:equip()
 			equip.icon:SetPoint('CENTER')
 			equip.icon:SetTexCoord(.05, .95, .05, .95)
 		end
+	end
+	for i = 1, 6 do
+		_G['EquipSetFrame'.. i]:Hide()
+	end
+	if not BC:getDB('player', 'equipmentIcon') then return end
 
-		local name, icon, setID, isEquipped = C_EquipmentSet.GetEquipmentSetInfo(index)
-		if index == 0 and not name then
-			name, icon, setID, isEquipped = C_EquipmentSet.GetEquipmentSetInfo(1)
-			index = 1
-		else
-			index = index + 1
-		end
-		if name and icon and setID and BC:getDB('player', 'equipmentIcon') then
-			equip.name = name
-			equip.setID = setID
-			equip.isEquipped = isEquipped
-			equip.icon:SetTexture(icon)
-			if isEquipped then
-				equip:SetAlpha(1)
-			else
-				equip:SetAlpha(.4)
-			end
-			equip:Show()
-			equip:SetScript('OnEnter', function(self)
-				self:SetAlpha(1)
-				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-				GameTooltip:AddDoubleLine(L.clickEquipment .. ':', self.name, 1, 1, 0, 0, 1, 0)
-				GameTooltip:AddDoubleLine(L.shiftKeyDown .. ':', L.saveEquipment, 1, 1, 0, 0, 1, 0)
-				GameTooltip:Show()
-			end)
-			equip:SetScript('OnLeave', function(self)
-				if self.isEquipped then
+	local index = 1
+	for i = 0, 10 do
+		local name, icon, setID, isEquipped = C_EquipmentSet.GetEquipmentSetInfo(i)
+		if name and icon and setID then
+			local equip = _G['EquipSetFrame' .. index]
+			if equip then
+				equip.name = name
+				equip.setID = setID
+				equip.isEquipped = isEquipped
+				equip.icon:SetTexture(icon)
+				if isEquipped then
+					equip:SetAlpha(1)
+				else
+					equip:SetAlpha(.4)
+				end
+				equip:Show()
+
+				equip:SetScript('OnEnter', function(self)
 					self:SetAlpha(1)
-				else
-					self:SetAlpha(.4)
-				end
-				GameTooltip:Hide()
-			end)
-			equip:SetScript('OnMouseDown', function(self)
-				if IsShiftKeyDown() then -- 保存装备
-					BC:comfing(CONFIRM_OVERWRITE_EQUIPMENT_SET:format(self.name), function()
-						C_EquipmentSet.SaveEquipmentSet(self.setID)
-					end)
-				else
-					EquipmentManager_EquipSet(self.setID)
-				end
-			end)
-		else
-			equip:Hide()
+					GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+					GameTooltip:AddDoubleLine(L.clickEquipment .. ':', self.name, 1, 1, 0, 0, 1, 0)
+					GameTooltip:AddDoubleLine(L.shiftKeyDown .. ':', L.saveEquipment, 1, 1, 0, 0, 1, 0)
+					GameTooltip:Show()
+				end)
+				equip:SetScript('OnLeave', function(self)
+					if self.isEquipped then
+						self:SetAlpha(1)
+					else
+						self:SetAlpha(.4)
+					end
+					GameTooltip:Hide()
+				end)
+				equip:SetScript('OnMouseDown', function(self)
+					if IsShiftKeyDown() then -- 保存装备
+						BC:comfing(CONFIRM_OVERWRITE_EQUIPMENT_SET:format(self.name), function()
+							C_EquipmentSet.SaveEquipmentSet(self.setID)
+						end)
+					else
+						C_EquipmentSet.UseEquipmentSet(self.setID)
+					end
+				end)
+			else
+				break
+			end
+			index = index + 1
 		end
 	end
 end
-hooksecurefunc('EquipmentManager_EquipSet', function(setID)
+hooksecurefunc(C_EquipmentSet, 'UseEquipmentSet', function(setID)
 	for i = 1, 6 do
 		local equip = _G['EquipSetFrame' .. i]
 		if equip then
@@ -124,6 +150,38 @@ hooksecurefunc('EquipmentManager_EquipSet', function(setID)
 		end
 	end
 end)
+
+-- 5秒回蓝
+function frame:spark(bar, powerType)
+	if not bar or BC.class == 'WARRIOR' or BC.class == 'ROGUE' or BC.class == 'DEATHKNIGHT' then return end
+	if not bar.spark then
+		bar.spark = bar:CreateTexture()
+		bar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
+		bar.spark:SetBlendMode('ADD')
+		bar.spark:SetSize(28, 28)
+		bar.spark:SetAlpha(.8)
+		if powerType then bar.powerType = powerType end
+	end
+
+	bar:HookScript('OnUpdate', function(self)
+		local now = GetTime()
+		if self.rate and now < self.rate then return end
+		self.rate = now + .02 --刷新率
+		if BC:getDB('player', 'fiveSecondRule')
+			and bar:IsShown()
+			and not UnitIsDeadOrGhost('player')
+			and (self.powerType or UnitPowerType('player')) == 0
+			and UnitPower('player', 0) < UnitPowerMax('player', 0)
+			and type(frame.waitTime) == 'number'
+			and frame.waitTime > now
+		then
+			self.spark:Show()
+			self.spark:SetPoint('CENTER', self, 'LEFT', self:GetWidth() * (frame.waitTime - now) / 5, 0)
+		else
+			self.spark:Hide()
+		end
+	end)
+end
 
 -- 德鲁伊法力条
 if BC.class == 'DRUID' and not BC.player.druid then
@@ -165,26 +223,48 @@ hooksecurefunc(PlayerFrameAlternateManaBar, 'Show', function(self)
 end)
 
 -- 图腾
-hooksecurefunc(TotemFrame, 'Update', function(self)
-	print(_G[self:GetName() .. 'Icon']:GetName())
-	if not self.borderTexture then
-		self.border = CreateFrame('Frame', nil, self)
-		self.border:SetSize(57, 57)
-		self.border:SetPoint('CENTER', 11, -12)
-		-- self.border:SetFrameLevel(_G[self:GetName() .. 'Icon']:GetFrameLevel() + 2)
-		self.borderTexture = self.border:CreateTexture()
-		self.borderTexture:SetAllPoints(self.border)
-		TotemFrame:SetScale(.8)
-		TotemFrame:SetPoint('TOPLEFT', PlayerFrame, 'BOTTOMLEFT', 142, 46)
+hooksecurefunc(TotemFrame, 'Show', function(self)
+	TotemFrame:SetScale(.8)
+	TotemFrame:SetPoint('TOPLEFT', PlayerFrame, 'BOTTOMLEFT', 142, 46)
+	for i = 1, 4 do
+		local totem = _G['TotemFrameTotem' .. i]
+		if totem then
+			if not totem.borderTexture then
+				totem.border = CreateFrame('Frame', nil, totem)
+				totem.border:SetSize(57, 57)
+				totem.border:SetPoint('CENTER', 11, -12)
+				totem.border:SetFrameLevel(6)
+				totem.borderTexture = totem.border:CreateTexture()
+				totem.borderTexture:SetAllPoints(totem.border)
+			end
+			totem.borderTexture:SetTexture(BC:file('Minimap\\MiniMap-TrackingBorder'))
+			if OmniCC and OmniCC.Timer then totem:SetScript('OnUpdate', nil) end
+		end
 	end
-	self.borderTexture:SetTexture(BC:file('Minimap\\MiniMap-TrackingBorder'))
-	if OmniCC and OmniCC.Timer then self:SetScript('OnUpdate', nil) end
 end)
 
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	BC:miniIcon('player')
-	frame:equip()
+	TotemFrame:Show() -- 图腾
+	BC:miniIcon('player') -- 小图标
+	frame:equip() -- 装备小图标
+
+	-- 载具
+	if UnitInVehicle('player') then
+		if UnitVehicleSkinType('player') == 'Natural' then
+			PlayerFrameVehicleTexture:SetTexture(BC:file('Vehicles\\UI-Vehicle-Frame-Organic'))
+		else
+			PlayerFrameVehicleTexture:SetTexture(BC:file('Vehicles\\UI-Vehicle-Frame'))
+		end
+	end
+
+	-- 5秒回蓝闪动
+	if UnitPowerType('player') == 0 or BC.class == 'DRUID' then frame.lastMana = UnitPower('player', 0) end
+	frame:spark(BC.player.manabar)
+	if BC.class == 'DRUID' then
+		frame:spark(PlayerFrameAlternateManaBar, 0)
+		frame:spark(BC.player.druidBar, 0)
+	end
 
 	-- 德鲁伊法力/能量条
 	frame:druid()
@@ -193,7 +273,6 @@ BC.player.init = function()
 		BC.player.druidBar:SetStatusBarTexture(BC:file(BC.barList[1]))
 		BC.player.druid.border:SetTexture(BC:file(BC.barList[2]))
 	end
-	-- TotemFrame_Update()
 end
 
 -- 宠物
@@ -223,7 +302,7 @@ BC.pet.manabar.LeftText:SetPoint('TOPLEFT', BC.pet.manabar, 1, 1.5)
 BC.pet.manabar.RightText:SetPoint('TOPRIGHT', BC.pet.manabar, -1, 1.5)
 
 hooksecurefunc('PetFrame_Update', function()
-	BC:update('pet')
+	-- BC:update('pet')
 	BC:dark('pet')
 end)
 
@@ -287,16 +366,25 @@ for _, event in pairs({
 	'ZONE_CHANGED_NEW_AREA', -- 区域切换
 	'EQUIPMENT_SETS_CHANGED', -- 套装变更
 	'UPDATE_SHAPESHIFT_FORM', -- 形状变化
+	'UNIT_POWER_UPDATE', -- 法力/能量值变化
 }) do
 	frame:RegisterEvent(event)
 end
-frame:SetScript('OnEvent', function(self, event)
+frame:SetScript('OnEvent', function(self, event, unit)
 	if event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' or event == 'ZONE_CHANGED_NEW_AREA' then
 		BC:miniIcon('player')
 	elseif event == 'EQUIPMENT_SETS_CHANGED' then
 		self:equip()
 	elseif event == 'UPDATE_SHAPESHIFT_FORM' then
 		self:druid()
+	elseif event == 'UNIT_POWER_UPDATE' then
+		if unit == 'player' and (UnitPowerType('player') == 0 or BC.class == 'DRUID') then
+			local mana = UnitPower('player', 0)
+			if type(self.lastMana) == 'number' and mana < self.lastMana and mana < UnitPowerMax('player', 0) then
+				self.waitTime = GetTime() + 5
+			end
+			self.lastMana = mana
+		end
 	end
 end)
 
