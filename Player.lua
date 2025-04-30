@@ -60,9 +60,7 @@ BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -.5)
 -- 法力/能量恢复
 if not BC.player.manabar.spark and BC.class ~= 'WARRIOR' then
 	BC.player.manabar.spark = CreateFrame('StatusBar', nil, BC.player.manabar)
-	-- BC.player.manabar.spark:SetAllPoints(BC.player.manabar)
-	BC.player.manabar.spark:SetSize(BC.player.manabar:GetSize())
-	BC.player.manabar.spark:SetPoint('CENTER')
+	BC.player.manabar.spark:SetAllPoints(BC.player.manabar)
 	BC.player.manabar.spark.point = BC.player.manabar.spark:CreateTexture()
 	BC.player.manabar.spark.point:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
 	BC.player.manabar.spark.point:SetBlendMode('ADD')
@@ -300,7 +298,11 @@ end
 function frame:spark(bar, now)
 	if not bar.spark then return end
 	local powerMax = UnitPower('player', bar.powerType) >= UnitPowerMax('player', bar.powerType)
+<<<<<<< HEAD
 	if not BC:getDB('player', 'powerSpark')
+=======
+	if not BC:getDB('player', 'powerSpark') and not InCombatLockdown()
+>>>>>>> ad69242 (3.43.1)
 		or UnitIsDeadOrGhost('player') -- 死亡
 		or bar.powerType ~= 0 and bar.powerType ~= 3 -- 非法力和能量
 		or bar.powerType == 0 and powerMax -- 满法力

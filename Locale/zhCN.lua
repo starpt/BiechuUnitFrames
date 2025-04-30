@@ -11,7 +11,7 @@ L.party = '├队友'
 L.partypet = '├─队友的宠物'
 L.partytarget = '└─队友的目标'
 L.info = 'QQ讨论群: 377298123'
-L.cantSaveInCombat = '战斗中无法更改设置'
+L.cantSaveInCombat = '战斗中无法更改设置!'
 L.confirmResetDefault = '确定要恢复默认设置?'
 L.reset = '重置'
 L.config = '选择配置'
@@ -23,6 +23,7 @@ L.nameTextClassColor = '名字颜色职业色(玩家)'
 L.dragSystemFarmes = '自由拖动系统框体'
 L.incomingHeals = '显示预治疗'
 L.alwaysCompareItems = '启用装备对比'
+L.disableAddons = '禁用冲突插件'
 L.autoTab = 'PVP自动TAB选择玩家'
 L.carry = '数值单位'
 L.carryW = '万/亿'
@@ -33,15 +34,15 @@ L.nameFont = '名字字体'
 L.fontList = {
 	[1] = {
 		text = '默认',
-		value = 'Fonts\\ARKai_T.ttf',
+		value = 'Fonts\\ZYKai_T.ttf',
 	},
 	[2] = {
 		text = '聊天',
-		value = 'Fonts\\ARHei.ttf',
+		value = 'Fonts\\ZYHei.ttf',
 	},
 	[3] = {
 		text = '伤害数字',
-		value = 'Fonts\\ARKai_C.ttf',
+		value = 'Fonts\\ZYKai_C.ttf',
 	},
 }
 L.fontFlags = '字体轮廓'
@@ -63,14 +64,22 @@ L.fontFlagsList = {
 		value = 'MONOCHROME',
 	},
 }
+
 L.portraitCombat = '头像上显示战斗信息'
 L.valueFont = '数值字体'
 L.combatFlash = '战斗状态边框红光'
+<<<<<<< HEAD
 L.showThreat = '显示威胁百分比'
 L.statusBarClass = '状态栏背景职业色(玩家)'
 L.statusBarAlpha = '状态栏透明度'
 L.healthBarClass = '体力条职业色(玩家)'
 L.powerSpark = '显示法力/能量恢复提示'
+=======
+L.threatLeft = '居左显示威胁值'
+L.statusBarClass = '状态栏背景职业色(玩家)'
+L.statusBarAlpha = '状态栏透明度'
+L.healthBarClass = '体力条职业色(玩家)'
+>>>>>>> ad69242 (3.43.1)
 L.border = '边框'
 L.borderList = {
 	[1] = '普通',
@@ -84,8 +93,10 @@ L.portraitList = {
 	[1] = '职业图标',
 	[2] = '猫猫',
 	[3] = '狗狗',
-	[4] = '熊猫',
-	[5] = '酷脸',
+	[4] = '酷脸',
+	[5] = '贾静雯',
+	[6] = '林志玲',
+	[7] = '刘亦菲',
 }
 L.nameFontSize = '名字字体大小'
 L.valueFontSize = '数值字体大小'
@@ -126,14 +137,13 @@ L.auraSize = 'Buff/Debuff图标大小'
 L.auraRows = '一行Buff/Debuff数量'
 L.auraX = 'Buff/Debuf X轴位置'
 L.auraY = 'Buff/Debuff Y轴位置'
-L.threatLeft = '居左显示威胁值'
 L.raidShowParty = '团队显示小队框体'
 L.showLevel = '显示等级'
 L.outRange = '超出范围半透明'
 L.showCastBar = '显示施法条'
 L.talentIcon = '显示天赋小图标(点击切换天赋)'
-L.autoTalentEquip = '切换天赋后装备天赋名套装(ItemRack)'
-L.equipmentIcon = '显示装备小图标(ItemRack)'
+L.autoTalentEquip = '切换天赋后装备天赋名套装'
+L.equipmentIcon = '显示装备小图标'
 L.hidePartyNumber = '在团队中隐藏小队编号'
 L.miniIcon = '显示小图标(职业/种类)'
 L.creatureList = {
@@ -170,9 +180,16 @@ L.sendTell = '私聊对方'
 L.primary = '主天赋'
 L.secondary = '副天赋'
 L.switch = '切换'
+<<<<<<< HEAD
 L.switchAfter = '切换天赋后装备'
+=======
+L.switchAfter = '切换天赋后装备套装'
+>>>>>>> ad69242 (3.43.1)
 L.nude = '一键脱装'
 L.click = '点击'
 L.clickEquipment = '点击装备套装'
 L.saveEquipment = '保存套装'
+<<<<<<< HEAD
 L.confirmEquipmentSet = '确定要覆盖名为%s的套装?'
+=======
+>>>>>>> ad69242 (3.43.1)
