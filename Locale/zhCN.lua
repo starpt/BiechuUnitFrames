@@ -180,16 +180,8 @@ L.sendTell = '私聊对方'
 L.primary = '主天赋'
 L.secondary = '副天赋'
 L.switch = '切换'
-<<<<<<< HEAD
-L.switchAfter = '切换天赋后装备'
-=======
 L.switchAfter = '切换天赋后装备套装'
->>>>>>> ad69242 (3.43.1)
 L.nude = '一键脱装'
 L.click = '点击'
 L.clickEquipment = '点击装备套装'
 L.saveEquipment = '保存套装'
-<<<<<<< HEAD
-L.confirmEquipmentSet = '确定要覆盖名为%s的套装?'
-=======
->>>>>>> ad69242 (3.43.1)

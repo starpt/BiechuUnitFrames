@@ -100,6 +100,7 @@ L.portraitCombat = 'Display combat information on the avatar'
 L.valueFont = 'Value Font'
 L.combatFlash = 'Combat Red Flash'
 <<<<<<< HEAD
+<<<<<<< HEAD
 L.showThreat = 'Show numeric threat'
 L.statusBarClass = 'Status bar background professional color'
 L.statusBarAlpha = 'Status bar alpha'
@@ -111,6 +112,12 @@ L.statusBarClass = 'Status bar background professional color'
 L.statusBarAlpha = 'Status bar alpha'
 L.healthBarClass = 'Health bar background class color'
 >>>>>>> ad69242 (3.43.1)
+=======
+L.threatLeft = 'Display threat value on the left'
+L.statusBarClass = 'Status bar background professional color'
+L.statusBarAlpha = 'Status bar alpha'
+L.healthBarClass = 'Health bar background class color'
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 L.border = 'Border'
 L.borderList = {
 	[1] = 'Normal',

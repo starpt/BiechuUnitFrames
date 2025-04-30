@@ -299,10 +299,14 @@ function frame:spark(bar, now)
 	if not bar.spark then return end
 	local powerMax = UnitPower('player', bar.powerType) >= UnitPowerMax('player', bar.powerType)
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if not BC:getDB('player', 'powerSpark')
 =======
 	if not BC:getDB('player', 'powerSpark') and not InCombatLockdown()
 >>>>>>> ad69242 (3.43.1)
+=======
+	if not BC:getDB('player', 'powerSpark') and not InCombatLockdown()
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 		or UnitIsDeadOrGhost('player') -- 死亡
 		or bar.powerType ~= 0 and bar.powerType ~= 3 -- 非法力和能量
 		or bar.powerType == 0 and powerMax -- 满法力

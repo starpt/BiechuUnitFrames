@@ -7,6 +7,10 @@ local horizontal = 322
 local option = CreateFrame('Frame', addonName .. 'Option')
 local category = Settings.RegisterCanvasLayoutCategory(option, addonName)
 Settings.RegisterAddOnCategory(category)
+<<<<<<< HEAD
+=======
+
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 
 -- 命令行
 SlashCmdList[addonName] = function(arg1)
@@ -176,6 +180,7 @@ option.list = {
 	'partytarget',
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 for _, name in pairs(option.list) do
 	option[name] = CreateFrame('Frame', option:GetName() .. name:gsub('^%l', string.upper))
 	Settings.RegisterCanvasLayoutSubcategory(category, option[name], L[name])
@@ -185,6 +190,12 @@ for index, name in pairs(option.list) do
 	Settings.RegisterCanvasLayoutSubcategory(category, option[name], L[name])
 	option[name].ID = category.ID + index
 >>>>>>> ad69242 (3.43.1)
+=======
+for index, name in pairs(option.list) do
+	option[name] = CreateFrame('Frame', option:GetName() .. name:gsub('^%l', string.upper))
+	Settings.RegisterCanvasLayoutSubcategory(category, option[name], L[name])
+	option[name].ID = category.ID + index
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 	option:title(option[name], L[name]:gsub('[├├─└─]', ''))
 end
 
@@ -228,6 +239,7 @@ function option:init()
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	-- 显示法力/能量恢复提示
 	if BC.class == 'WARRIOR' then
 		self.player.powerSpark:SetChecked(false)
@@ -239,6 +251,8 @@ function option:init()
 
 =======
 >>>>>>> ad69242 (3.43.1)
+=======
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 	-- 显示自定义德鲁伊法力条
 	if BC.class == 'DRUID' then
 		self.player.druidBar:SetChecked(BC:getDB('player', 'druidBar'))
@@ -292,6 +306,7 @@ function option:init()
 		-- 锚定玩家框体
 		local anchor = self[key].anchor
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if anchor then
 			anchor:SetChecked(BC:getDB(key, 'anchor') == 'PlayerFrame')
 			anchor:Click()
@@ -337,6 +352,30 @@ function option:init()
 		end
 
 >>>>>>> ad69242 (3.43.1)
+=======
+		local scale = self[key].scale -- 框体缩放
+		if anchor then
+			anchor:SetChecked(BC:getDB(key, 'anchor') == 'PlayerFrame')
+			if scale then scale:SetEnabled(BC:getDB(key, 'anchor') ~= 'PlayerFrame') end -- 框体缩放
+		end
+
+		if scale then scale:SetValue(BC:getDB(key, 'scale')) end -- 框体缩放
+		if self[key].showEnemyBuff then self[key].showEnemyBuff:SetChecked(BC:getDB(key, 'showEnemyBuff')) end -- 显示敌对目标模拟Buff
+
+		-- 只显示我施放的Buff/Debuff倒计时(OmniCC)
+		local hasOmniCC = type(OmniCC) == 'table'
+		if self[key].selfCooldown then
+			self[key].selfCooldown:SetChecked(hasOmniCC and BC:getDB(key, 'selfCooldown'))
+			self[key].selfCooldown:SetEnabled(hasOmniCC)
+		end
+
+		-- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
+		if self[key].dispelCooldown then
+			self[key].dispelCooldown:SetChecked(hasOmniCC and BC:getDB(key, 'dispelCooldown'))
+			self[key].dispelCooldown:SetEnabled(hasOmniCC)
+		end
+
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 		if self[key].dispelStealable then self[key].dispelStealable:SetChecked(BC:getDB(key, 'dispelStealable')) end -- 高亮显示可以驱散的Buff/Debuff
 
 		if self[key].auraSize and BC:getDB(key, 'auraSize') then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff图标大小
@@ -346,8 +385,11 @@ function option:init()
 	end
 end
 <<<<<<< HEAD
+<<<<<<< HEAD
 option:SetScript('OnShow', option.init)
 =======
+=======
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 option:RegisterEvent('PLAYER_ENTERING_WORLD')
 option:SetScript('OnEvent', function(self, event)
 	if event == 'PLAYER_ENTERING_WORLD' then self:init() end
@@ -477,6 +519,7 @@ option:check('player', 'autoTalentEquip', 'miniIcon', 15, vertical + 6) -- 切�
 option:check('player', 'equipmentIcon', 'autoTalentEquip', -15, vertical + 2) -- 显示装备小图标(ItemRack)
 option:check('player', 'hidePartyNumber', 'equipmentIcon') -- 在团队中隐藏小队编号
 <<<<<<< HEAD
+<<<<<<< HEAD
 option:check('player', 'powerSpark', 'hidePartyNumber') -- 显示法力/能量恢复提示
 
 -- 显示自定义德鲁伊法力条
@@ -486,6 +529,11 @@ option:check('player', 'druidBar', 'powerSpark')
 -- 显示自定义德鲁伊法力条
 option:check('player', 'druidBar', 'hidePartyNumber')
 >>>>>>> ad69242 (3.43.1)
+=======
+
+-- 显示自定义德鲁伊法力条
+option:check('player', 'druidBar', 'hidePartyNumber')
+>>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 option:check('player', 'healthBarClass', 'druidBar') -- 体力条职业色(玩家)
 option:check('player', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
