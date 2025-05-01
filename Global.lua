@@ -42,7 +42,7 @@ BC.default = {
 		anchor = 'PlayerFrame',
 		relative = 'TOPLEFT',
 		offsetX = 84,
-		offsetY = not UnitInVehicle('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
+		offsetY = not UnitHasVehiclePlayerFrameUI('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
@@ -243,6 +243,18 @@ function BC:file(file, dark)
 	return 'Interface\\'.. ((dark or BC:getDB('global', 'dark')) and 'AddOns\\' .. addonName .. '\\Textures\\' .. file:gsub('.-([^\\/]-%.?[^%.\\/]*)$', '%1') or file)
 end
 
+-- 获取玩家载具单位
+function BC:vehicleUnit(unit)
+	if UnitHasVehiclePlayerFrameUI('player') then
+		if unit == 'pet' or unit == 'vehicle' then
+			return 'player'
+		elseif unit == 'player' then
+			return 'pet'
+		end
+	end
+	return unit
+end
+
 -- 格式化单位
 function BC:formatUnit(unit)
 	return type(unit) == 'string' and unit:gsub('-', ''):gsub('^partypet(%d)$', 'party%1pet')
@@ -256,9 +268,11 @@ function BC:getDB(key, name)
 		db.cache = db.cache or {}
 		return db.cache[name]
 	end
+
 	db.config = db.config or {}
 	local config = db.config[self.charKey] or 'Public'
 	if key == 'config' then return config end
+
 	db = db[config] or {}
 	if type(db) == 'table' and type(db[key]) == 'table' and db[key][name] ~= nil then
 		return db[key][name]
@@ -279,18 +293,20 @@ function BC:setDB(key, name, value)
 	end
 
 	db.config = db.config or {}
-	local config = db.config[self.charKey] or 'Public'
 	if key == 'config' then
 		db.config[self.charKey] = name
-	elseif key == 'reset' then
-		db[config] = nil
 	else
-		db[config] = db[config] or {}
-		db[config][key] = db[config][key] or {}
-		if self.default[key] and self.default[key][name] == value then
-			db[config][key][name] = nil
+		local config = db.config[self.charKey] or 'Public'
+			if key == 'reset' then
+			db[config] = nil
 		else
-			db[config][key][name] = value
+			db[config] = db[config] or {}
+			db[config][key] = db[config][key] or {}
+			if self.default[key] and self.default[key][name] == value then
+				db[config][key][name] = nil
+			else
+				db[config][key][name] = value
+			end
 		end
 	end
 	BiechuUnitFramesDB = db
@@ -705,7 +721,6 @@ function BC:portrait(unit)
 	if not (frame and frame.portrait) then return end
 	local key = unit:gsub('%d', '')
 	local index = self:getDB(key, 'portrait')
-
 	if index == 1 and UnitIsPlayer(unit) then
 		local coord = CLASS_ICON_TCOORDS[select(2, UnitClass(unit))]
 		if type(coord) == 'table' then
@@ -717,15 +732,7 @@ function BC:portrait(unit)
 		if type(index) == 'number' and index > 1 and UnitIsPlayer(unit) then
 			frame.portrait:SetTexture(self:file(self.portraitList[index], 1))
 		else
-			if UnitInVehicle('player') then
-				if unit == 'pet' then
-					SetPortraitTexture(frame.portrait, 'player')
-				elseif unit == 'player' then
-					SetPortraitTexture(frame.portrait, 'pet')
-				end
-			else
-				SetPortraitTexture(frame.portrait, unit)
-			end
+			SetPortraitTexture(frame.portrait, self:vehicleUnit(unit))
 		end
 	end
 end
@@ -814,7 +821,7 @@ function BC:miniIcon(unit)
 			else
 				SetActiveTalentGroup(passive) -- 切换天赋
 				frame.miniIcon.callBack = function() -- 切换天赋回调
-					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and type(talent[passive].name) == 'string' then
+					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and talent[passive].name then
 						C_EquipmentSet.UseEquipmentSet(C_EquipmentSet.GetEquipmentSetID(talent[passive].name))
 						frame.miniIcon.callBack = nil
 					end
@@ -960,20 +967,28 @@ end
 function BC:bar(bar)
 	local unit = bar and self:formatUnit(bar.unit)
 	if not unit or not UnitExists(unit) then return end
-	local key = unit == 'vehicle' and 'player' or (UnitInVehicle('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
+	local key = unit == 'vehicle' and 'player' or (UnitHasVehiclePlayerFrameUI('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
 	local font = self:getDB('global', 'valueFont')
-	local size = self:getDB(key, 'valueFontSize')
 	local flag = self:getDB('global', 'fontFlags')
-	if not (key and font and size and flag) then return end
+	local size = self:getDB(key, 'valueFontSize')
+	if not size then return end
 
 	local value = bar:GetValue()
 	local _, valueMax = bar:GetMinMaxValues()
-
 	local color
-	if UnitInVehicle('player') and key == 'pet' or key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
-		bar.unit = key == 'pet' and 'player' or bar.unit
+	if UnitHasVehiclePlayerFrameUI('player') and unit == 'pet' then
 		if bar.powerType then
-			bar.powerType = key == 'pet' and UnitPowerType('player') or bar.powerType
+			value = UnitPower('player')
+			valueMax = UnitPowerMax('player')
+			color = PowerBarColor[UnitPowerType('player')]
+		else
+			value = UnitHealth('player')
+			valueMax = UnitHealthMax('player')
+		end
+	end
+
+	if key == 'pettarget' or key == 'partytarget' or key == 'partypet' or bar:GetName() == 'PlayerFrameDruidBar' then
+		if bar.powerType then
 			value = UnitPower(bar.unit, bar.powerType)
 			valueMax = UnitPowerMax(bar.unit, bar.powerType)
 			color = PowerBarColor[bar.powerType]
@@ -1000,7 +1015,13 @@ function BC:bar(bar)
 			end
 		end
 	end
-	if type(color) == 'table' then bar:SetStatusBarColor(color.r, color.g, color.b) end
+	if type(color) == 'table' then
+		if UnitHasVehiclePlayerFrameUI('player') and unit == 'player' then
+			bar:SetStatusBarColor(color.r, color.g, color.b)
+		else
+			bar:SetStatusBarColor(color.r, color.g, color.b)
+		end
+	end
 
 	-- 数值文字
 	if bar.MiddleText then
@@ -1021,15 +1042,8 @@ function BC:bar(bar)
 	end
 
 	bar:SetScript('OnEnter', function(self)
-		local key = self.unit
-		if type(key) ~= 'string' then return end
-		if UnitInVehicle('player') then
-			if key == 'player' then
-				key = 'pet'
-			elseif key == 'vehicle' then
-				key = 'player'
-			end
-		end
+		local key = BC:formatUnit(BC:vehicleUnit(self.unit))
+		if not key then return end
 		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			local value = self:GetValue()
@@ -1045,15 +1059,8 @@ function BC:bar(bar)
 		end
 	end)
 	bar:SetScript('OnLeave', function(self)
-		local key = self.unit
-		if type(key) ~= 'string' then return end
-		if UnitInVehicle('player') then
-			if key == 'player' then
-				key = 'pet'
-			elseif key == 'vehicle' then
-				key = 'player'
-			end
-		end
+		local key = BC:formatUnit(BC:vehicleUnit(self.unit))
+		if not key then return end
 		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
 		if type(valueStyle) == 'number' and valueStyle > 6 then
 			if self.MiddleText then self.MiddleText:Hide() end
@@ -1144,7 +1151,7 @@ end)
 function BC:update(unit)
 	unit = self:formatUnit(unit)
 	if not unit then return end
-	local frame = unit == 'vehicle' and self.player or self[unit]
+	local frame = self[unit]
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
@@ -1166,7 +1173,7 @@ function BC:update(unit)
 		end
 	end
 
-	if self:getDB(key, 'hideFrame') or UnitInVehicle('player') and unit == 'pettarget' then
+	if self:getDB(key, 'hideFrame') or UnitHasVehiclePlayerFrameUI('player') and unit == 'pettarget' then
 		frame:SetAlpha(0)
 		return
 	end
@@ -1189,6 +1196,15 @@ function BC:update(unit)
 				color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
 			else
 				color = { r = 1, g = .82, b = 0}
+			end
+			if UnitHasVehiclePlayerFrameUI('player') then
+				if unit == 'pet' or unit == 'vehicle' then
+					frame.name:SetText(UnitName('player'))
+					if self:getDB('global', 'nameClassColor') then color = RAID_CLASS_COLORS[select(2, UnitClass('player'))] end
+				elseif unit == 'player' then
+					frame.name:SetText(UnitName('pet'))
+					color = { r = 1, g = .82, b = 0}
+				end
 			end
 			if type(color) == 'table' then frame.name:SetTextColor(color.r, color.g, color.b) end
 			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'), self:getDB('global', 'fontFlags'))

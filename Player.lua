@@ -27,7 +27,6 @@ end)
 
 -- 载具
 hooksecurefunc('PlayerFrame_UpdateArt', function(...)
-	print('PlayerFrame_UpdateArt', ...)
 	BC:init('player')
 	BC:init('pet')
 end)
@@ -302,7 +301,7 @@ BC.pet.manabar.LeftText:SetPoint('TOPLEFT', BC.pet.manabar, 1, 1.5)
 BC.pet.manabar.RightText:SetPoint('TOPRIGHT', BC.pet.manabar, -1, 1.5)
 
 hooksecurefunc('PetFrame_Update', function()
-	-- BC:update('pet')
+	BC:update('pet')
 	BC:dark('pet')
 end)
 

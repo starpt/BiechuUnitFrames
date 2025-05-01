@@ -15,6 +15,7 @@ hooksecurefunc('TargetFrame_Update', function(self)
 	end
 end)
 
+-- 等级
 hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
 	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16) end
 end)
