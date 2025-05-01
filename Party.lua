@@ -245,9 +245,9 @@ frame:SetScript('OnUpdate', function(self)
 	self.rate = now + .02 -- 刷新率
 
 	for id = 1, GetNumSubgroupMembers() do
-		-- BC:bar(BC['party' .. id.. 'target'].healthbar)
-		-- BC:bar(BC['party' .. id .. 'target'].manabar)
-		-- BC:bar(BC['party' .. id.. 'pet'].healthbar)
-		-- BC:bar(BC['party' .. id .. 'pet'].manabar)
+		BC:bar(BC['party' .. id.. 'target'].healthbar)
+		BC:bar(BC['party' .. id .. 'target'].manabar)
+		BC:bar(BC['party' .. id.. 'pet'].healthbar)
+		BC:bar(BC['party' .. id .. 'pet'].manabar)
 	end
 end)

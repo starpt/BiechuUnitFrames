@@ -7,9 +7,9 @@ local category = Settings.RegisterCanvasLayoutCategory(option, addonName)
 Settings.RegisterAddOnCategory(category)
 
 -- 命令行
-SlashCmdList[addonName] = function(arg1)
-	if option[arg1] then
-		Settings.OpenToCategory(option[arg1].ID)
+SlashCmdList[addonName] = function(msg)
+	if option[msg] then
+		Settings.OpenToCategory(option[msg].ID)
 	else
 		Settings.OpenToCategory(category.ID)
 	end
@@ -79,6 +79,16 @@ function option:valueStyleList(...)
 	end
 	list[10] = L.valueStyleList[10] -- 都不显示
 	return list
+end
+
+-- 战斗警告
+function option:combatAlert(func)
+	if InCombatLockdown() then
+		if type(func) == 'function' then func() end
+		RaidNotice_AddMessage(RaidWarningFrame, '', { r = 1, g = 0, b = 0 })
+		RaidNotice_AddMessage(RaidWarningFrame, L['cantSaveInCombat'], { r = 1, g = 0, b = 0 })
+		return true
+	end
 end
 
 -- 勾选
@@ -214,7 +224,7 @@ function option:init()
 	self.dark:SetChecked(BC:getDB('global', 'dark')) -- 暗黑风格
 	self.newClassIcon:SetChecked(BC:getDB('global', 'newClassIcon')) -- 新风格职业图标
 	self.healthBarColor:SetChecked(BC:getDB('global', 'healthBarColor')) -- 体力条颜色按生命值变化
-	self.nameTextClassColor:SetChecked(BC:getDB('global', 'nameTextClassColor')) -- 名字颜色职业色(玩家)
+	self.nameClassColor:SetChecked(BC:getDB('global', 'nameClassColor')) -- 名字颜色职业色(玩家)
 
 	-- 数值单位
 	local carry = BC:getDB('global', 'carry')
@@ -340,10 +350,10 @@ option.info:SetText(L.info)
 option:check('global', 'dark', 'title', -1, vertical - 8) -- 使用暗黑材质
 option:check('global', 'newClassIcon', 'dark') -- 使用新职业图标
 option:check('global', 'healthBarColor', 'newClassIcon') -- 体力条颜色按生命值变化
-option:check('global', 'nameTextClassColor', 'healthBarColor') -- 名字颜色职业色(玩家)
+option:check('global', 'nameClassColor', 'healthBarColor') -- 名字颜色职业色(玩家)
 
 -- 数值单位
-option:check('global', 'carry', 'nameTextClassColor', nil, nil, nil, function(self)
+option:check('global', 'carry', 'nameClassColor', nil, nil, nil, function(self)
 	local slider = option.carrySlider
 	if slider:IsShown() then
 		BC:setDB('global', 'carry', (self:GetChecked() and 0 or 2) + slider:GetValue())
@@ -383,6 +393,7 @@ option:downMenu('global', 'config', {
 				info.text = menus[i].text
 				info.value = menus[i].value
 				info.func = function(self)
+					if option:combatAlert() then return end
 					BC:setDB('config', self.value)
 					UIDropDownMenu_SetSelectedID(down, self:GetID())
 					option:init()
@@ -395,17 +406,12 @@ end)
 
 -- 重置
 option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:comfing(L.confirmResetDefault, function()
-		if type(_G[addonName .. 'DB']) == 'table' then _G[addonName .. 'DB'][BC:getDB('config')] = nil end
-		BC:init()
 		SetCVar('alwaysCompareItems', '1')
 		SetCVar('threatShowNumeric', '1')
 		SetCVar('showTargetOfTarget', '1')
+		BC:setDB('reset')
 		option:init()
 	end)
 end)
@@ -465,11 +471,7 @@ option:downMenu('player', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, v
 
 -- 恢复左上角位置
 option:button('player', 'pointTargetLeftTop', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('player', 'relative', 'TOPLEFT')
 	BC:setDB('player', 'offsetX', -19)
 	BC:setDB('player', 'offsetY', -4)
@@ -487,11 +489,7 @@ end)
 
 -- 恢复水平居中位置
 option:button('player', 'pointTargetCenter', 'pointTargetLeftTop', 154, 0, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('player', 'relative', 'CENTER')
 	BC:setDB('player', 'offsetX', -223)
 	BC:setDB('player', 'offsetY', -98)
@@ -512,11 +510,7 @@ option:check('player', 'drag', 'pointTargetLeftTop', -2, vertical - 4) -- 非战
 
 -- 框体缩放
 option:slider('player', 'scale', 'drag', 4, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert(function() self:SetValue(BC:getDB('player', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.player.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
@@ -562,11 +556,7 @@ option:downMenu('pet', 'valueStyle', option:valueStyleList(1, 2, 3, 4), 'valueFo
 
 -- 恢复默认位置
 option:button('pet', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('pet', 'point', nil)
 	BC:setDB('pet', 'relative', nil)
 	BC:setDB('pet', 'offsetX', nil)
@@ -581,6 +571,7 @@ option:check('pet', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按
 
 -- 隐藏框体
 option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('pettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
 	if button then BC:setDB('pettarget', 'hideFrame', not enabled) end
 	option.pettarget.portraitClass:SetEnabled(enabled)
@@ -668,11 +659,7 @@ option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, v
 
 -- 和玩家框体水平对齐
 option:button('target', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	if BC:getDB('target', 'anchor') then
 		BC:setDB('target', 'offsetY', 0)
 	else
@@ -693,11 +680,7 @@ end)
 
 -- 和玩家框体水平居中
 option:button('target', 'pointPlayerCenter', 'pointPlayerAlignment', 164, 0, 160, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	local relative
 	if BC:getDB('target', 'anchor') then
 		relative = PlayerFrame:GetPoint()
@@ -758,10 +741,7 @@ end)
 
 -- 框体缩放
 option:slider('target', 'scale', 'anchor', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
+	if option:combatAlert(function() self:SetValue(BC:getDB('target', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.target.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
@@ -807,6 +787,7 @@ end)
 
 -- 隐藏框体
 option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('targettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
 	if button then
 		BC:setDB('targettarget', 'hideFrame', not enabled or nil)
@@ -855,11 +836,7 @@ option:downMenu('targettarget', 'valueStyle', option:valueStyleList(2, 3, 7, 8),
 
 -- 恢复默认位置
 option:button('targettarget', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('targettarget', 'point', nil)
 	BC:setDB('targettarget', 'relative', nil)
 	BC:setDB('targettarget', 'offsetX', nil)
@@ -874,6 +851,7 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 
  -- 隐藏框体
 option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
 	if button then BC:setDB('party', 'hideFrame', not enabled or nil) end
 	option.party.portraitCombat:SetEnabled(enabled)
@@ -963,11 +941,7 @@ option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, ve
 
 -- 恢复默认位置
 option:button('party', 'pointDefault', nil, horizontal + 2, -20, nil, function()
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert() then return end
 	BC:setDB('party', 'point', nil)
 	BC:setDB('party', 'relative', nil)
 	BC:setDB('party', 'offsetX', nil)
@@ -978,11 +952,7 @@ option:check('party', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中�
 
 -- 框体缩放
 option:slider('party', 'scale', 'drag', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
-	if InCombatLockdown() then
-		print('|cffff0000'.. L['cantSaveInCombat'] .. '|r')
-		return
-	end
-
+	if option:combatAlert(function() self:SetValue(BC:getDB('party', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
 	option.party.scaleText:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
@@ -1030,6 +1000,7 @@ end)
 
 -- 隐藏框体
 option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('partypet', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
 	if button then
 		BC:setDB('partypet', 'hideFrame', not enabled or nil)
@@ -1069,6 +1040,7 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 
 -- 隐藏框体
 option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('partytarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
 	if button then BC:setDB('partytarget', 'hideFrame', not enabled or nil) end
 	option.partytarget.portraitClass:SetEnabled(enabled)

@@ -10,6 +10,11 @@ BC.player.borderTexture = PlayerFrameTexture -- 边框
 BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
 BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
 
+-- 等级
+PlayerLevelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
+hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
+	PlayerLevelText:SetPoint('CENTER', BC.player, -62, -16)
+end)
 -- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)
 PlayerFrameGroupIndicatorText:SetPoint('LEFT', 20, -3)
@@ -24,9 +29,6 @@ end)
 BC.player.statusBar = BC.player:CreateTexture(nil, 'BACKGROUND')
 BC.player.statusBar:SetSize(119, 19)
 BC.player.statusBar:SetPoint('TOPLEFT', BC.player, 105, -22)
-
--- 等级
-PlayerLevelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
 
 -- 体力
 BC.player.healthbar.MiddleText = PlayerFrameHealthBarText
@@ -66,6 +68,7 @@ function frame:equip()
 		local equip = _G['EquipSetFrame' .. i]
 		if not equip then
 			equip = CreateFrame('Button', 'EquipSetFrame' .. i, BC.player)
+			equip:SetFrameLevel(4)
 			equip:SetSize(18, 18)
 			equip:SetPoint('TOPLEFT', 96 + 18 * i, -3.5)
 			equip:SetHighlightTexture('Interface\\Buttons\\OldButtonHilight-Square')
@@ -175,9 +178,33 @@ function frame:druid()
 	end
 end
 
+-- 图腾
+-- hooksecurefunc(TotemFrame, 'Show', function(self)
+-- 	TotemFrame:SetScale(.8)
+-- 	TotemFrame:SetPoint('TOPLEFT', PlayerFrame, 'BOTTOMLEFT', 142, 46)
+-- 	for i = 1, 4 do
+-- 		local totem = _G['TotemFrameTotem' .. i]
+-- 		if totem then
+-- 			if not totem.borderTexture then
+-- 				totem.border = CreateFrame('Frame', nil, totem)
+-- 				totem.border:SetSize(57, 57)
+-- 				totem.border:SetPoint('CENTER', 11, -12)
+-- 				totem.border:SetFrameLevel(6)
+-- 				totem.borderTexture = totem.border:CreateTexture()
+-- 				totem.borderTexture:SetAllPoints(totem.border)
+-- 			end
+-- 			totem.borderTexture:SetTexture(BC:file('Minimap\\MiniMap-TrackingBorder'))
+-- 			if OmniCC and OmniCC.Timer then totem:SetScript('OnUpdate', nil) end
+-- 		end
+-- 	end
+-- end)
+
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	BC:miniIcon('player')
+	-- TotemFrame:Show() -- 图腾
+	BC:miniIcon('player') -- 小图标
+
+	-- 装备小图标
 	frame:equip()
 	if type(ItemRack) == 'table' then
 		hooksecurefunc(ItemRack, 'FireItemRackEvent', frame.equip)
@@ -299,7 +326,7 @@ frame:SetScript('OnUpdate', function(self)
 
 	if BC.player.druidBar and BC.player.druidBar:IsShown() then BC:bar(BC.player.druidBar) end
 
-	if BC.pettarget:IsShown() then
+	if BC.pettarget:IsShown() and BC.pettarget:GetAlpha() > 0 then
 		BC:bar(BC.pettarget.healthbar)
 		BC:bar(BC.pettarget.manabar)
 	end

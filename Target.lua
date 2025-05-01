@@ -7,12 +7,16 @@ end)
 
 -- 切换目标立即更新战斗状态边框红光
 hooksecurefunc('TargetFrame_Update', function(self)
+	if self.unit ~= 'target' then return end
 	if self.flash then self.flash:Hide() end
-	if self.unit == 'target' or self.unit == 'focus' then
-		BC:update(self.unit)
-		BC:update(self.unit .. 'target')
-		BC:miniIcon(self.unit)
-	end
+	BC:update(self.unit)
+	BC:update(self.unit .. 'target')
+	BC:miniIcon(self.unit)
+end)
+
+-- 等级
+hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
+	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16) end
 end)
 
 for unit, frame in pairs({
@@ -29,10 +33,20 @@ for unit, frame in pairs({
 		if self.offsetY then self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 26, self.offsetY) end
 	end)
 
-	frame.flash = _G[frame:GetName() .. 'Flash'] -- 战斗中边框发红光
+	-- 战斗中边框发红光
+	frame.flash = _G[frame:GetName() .. 'Flash']
+	if not frame.flash then
+		frame.flash = frame:CreateTexture()
+		frame.flash.unit = unit
+		frame.flash:SetPoint('TOPLEFT', frame, -24, 0)
+		frame.flash:SetSize(242, 93)
+		frame.flash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
+		frame.flash:SetTexCoord(0, 0.9453125, 0, 0.181640625)
+	end
+
 	frame.statusBar = frame.nameBackground -- 状态栏
-	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 	frame.deadText:SetPoint('CENTER', frame.healthbar, 0, -4) -- 死亡
+	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 
 	-- 体力
 	frame.healthbar.MiddleText = frame.textureFrame:CreateFontString()
@@ -55,19 +69,21 @@ for unit, frame in pairs({
 	frame.manabar.SideText:SetPoint('RIGHT', frame.manabar, 'LEFT', -3, -.5)
 
 	-- 威胁值
-	frame.threatNumericIndicator = CreateFrame('Frame', nil, frame)
-	frame.threatNumericIndicator:SetSize(49, 18)
-	frame.threatNumericIndicator:SetPoint('TOP', -84, -4.5)
-	frame.threatNumericIndicator:Hide()
-	frame.threatNumericIndicator.bg = frame.threatNumericIndicator:CreateTexture(nil, 'BACKGROUND')
-	frame.threatNumericIndicator.bg:SetSize(37, 14)
-	frame.threatNumericIndicator.bg:SetPoint('TOP', 0, -3)
-	frame.threatNumericIndicator.border = frame.threatNumericIndicator:CreateTexture(nil, 'BORDER')
-	frame.threatNumericIndicator.border:SetAllPoints(frame.threatNumericIndicator)
-	frame.threatNumericIndicator.border:SetTexCoord(0, .77, 0, .55)
-	frame.threatNumericIndicator.text = frame.threatNumericIndicator:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
-	frame.threatNumericIndicator.text:SetPoint('CENTER', 0, -1)
-	frame.threatNumericIndicator.text:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+	if not frame.threatNumericIndicator then
+		frame.threatNumericIndicator = CreateFrame('Frame', nil, frame)
+		frame.threatNumericIndicator:SetSize(49, 18)
+		frame.threatNumericIndicator:SetPoint('TOP', -84, -4.5)
+		frame.threatNumericIndicator:Hide()
+		frame.threatNumericIndicator.bg = frame.threatNumericIndicator:CreateTexture(nil, 'BACKGROUND')
+		frame.threatNumericIndicator.bg:SetSize(37, 14)
+		frame.threatNumericIndicator.bg:SetPoint('TOP', 0, -3)
+		frame.threatNumericIndicator.border = frame.threatNumericIndicator:CreateTexture(nil, 'BORDER')
+		frame.threatNumericIndicator.border:SetAllPoints(frame.threatNumericIndicator)
+		frame.threatNumericIndicator.border:SetTexCoord(0, .77, 0, .55)
+		frame.threatNumericIndicator.text = frame.threatNumericIndicator:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
+		frame.threatNumericIndicator.text:SetPoint('CENTER', 0, -1)
+		frame.threatNumericIndicator.text:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+	end
 
 	frame.init = function()
 		BC:aura(unit) -- 更新Buff/Debuff
