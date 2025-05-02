@@ -40,7 +40,7 @@ BC.default = {
 		anchor = 'PlayerFrame',
 		relative = 'TOPLEFT',
 		offsetX = 84,
-		offsetY = BC.class == 'SHAMAN' and -80 or -61,
+		offsetY = 61,
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
@@ -427,7 +427,7 @@ end)
 
 -- OmniCC 冷却倒计时立即更新
 hooksecurefunc('CooldownFrame_Set', function(self)
-	if self:IsVisible() and self._occ_show ~= nil then
+	if self:IsShown() and self._occ_show ~= nil then
 		self:Hide()
 		self:Show()
 	end
@@ -1175,7 +1175,7 @@ function BC:incomingHeals(unit)
 	end
 
 	for _, v in pairs(self.unitList) do
-		if UnitIsUnit(unit, v) and self[v] and self[v]:IsVisible() and self[v].incomingHealsBar then
+		if UnitIsUnit(unit, v) and self[v] and self[v]:IsShown() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
 		end
 	end
@@ -1399,7 +1399,7 @@ function BC:init(unit)
 				if BC:getDB(key, 'combatFlash') and UnitAffectingCombat(unit) then
 					self:SetVertexColor(1, 0, 0)
 					self:SetAlpha(.6)
-					if not self:IsVisible() then self:Show() end
+					if not self:IsShown() then self:Show() end
 				else
 					self:SetAlpha(0)
 				end

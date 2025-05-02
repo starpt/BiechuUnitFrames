@@ -178,30 +178,8 @@ function frame:druid()
 	end
 end
 
--- 图腾
--- hooksecurefunc(TotemFrame, 'Show', function(self)
--- 	TotemFrame:SetScale(.8)
--- 	TotemFrame:SetPoint('TOPLEFT', PlayerFrame, 'BOTTOMLEFT', 142, 46)
--- 	for i = 1, 4 do
--- 		local totem = _G['TotemFrameTotem' .. i]
--- 		if totem then
--- 			if not totem.borderTexture then
--- 				totem.border = CreateFrame('Frame', nil, totem)
--- 				totem.border:SetSize(57, 57)
--- 				totem.border:SetPoint('CENTER', 11, -12)
--- 				totem.border:SetFrameLevel(6)
--- 				totem.borderTexture = totem.border:CreateTexture()
--- 				totem.borderTexture:SetAllPoints(totem.border)
--- 			end
--- 			totem.borderTexture:SetTexture(BC:file('Minimap\\MiniMap-TrackingBorder'))
--- 			if OmniCC and OmniCC.Timer then totem:SetScript('OnUpdate', nil) end
--- 		end
--- 	end
--- end)
-
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	-- TotemFrame:Show() -- 图腾
 	BC:miniIcon('player') -- 小图标
 
 	-- 装备小图标
