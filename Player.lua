@@ -16,21 +16,11 @@ hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
 	PlayerLevelText:SetPoint('CENTER', BC.player, -62, -16)
 end)
 
--- 定位
--- hooksecurefunc(BC.player, 'SetPoint', function(self)
--- 	if self.moving then -- 载具自动还原
--- 		frame.lock = nil
--- 	else
--- 		frame.lock = GetTime() + .1 -- 定位刷新频率
--- 	end
--- end)
-
 -- 载具
 hooksecurefunc('PlayerFrame_UpdateArt', function(...)
 	BC:init('player')
 	BC:init('pet')
 end)
-
 
 -- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)
@@ -81,9 +71,7 @@ function frame:equip()
 			equip.icon:SetPoint('CENTER')
 			equip.icon:SetTexCoord(.05, .95, .05, .95)
 		end
-	end
-	for i = 1, 6 do
-		_G['EquipSetFrame'.. i]:Hide()
+		equip:Hide()
 	end
 	if not BC:getDB('player', 'equipmentIcon') then return end
 

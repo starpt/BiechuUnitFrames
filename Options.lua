@@ -287,7 +287,7 @@ function option:init()
 			hideFrame:Click()
 		end
 
-		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像上显示战斗信息
+		if self[key].portraitCombat then self[key].portraitCombat:SetChecked(BC:getDB(key, 'portraitCombat')) end -- 头像显示战斗信息
 		if self[key].combatFlash then self[key].combatFlash:SetChecked(BC:getDB(key, 'combatFlash')) end -- 战斗状态边框红光
 		if self[key].threatLeft then self[key].threatLeft:SetChecked(BC:getDB(key, 'threatLeft')) end -- 居左显示威胁值
 		if self[key].portraitClass then self[key].portraitClass:SetChecked(BC:getDB(key, 'portrait') == 1) end -- 头像显示职业图标(玩家)
@@ -439,7 +439,7 @@ option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
 
 
 --[[ 玩家设置 开始 ]]
-option:check('player', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+option:check('player', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 option:check('player', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 
 -- 显示天赋小图标(点击切换天赋)
@@ -536,7 +536,7 @@ option:downMenu('player', 'portrait', L.portraitList, 'border') -- 头像
 
 
 --[[ 宠物设置 开始 ]]
-option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 
 -- 隐藏名字
 option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self, button)
@@ -622,7 +622,7 @@ option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8),
 
 
 --[[ 目标设置 开始 ]]
-option:check('target', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+option:check('target', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 option:check('target', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('target', 'threatLeft', 'combatFlash') -- 居左显示威胁值
 
@@ -849,7 +849,7 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 
 
 --[[ 焦点设置 开始 ]]
-option:check('focus', 'portraitCombat', nil, 13, vertical - 8) -- 头像上显示战斗信息
+option:check('focus', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 option:check('focus', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('focus', 'threatLeft', 'combatFlash') -- 居左显示威胁值
 
@@ -1115,7 +1115,7 @@ option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self
 		SetCVar('hidePartyInRaid', enabled and '0' or '1', button)
 	end
 end)
-option:check('party', 'portraitCombat', 'raidShowParty') -- 头像上显示战斗信息
+option:check('party', 'portraitCombat', 'raidShowParty') -- 头像显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat') -- 战斗状态边框红光
 option:check('party', 'healthBarClass', 'combatFlash') -- 体力条职业色(玩家)
 

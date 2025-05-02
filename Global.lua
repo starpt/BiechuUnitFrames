@@ -310,7 +310,6 @@ function BC:setDB(key, name, value)
 		end
 	end
 	BiechuUnitFramesDB = db
-	-- print(key, name, value)
 	if self[key] then
 		self:init(key)
 	elseif key == 'party' then
@@ -366,7 +365,7 @@ function BC:drag(frame, parent, drag, callBack)
 	frame:SetScript('OnMouseUp', function(self)
 		if self.moving then
 			mover:StopMovingOrSizing()
-			mover:SetUserPlaced(false) -- 不保存在 layout-local.txt
+			mover:SetUserPlaced(self.unit == 'player' or self.unit == 'vehicle') -- 不保存在 layout-local.txt
 			if type(callBack) == 'function' then callBack(mover) end
 		end
 		self.moving = nil
@@ -406,9 +405,7 @@ hooksecurefunc('UIParentLoadAddOn', function(addon)
 		BC:drag(AchievementFrameCategoriesContainer, AchievementFrame)
 	elseif addon == 'Blizzard_Collections' then -- 藏品
 		BC:drag(WardrobeFrame) -- 幻化对话框
-		BC:drag(CollectionsJournal)
-	else
-		-- print(addon)
+		BC:drag(CollectionsJournal))
 	end
 end)
 
@@ -471,7 +468,7 @@ end)
 
 -- OmniCC 冷却倒计时立即更新
 hooksecurefunc('CooldownFrame_Set', function(self)
-	if self:IsVisible() and self._occ_show ~= nil then
+	if self:IsShown() and self._occ_show ~= nil then
 		self:Hide()
 		self:Show()
 	end
@@ -967,9 +964,9 @@ end
 function BC:bar(bar)
 	local unit = bar and self:formatUnit(bar.unit)
 	if not unit or not UnitExists(unit) then return end
-	local key = unit == 'vehicle' and 'player' or (UnitHasVehiclePlayerFrameUI('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
 	local font = self:getDB('global', 'valueFont')
 	local flag = self:getDB('global', 'fontFlags')
+	local key = unit == 'vehicle' and 'player' or (UnitHasVehiclePlayerFrameUI('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
 	local size = self:getDB(key, 'valueFontSize')
 	if not size then return end
 
@@ -1238,7 +1235,7 @@ function BC:incomingHeals(unit)
 	end
 
 	for _, v in pairs(self.unitList) do
-		if UnitIsUnit(unit, v) and self[v] and self[v]:IsVisible() and self[v].incomingHealsBar then
+		if UnitIsUnit(unit, v) and self[v] and self[v]:IsShown() and self[v].incomingHealsBar then
 			self[v].incomingHealsBar:SetValue(heals == 0 and 0 or (UnitHealth(unit) + heals) / UnitHealthMax(unit))
 		end
 	end
@@ -1273,6 +1270,7 @@ function BC:init(unit)
 			else
 				frame:SetPoint(relative, offsetX, offsetY)
 			end
+			if unit == 'player' then frame:SetUserPlaced(true) end
 		end
 	end
 
@@ -1293,7 +1291,7 @@ function BC:init(unit)
 		BC:setDB(key, 'offsetY', floor(offsetY + .5))
 	end)
 
-	-- 头像上显示战斗信息
+	-- 头像显示战斗信息
 	local registered = frame:IsEventRegistered('UNIT_COMBAT')
 	if self:getDB(key, 'portraitCombat') then
 		if unit == 'player' or unit == 'pet' then
@@ -1433,7 +1431,7 @@ function BC:init(unit)
 				if BC:getDB(key, 'combatFlash') and UnitAffectingCombat(unit) then
 					self:SetVertexColor(1, 0, 0)
 					self:SetAlpha(.6)
-					if not self:IsVisible() then self:Show() end
+					if not self:IsShown() then self:Show() end
 				else
 					self:SetAlpha(0)
 				end
