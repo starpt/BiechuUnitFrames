@@ -1105,7 +1105,7 @@ function BC:update(unit)
 	if key == 'party' or key == 'partytarget' then
 		if self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			frame:SetAlpha(0)
-			self[unit .. 'target']:SetAlpha(0)
+			if self[unit.. 'target'] then self[unit.. 'target']:SetAlpha(0) end
 			return
 		elseif key == 'partytarget' then
 			if not self:getDB(key, 'hideFrame') and UnitExists(unit) then
