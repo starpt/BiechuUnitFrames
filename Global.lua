@@ -405,7 +405,7 @@ hooksecurefunc('UIParentLoadAddOn', function(addon)
 		BC:drag(AchievementFrameCategoriesContainer, AchievementFrame)
 	elseif addon == 'Blizzard_Collections' then -- 藏品
 		BC:drag(WardrobeFrame) -- 幻化对话框
-		BC:drag(CollectionsJournal))
+		BC:drag(CollectionsJournal)
 	end
 end)
 
@@ -1153,32 +1153,41 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 显示/隐藏 框体
-	if key == 'party' then
-		local partytarget = BC[unit .. 'target']
+	if key == 'party' or key == 'partytarget' then
 		if self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			frame:SetAlpha(0)
-			partytarget:SetAlpha(0)
+			self[unit .. 'target']:SetAlpha(0)
 			return
-		end
-		if UnitExists(unit) then
-			frame:SetAlpha(1)
-			if UnitExists(unit .. 'target') and not self:getDB('partytarget', 'hideFrame') then
-				partytarget:SetAlpha(1)
+		elseif key == 'partytarget' then
+			if not self:getDB(key, 'hideFrame') and UnitExists(unit) then
+				frame:SetAlpha(1)
 			else
-				partytarget:SetAlpha(0)
+				frame:SetAlpha(0)
+				return
 			end
+		elseif UnitExists(unit) then
+			if not frame:IsShown() then
+				if InCombatLockdown() then
+					self.updateCombat = self.updateCombat or {}
+					self.updateCombat[unit] = true
+				else
+					frame:Show()
+				end
+			end
+			frame:SetAlpha(1)
+			self:update(unit .. 'target')
+		else
+			frame:SetAlpha(0)
 		end
-	end
-
-	if self:getDB(key, 'hideFrame') or UnitHasVehiclePlayerFrameUI('player') and unit == 'pettarget' then
+	elseif self:getDB(key, 'hideFrame') or UnitHasVehiclePlayerFrameUI('player') and unit == 'pettarget' then
 		frame:SetAlpha(0)
 		return
-	end
-	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' then
+	elseif key == 'targettarget' or key == 'pettarget' or key == 'partypet' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
 		else
 			frame:SetAlpha(0)
+			return
 		end
 	end
 
@@ -1521,6 +1530,7 @@ end
 
 for _, event in pairs({
 	'PLAYER_ENTERING_WORLD', -- 进入世界
+	'PLAYER_REGEN_ENABLED', -- 结束战斗
 	'PLAYER_FOCUS_CHANGED', -- 焦点目标变化
 	'PLAYER_TARGET_CHANGED', -- 我的目标变化
 	'UNIT_TARGET', -- 目标切换
@@ -1537,6 +1547,15 @@ BC:SetScript('OnEvent', function(self, event, unit)
 	if event == 'PLAYER_ENTERING_WORLD' then
 		self:drag(LFGParentFrame) -- 寻求组队
 		self:init()
+	elseif event == 'PLAYER_REGEN_ENABLED' then
+		if self.updateCombat then
+			for u, v in pairs(self.updateCombat) do
+				if v then
+					self:update(u)
+				end
+			end
+			self.updateCombat = nil
+		end
 	elseif event == 'PLAYER_FOCUS_CHANGED' then
 		self:incomingHeals('focus')
 	elseif event == 'PLAYER_TARGET_CHANGED' then
