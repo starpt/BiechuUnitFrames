@@ -1103,8 +1103,7 @@ function BC:update(unit)
 
 	-- 显示/隐藏 框体
 	if key == 'party' or key == 'partytarget' then
-		local partyHide = self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player')
-		if partyHide then
+		if self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			frame:SetAlpha(0)
 			self[unit .. 'target']:SetAlpha(0)
 			return
@@ -1116,11 +1115,13 @@ function BC:update(unit)
 				return
 			end
 		elseif UnitExists(unit) then
-			if InCombatLockdown() then
-				self.updateCombat = self.updateCombat or {}
-				self.updateCombat[unit] = true
-			else
-				frame:Show()
+			if not frame:IsShown() then
+				if InCombatLockdown() then
+					self.updateCombat = self.updateCombat or {}
+					self.updateCombat[unit] = true
+				else
+					frame:Show()
+				end
 			end
 			frame:SetAlpha(1)
 			self:update(unit .. 'target')

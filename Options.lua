@@ -777,7 +777,6 @@ end)
 option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('targettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	print('hideFrame', enabled, button)
 	if button then
 		BC:setDB('targettarget', 'hideFrame', not enabled)
 		SetCVar('showTargetOfTarget', enabled, button)
