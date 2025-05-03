@@ -46,24 +46,12 @@ hooksecurefunc('SetCVar', function(name, value, button)
 	if name == 'alwaysCompareItems' then -- 启用装备对比
 		option.alwaysCompareItems:SetChecked(value == '1')
 	elseif name == 'threatShowNumeric' then -- 显示威胁百分比
-		option.target.showThreat:SetChecked(value == '1')
+		option.target.showThreat:SetChecked(value)
 	elseif name == 'showTargetOfTarget' then -- 目标的目标
 		if button ~= 'LeftButton' then
-			BC:setDB('targettarget', 'hideFrame', value == '0' or nil)
-			option.targettarget.hideFrame:SetChecked(value == '0')
+			BC:setDB('targettarget', 'hideFrame', value == false or value == '0')
+			option.targettarget.hideFrame:SetChecked(value == false or value == '0')
 			option.targettarget.hideFrame:Click()
-		end
-	elseif name == 'hidePartyInRaid' then -- 团队显示小队框体
-		if button ~= 'LeftButton' then
-			BC:setDB('party', 'raidShowParty', value == '0' or false)
-			option.party.raidShowParty:SetChecked(value == '0')
-			option.party.raidShowParty:Click()
-		end
-	elseif name == 'showPartyPets' then -- 队友的宠物
-		if button ~= 'LeftButton' then
-			BC:setDB('partypet', 'hideFrame', value == '0' or nil)
-			option.partypet.hideFrame:SetChecked(value == '0')
-			option.partypet.hideFrame:Click()
 		end
 	end
 end)
@@ -409,7 +397,7 @@ option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
 	if option:combatAlert() then return end
 	BC:comfing(L.confirmResetDefault, function()
 		SetCVar('alwaysCompareItems', '1')
-		SetCVar('threatShowNumeric', '1')
+		SetCVar('threatShowNumeric', true)
 		SetCVar('showTargetOfTarget', '1')
 		BC:setDB('reset')
 		option:init()
@@ -621,7 +609,7 @@ option:check('target', 'combatFlash', 'portraitCombat') -- 战斗状态边框红
 
 -- 显示威胁百分比
 option:check('target', 'showThreat', 'combatFlash', nil, nil, nil, function(self)
-	SetCVar('threatShowNumeric', self:GetChecked() and '1' or '0')
+	SetCVar('threatShowNumeric', self:GetChecked())
 end)
 
 -- 头像显示职业图标(玩家)
@@ -789,9 +777,10 @@ end)
 option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('targettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
+	print('hideFrame', enabled, button)
 	if button then
-		BC:setDB('targettarget', 'hideFrame', not enabled or nil)
-		SetCVar('showTargetOfTarget', enabled and '1' or '0', button)
+		BC:setDB('targettarget', 'hideFrame', not enabled)
+		SetCVar('showTargetOfTarget', enabled, button)
 	end
 	option.targettarget.portraitClass:SetEnabled(enabled)
 	option.targettarget.healthBarClass:SetEnabled(enabled)
@@ -898,10 +887,9 @@ end)
 
 -- 团队显示小队框体
 option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self, button)
-	local enabled = self:GetChecked() and true or false
+	local enabled = self:GetChecked()
 	if button then
 		BC:setDB('party', 'raidShowParty', enabled)
-		SetCVar('hidePartyInRaid', enabled and '0' or '1', button)
 	end
 end)
 option:check('party', 'portraitCombat', 'raidShowParty') -- 头像显示战斗信息
@@ -1004,7 +992,6 @@ option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self,
 	local enabled = not self:GetChecked()
 	if button then
 		BC:setDB('partypet', 'hideFrame', not enabled or nil)
-		SetCVar('showPartyPets', enabled and '1' or '0', button)
 	end
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))

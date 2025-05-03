@@ -1102,32 +1102,40 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 显示/隐藏 框体
-	if key == 'party' then
-		local partytarget = BC[unit .. 'target']
-		if self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+	if key == 'party' or key == 'partytarget' then
+		local partyHide = self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player')
+		if partyHide then
 			frame:SetAlpha(0)
-			partytarget:SetAlpha(0)
+			self[unit .. 'target']:SetAlpha(0)
 			return
-		end
-		if UnitExists(unit) then
-			frame:SetAlpha(1)
-			if UnitExists(unit .. 'target') and not self:getDB('partytarget', 'hideFrame') then
-				partytarget:SetAlpha(1)
+		elseif key == 'partytarget' then
+			if not self:getDB(key, 'hideFrame') and UnitExists(unit) then
+				frame:SetAlpha(1)
 			else
-				partytarget:SetAlpha(0)
+				frame:SetAlpha(0)
+				return
 			end
+		elseif UnitExists(unit) then
+			if InCombatLockdown() then
+				self.updateCombat = self.updateCombat or {}
+				self.updateCombat[unit] = true
+			else
+				frame:Show()
+			end
+			frame:SetAlpha(1)
+			self:update(unit .. 'target')
+		else
+			frame:SetAlpha(0)
 		end
-	end
-
-	if self:getDB(key, 'hideFrame') or UnitHasVehiclePlayerFrameUI('player') and unit == 'pettarget' then
+	elseif self:getDB(key, 'hideFrame') then
 		frame:SetAlpha(0)
 		return
-	end
-	if key == 'pettarget' or key == 'partypet' or key == 'partytarget' then
+	elseif key == 'targettarget' or key == 'pettarget' or key == 'partypet' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
 		else
 			frame:SetAlpha(0)
+			return
 		end
 	end
 
@@ -1514,6 +1522,14 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		self:setDB('cache', 'threat', nil) -- 清空仇恨列表
+		if self.updateCombat then
+			for u, v in pairs(self.updateCombat) do
+				if v then
+					self:update(u)
+				end
+			end
+			self.updateCombat = nil
+		end
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		self:incomingHeals('target')
 		self:threat('target')
