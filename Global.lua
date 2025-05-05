@@ -785,9 +785,11 @@ function BC:miniIcon(unit)
 				SetActiveTalentGroup(passive) -- 切换天赋
 				frame.miniIcon.callBack = function() -- 切换天赋回调
 					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and talent[passive].name then
-						C_EquipmentSet.UseEquipmentSet(C_EquipmentSet.GetEquipmentSetID(talent[passive].name))
-						frame.miniIcon.callBack = nil
+						local setID = C_EquipmentSet.GetEquipmentSetID(talent[passive].name)
+						if setID then C_EquipmentSet.UseEquipmentSet(setID) end
 					end
+					frame.miniIcon.callBack = nil
+				end
 				end
 			end
 		end
