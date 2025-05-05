@@ -790,7 +790,6 @@ function BC:miniIcon(unit)
 					end
 					frame.miniIcon.callBack = nil
 				end
-				end
 			end
 		end
 	else
