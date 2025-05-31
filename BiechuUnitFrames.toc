@@ -3,7 +3,7 @@
 ## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.10_beta7
+## Version: 1.15.10
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
 ## X-Localizations: enUS, zhCN
@@ -12,7 +12,7 @@
 ## X-LoadOn-Slash: /bc
 
 # 敌对目标Buff图标
-LibClassicDurations\LibClassicDurations.xml
+Libs\LibClassicDurations.xml
 
 Locale\enUS.lua
 Locale\zhCN.lua
