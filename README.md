@@ -277,3 +277,7 @@ PVP
 10. 修复队友和队友目标显示问题
 11. 修复切换天赋后,装备天赋名套装如果不存在,错误问题
 12. 更新库文件LibClassicDurations
+
+# 2025-06-01 v1.15.10_beta2 发布
+1. 感谢curseforge.com 网友ZamestoTV支持翻译了俄语,并提供了俄语版本
+2. 增加 其他人施放Buff/Debuff百分比功能

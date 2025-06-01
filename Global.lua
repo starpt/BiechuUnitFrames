@@ -75,9 +75,10 @@ BC.default = {
 		selfCooldown = true,
 		dispelCooldown = true,
 		dispelStealable = true,
-		auraSize = 18,
+		auraSize = 20,
+		auraPercent = .8,
 		auraRows = 5,
-		auraX = -14,
+		auraX = 6,
 		auraY = 52,
 	},
 	targettarget = {
@@ -110,7 +111,8 @@ BC.default = {
 		dispelStealable = true,
 		auraRows = 16,
 		auraSize = 16,
-		auraX = -15,
+		auraPercent = .8,
+		auraX = 1,
 		auraY = 18,
 	},
 	partypet = {
@@ -276,7 +278,6 @@ function BC:setDB(key, name, value)
 		end
 	end
 	BiechuUnitFramesDB = db
-	-- print(key, name, value)
 	if self[key] then
 		self:init(key)
 	elseif key == 'party' then
@@ -444,6 +445,7 @@ function BC:aura(unit)
 	local maxDebuffs = MAX_TARGET_DEBUFFS -- 最多Debuff
 	local rows = self:getDB(key, 'auraRows') or maxDebuffs -- 一行Buff/Debuff数量
 	local size = self:getDB(key, 'auraSize') or 20 -- Buff/Debuff图标大小
+	local percent = self:getDB(key, 'auraPercent') or .8 -- 显示百分比
 	local auraX = self:getDB(key, 'auraX') -- 起始坐标X
 	local auraY = self:getDB(key, 'auraY') -- 起始坐标Y
 	local spac = 2 -- 间隔
@@ -454,7 +456,7 @@ function BC:aura(unit)
 	local dispelCooldown = self:getDB(key, 'dispelCooldown')
 	local dispelStealable = self:getDB(key, 'dispelStealable')
 	local total = 0
-	local isEnemyBuff = UnitIsEnemy('player', unit) and self:getDB(key, 'showEnemyBuff')
+	local x = auraX
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
 		local buff = _G[name] or (key == 'party' or isEnemyBuff) and CreateFrame('Button', name, frame)
@@ -476,7 +478,6 @@ function BC:aura(unit)
 
 		buff.count = _G[name .. 'Count'] or buff:CreateFontString(name .. 'Count', 'OVERLAY')
 		buff.count:SetPoint('BOTTOMRIGHT', 2, -2)
-		buff.count:SetFont(valueFont, (size or 21) * .6, fontFlags)
 
 		buff.stealable = _G[name .. 'Stealable']
 		if not buff.stealable then
@@ -496,7 +497,7 @@ function BC:aura(unit)
 		if dark then
 			buff.border:SetVertexColor(.1, .1, .1)
 		else
-			buff.border:SetVertexColor(.4, .4, .4)
+			buff.border:SetVertexColor(.3, .3, .3)
 		end
 
 		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
@@ -526,15 +527,15 @@ function BC:aura(unit)
 				buff.cooldown._occ_show = not selfCooldown or selfCast
 			end
 
-			local iconSize = selfCast and size or size * .875
+			local iconSize = selfCast and size or size * percent
 			buff:SetSize(iconSize, iconSize)
+			buff.count:SetFont(valueFont, iconSize * .6, fontFlags)
 
 			if auraX and auraY then
-				local x = math.fmod(i, rows) -- 横排数
-				if x == 0 then x = rows end
 				local y = ceil(i / rows) -- 列数
 				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
+				x = x + iconSize + spac
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -558,6 +559,7 @@ function BC:aura(unit)
 	-- Debuff
 	local row = ceil(total / rows) -- 行数
 	total = 0
+	x = auraX
 	for i = 1, maxDebuffs do
 		local name = frame:GetName() .. 'Debuff' .. i
 		local debuff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
@@ -579,7 +581,6 @@ function BC:aura(unit)
 
 		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY')
 		debuff.count:SetPoint('BOTTOMRIGHT', 2, -2)
-		debuff.count:SetFont(valueFont, (size or 21) * .6, fontFlags)
 
 		debuff.stealable = _G[name .. 'Stealable']
 		if not debuff.stealable then
@@ -599,7 +600,7 @@ function BC:aura(unit)
 		if dark then
 			debuff.border:SetVertexColor(.1, .1, .1)
 		else
-			debuff.border:SetVertexColor(.4, .4, .4)
+			debuff.border:SetVertexColor(.3, .3, .3)
 		end
 
 		debuff:SetScript('OnEnter', function(self)
@@ -622,15 +623,15 @@ function BC:aura(unit)
 				debuff.cooldown._occ_show = not dispelCooldown or canDispel
 			end
 
-			local iconSize = selfCast and size or size * .875
+			local iconSize = selfCast and size or size * percent
 			debuff:SetSize(iconSize, iconSize)
+			debuff.count:SetFont(valueFont, iconSize * .6, fontFlags)
 
 			if auraX and auraY then
-				local x = math.fmod(i, rows) -- 横排数
-				if x == 0 then x = rows end
 				local y = ceil(i / rows) + row -- 列数
 				debuff:ClearAllPoints()
-				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', auraX + x * (size + spac), auraY - (size + spac) * y)
+				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
+				x = x + iconSize + spac
 			end
 
 			debuff.icon:SetSize(iconSize - 2, iconSize - 2)
