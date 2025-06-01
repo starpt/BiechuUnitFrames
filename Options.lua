@@ -322,7 +322,7 @@ function option:init()
 
 		if self[key].dispelStealable then self[key].dispelStealable:SetChecked(BC:getDB(key, 'dispelStealable')) end -- 高亮显示可以驱散的Buff/Debuff
 
-		if self[key].auraSize and BC:getDB(key, 'auraSize') then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- 自己施放的Buff/Debuff大小
+		if self[key].auraSize and BC:getDB(key, 'auraSize') then self[key].auraSize:SetValue(BC:getDB(key, 'auraSize')) end -- Buff/Debuff大小
 		if self[key].auraPercent and BC:getDB(key, 'auraPercent') then self[key].auraPercent:SetValue(BC:getDB(key, 'auraPercent')) end -- 其他人施放Buff/Debuff百分比
 		if self[key].auraRows and BC:getDB(key, 'auraRows') then self[key].auraRows:SetValue(BC:getDB(key, 'auraRows')) end -- 一行Buff/Debuff数量
 		if self[key].auraX and BC:getDB(key, 'auraX') then self[key].auraX:SetValue(BC:getDB(key, 'auraX')) end -- Buff/Debuf X轴位置
@@ -743,7 +743,7 @@ option:check('target', 'selfCooldown', 'scale', -4, vertical - 8) -- 只显示�
 option:check('target', 'dispelCooldown', 'selfCooldown') -- 只显示可以驱散的Buff/Debuff倒计时(OmniCC)
 option:check('target', 'dispelStealable', 'dispelCooldown') -- 高亮显示可以驱散的Buff/Debuff
 
--- 自己施放的Buff/Debuff大小
+-- Buff/Debuff大小
 option:slider('target', 'auraSize', 'dispelStealable', 4, vertical - 20, 250, nil, 12, 64, 12, 64, 1, function(self, value)
 	value = floor(value)
 	option.target.auraSizeText:SetText(L.auraSize .. ': ' .. value)
@@ -1181,7 +1181,7 @@ option:check('party', 'selfCooldown', 'scale', -4, vertical - 8, 'buffCooldown')
 option:check('party', 'dispelCooldown', 'selfCooldown', nil, nil, 'debuffCooldown') -- 只显示可以驱散的Debuff倒计时(OmniCC)
 option:check('party', 'dispelStealable', 'dispelCooldown', nil, nil, 'debuffStealable') -- 高亮显示可以驱散的Debuff
 
--- 自己施放的Buff/Debuff大小
+-- Buff/Debuff大小
 option:slider('party', 'auraSize', 'dispelStealable', 4, vertical - 20, 250, nil, 12, 64, 12, 64, 1, function(self, value)
 	value = floor(value)
 	option.party.auraSizeText:SetText(L.auraSize .. ': ' .. value)
