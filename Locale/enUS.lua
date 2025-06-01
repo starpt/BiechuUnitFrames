@@ -19,11 +19,10 @@ L.public = 'Use common profile'
 L.dark = 'Dark themes'
 L.newClassIcon = 'New style class icon'
 L.healthBarColor = 'Life bar color changes according to life value'
-L.nameTextClassColor = 'Name color class color (player)'
+L.nameClassColor = 'Name color class color (player)'
 L.dragSystemFarmes = 'Freely drag the system frame'
 L.incomingHeals = 'Show alert heals'
 L.alwaysCompareItems = 'Enable equipment comparison'
-L.disableAddons = 'Disable conflict addons'
 L.autoTab = 'PVP automatic TAB selects players'
 L.carry = 'Numeric carry'
 L.carryW = 'Wan/Yi'
@@ -99,25 +98,10 @@ L.fontFlagsList = {
 L.portraitCombat = 'Display combat information on the avatar'
 L.valueFont = 'Value Font'
 L.combatFlash = 'Combat Red Flash'
-<<<<<<< HEAD
-<<<<<<< HEAD
 L.showThreat = 'Show numeric threat'
 L.statusBarClass = 'Status bar background professional color'
 L.statusBarAlpha = 'Status bar alpha'
 L.healthBarClass = 'Health bar background class color'
-L.powerSpark = 'Mana/Energy spark'
-=======
-L.threatLeft = 'Display threat value on the left'
-L.statusBarClass = 'Status bar background professional color'
-L.statusBarAlpha = 'Status bar alpha'
-L.healthBarClass = 'Health bar background class color'
->>>>>>> ad69242 (3.43.1)
-=======
-L.threatLeft = 'Display threat value on the left'
-L.statusBarClass = 'Status bar background professional color'
-L.statusBarAlpha = 'Status bar alpha'
-L.healthBarClass = 'Health bar background class color'
->>>>>>> ad69242335bbe46a7f6b5c23d9502869f5e57e71
 L.border = 'Border'
 L.borderList = {
 	[1] = 'Normal',
@@ -131,7 +115,9 @@ L.portraitList = {
 	[1] = 'Class Icon',
 	[2] = 'Cat',
 	[3] = 'Dog',
-	[4] = 'CoolFace',
+	[4] = 'Panda',
+	[5] = 'Moonkin',
+	[6] = 'CoolFace',
 }
 L.nameFontSize = 'Name Font Size'
 L.valueFontSize = 'Value Font Size'
@@ -169,6 +155,7 @@ L.buffCooldown = 'Only display the CD of Buffs I cast'
 L.debuffCooldown = 'Only display Debuff CD that can be dispelled'
 L.debuffStealable = 'Highlight Debuffs that can be dispelled'
 L.auraSize = 'Aura icon size'
+L.auraPercent = 'Percentage of others casting Aura'
 L.auraRows = 'Number of Aura per Line'
 L.auraX = 'Buff/Debuf X-axis position'
 L.auraY = 'Buff/Debuf Y-axis position'
@@ -177,8 +164,8 @@ L.showLevel = 'Show level'
 L.outRange = 'Translucent beyond range'
 L.showCastBar = 'Show cast bar'
 L.talentIcon = 'Show mini icon (click to switch talents)'
-L.autoTalentEquip = 'Automatic talent name equipment set'
-L.equipmentIcon = 'Show equipment icon'
+L.autoTalentEquip = 'Automatic talent name equipment set(ItemRack)'
+L.equipmentIcon = 'Show equipment icon(ItemRack)'
 L.hidePartyNumber = 'In raid hide party number'
 L.miniIcon = 'Show mini icons (creature/class)'
 L.creatureList = {
@@ -220,3 +207,4 @@ L.nude = 'One click to undress'
 L.click = 'Mouse click'
 L.clickEquipment = 'Click equipment'
 L.saveEquipment = 'Save equipment'
+L.confirmEquipmentSet = 'Confirm overwrite the set named %s?'
