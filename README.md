@@ -281,3 +281,6 @@ PVP
 # 2025-06-01 v1.15.10_beta2 发布
 1. 感谢curseforge.com 网友ZamestoTV支持翻译了俄语,并提供了俄语版本
 2. 增加 其他人施放Buff/Debuff百分比功能
+
+### 2025-06-02 v1.15.10_beta3 发布
+1. 修复Buff/Debuff X轴定位错乱问题
