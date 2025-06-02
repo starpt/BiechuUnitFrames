@@ -456,7 +456,7 @@ function BC:aura(unit)
 	local dispelCooldown = self:getDB(key, 'dispelCooldown')
 	local dispelStealable = self:getDB(key, 'dispelStealable')
 	local total = 0
-	local x
+	local x = auraX
 	for i = 1, maxBuffs do
 		local name = frame:GetName() .. 'Buff' .. i
 		local buff = _G[name] or (key == 'party' or isEnemyBuff) and CreateFrame('Button', name, frame)
@@ -533,14 +533,13 @@ function BC:aura(unit)
 
 			if auraX and auraY then
 				local y = ceil(i / rows) -- 列数
-				if math.fmod(i, rows) == 0 or type(x) != 'number' then
+				buff:ClearAllPoints()
+				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
+				if math.fmod(i, rows) == 0 then
 					x = auraX
 				else
 					x = x + iconSize + spac
 				end
-				buff:ClearAllPoints()
-				buff:SetPoint('TOPLEFT', buff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
-				x = x + iconSize + spac
 			end
 
 			buff.icon:SetSize(iconSize - 2, iconSize - 2)
@@ -564,7 +563,7 @@ function BC:aura(unit)
 	-- Debuff
 	local row = ceil(total / rows) -- 行数
 	total = 0
-	x = nil
+	x = auraX
 	for i = 1, maxDebuffs do
 		local name = frame:GetName() .. 'Debuff' .. i
 		local debuff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
@@ -634,14 +633,13 @@ function BC:aura(unit)
 
 			if auraX and auraY then
 				local y = ceil(i / rows) + row -- 列数
-				if math.fmod(i, rows) == 0 or type(x) != 'number' then
+				debuff:ClearAllPoints()
+				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
+				if math.fmod(i, rows) == 0 then
 					x = auraX
 				else
 					x = x + iconSize + spac
 				end
-				debuff:ClearAllPoints()
-				debuff:SetPoint('TOPLEFT', debuff:GetParent(), 'BOTTOMLEFT', x, auraY - (size + spac) * y)
-				x = x + iconSize + spac
 			end
 
 			debuff.icon:SetSize(iconSize - 2, iconSize - 2)
