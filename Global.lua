@@ -797,7 +797,7 @@ function BC:miniIcon(unit)
 		frame.miniIcon.click = function()
 			if IsShiftKeyDown() then -- 按住Shift 一键脱光
 				EQUIPMENTMANAGER_BAGSLOTS = {} -- 背包空间缓存
-				for _, i in pairs({16, 17, 5, 7, 1, 3, 9, 10, 6, 8}) do
+				for _, i in pairs({16, 17, 18, 5, 7, 1, 3, 9, 10, 6, 8}) do
 					local durability = GetInventoryItemDurability(i)
 					if durability and durability > 0 then -- 有耐久度
 						for	bag = BACKPACK_CONTAINER, NUM_BAG_FRAMES do
@@ -1051,31 +1051,34 @@ function BC:bar(bar)
 		bar.SideText:SetFont(font, size, flag)
 	end
 
-	bar:SetScript('OnEnter', function(self)
-		local key = BC:formatUnit(BC:vehicleUnit(self.unit))
-		if not key then return end
-		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
-		if type(valueStyle) == 'number' and valueStyle > 6 then
-			local value = self:GetValue()
-			local _, valueMax = self:GetMinMaxValues()
-			if valueStyle == 9 then
-				local percent = valueMax == 0 and 0 or value / valueMax
-				percent = floor(percent * 100 + .5) .. '%'
-				if self.MiddleText then self.MiddleText:SetText(percent) end
-			else
-				if self.MiddleText then self.MiddleText:SetText(BC:carry(value) .. '/' .. BC:carry(valueMax)) end
+	if not bar.hook then
+		bar.hook = true
+		bar:HookScript('OnEnter', function(self)
+			local key = BC:formatUnit(BC:vehicleUnit(self.unit))
+			if not key then return end
+			local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
+			if type(valueStyle) == 'number' and valueStyle > 6 then
+				local value = self:GetValue()
+				local _, valueMax = self:GetMinMaxValues()
+				if valueStyle == 9 then
+					local percent = valueMax == 0 and 0 or value / valueMax
+					percent = floor(percent * 100 + .5) .. '%'
+					if self.MiddleText then self.MiddleText:SetText(percent) end
+				else
+					if self.MiddleText then self.MiddleText:SetText(BC:carry(value) .. '/' .. BC:carry(valueMax)) end
+				end
+				if self.MiddleText then self.MiddleText:Show() end
 			end
-			if self.MiddleText then self.MiddleText:Show() end
-		end
-	end)
-	bar:SetScript('OnLeave', function(self)
-		local key = BC:formatUnit(BC:vehicleUnit(self.unit))
-		if not key then return end
-		local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
-		if type(valueStyle) == 'number' and valueStyle > 6 then
-			if self.MiddleText then self.MiddleText:Hide() end
-		end
-	end)
+		end)
+		bar:HookScript('OnLeave', function(self)
+			local key = BC:formatUnit(BC:vehicleUnit(self.unit))
+			if not key then return end
+			local valueStyle = BC:getDB(key:gsub('[%d-]', ''), 'valueStyle')
+			if type(valueStyle) == 'number' and valueStyle > 6 then
+				if self.MiddleText then self.MiddleText:Hide() end
+			end
+		end)
+	end
 
 	-- 死亡
 	local frame = self[unit]
