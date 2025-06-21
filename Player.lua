@@ -383,7 +383,6 @@ frame:SetScript('OnUpdate', function(self)
 	self.rate = now + .02 -- 刷新率
 
 	if BC.player.druidBar and BC.player.druidBar:IsShown() then BC:bar(BC.player.druidBar) end
-
 	if BC.pettarget:IsShown() and BC.pettarget:GetAlpha() > 0 then
 		BC:bar(BC.pettarget.healthbar)
 		BC:bar(BC.pettarget.manabar)

@@ -236,7 +236,7 @@ function option:init()
 	self.autoTab:SetChecked(BC:getDB('global', 'autoTab'))                  -- PVP自动TAB选择玩家
 	self.autoDalaran:SetChecked(BC:getDB('global', 'autoDalaran'))          -- 达拉然自动关闭姓名板
 
-	-- 切换天赋后装备套装
+	-- 切换天赋后装备天赋名套装
 	self.player.autoTalentEquip:SetChecked(BC:getDB('player', 'autoTalentEquip'))
 	self.player.autoTalentEquip:SetEnabled(BC:getDB('player', 'miniIcon'))
 
@@ -625,9 +625,8 @@ option:check('target', 'healthBarClass', 'miniIcon')       -- 体力条职业色
 option:check('target', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
 -- 状态栏透明度
-option:slider('target', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .1, function(self, value)
-	value = floor(value * 10 + 0.5)
-	value = value / 10
+option:slider('target', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .05, function(self, value)
+	value = floor(value * 20) / 20
 	if value ~= BC:getDB('target', 'statusBarAlpha') then BC:setDB('target', 'statusBarAlpha', value) end
 	option.target.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
 end)
@@ -860,9 +859,8 @@ option:check('focus', 'healthBarClass', 'miniIcon')       -- 体力条职业色(
 option:check('focus', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
 -- 状态栏透明度
-option:slider('focus', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .1, function(self, value)
-	value = floor(value * 10 + 0.5)
-	value = value / 10
+option:slider('focus', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .05, function(self, value)
+	value = floor(value * 20) / 20
 	if value ~= BC:getDB('focus', 'statusBarAlpha') then BC:setDB('focus', 'statusBarAlpha', value) end
 	option.focus.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
 end)

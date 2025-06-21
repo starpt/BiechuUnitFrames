@@ -68,7 +68,7 @@ BC.default = {
 		combatFlash = true,
 		threatLeft = true,
 		miniIcon = true,
-		statusBarAlpha = .5,
+		statusBarAlpha = .8,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 7,
@@ -100,7 +100,7 @@ BC.default = {
 		combatFlash = true,
 		threatLeft = true,
 		miniIcon = true,
-		statusBarAlpha = .5,
+		statusBarAlpha = .8,
 		nameFontSize = 13,
 		valueFontSize = 12,
 		valueStyle = 7,
@@ -935,9 +935,7 @@ function BC:dark(unit)
 			end
 		end
 		frame.statusBar:SetTexture(self:file(self.barList[1]))
-
-		-- 状态栏透明度
-		if self:getDB(key, 'statusBarAlpha') then frame.statusBar:SetAlpha(self:getDB(key, 'statusBarAlpha')) end
+		if self:getDB(key, 'statusBarAlpha') then frame.statusBar:SetAlpha(self:getDB(key, 'statusBarAlpha')) end -- 透明度
 	end
 
 	if frame.healthbar then frame.healthbar:SetStatusBarTexture(self:file(self.barList[1])) end -- 生命条
@@ -1460,54 +1458,54 @@ function BC:init(unit)
 	end
 
 	-- 超出范围半透明
-	if BC:getDB(key, 'outRange') and not frame.hook then
-		frame:SetScript('OnUpdate', function(self)
-			if not self:IsShown() or self:GetAlpha() == 0 then return end
-			local unit = self.unit
-			if type(unit) ~= 'string' or not UnitExists(unit) then return end
-			if UnitIsUnit('player', unit) or UnitInRange(unit) or (not InCombatLockdown() or UnitCanAttack('player', unit)) and CheckInteractDistance(unit, 4) then
-				self:SetAlpha(1)
-			else
-				for _, id in pairs({
-					5176, -- 愤怒
-					5185, -- 治疗之触
-					75, -- 自动射击
-					133, -- 火球术
-					635, -- 圣光术
-					2050, -- 次级治疗术
-					453, -- 安抚心灵
-					8092, -- 心灵震爆
-					589, -- 暗言术：痛
-					403, -- 闪电箭
-					331, -- 治疗波
-					686, -- 暗影箭
-					1490, -- 元素诅咒
-					603, -- 厄运诅咒
-					5138, -- 吸取法力
-					1120, -- 吸取灵魂
-					689, -- 吸取生命
-					6789, -- 死亡缠绕
-					980, -- 痛苦诅咒
-					27243, -- 腐蚀之种
-					172, -- 腐蚀术
-					702, -- 虚弱诅咒
-					1714, -- 语言诅咒
-					704 -- 鲁莽诅咒
-				}) do
-					local spell = GetSpellInfo(id)
-					if spell and IsSpellInRange(spell, unit) == 1 then
-						self:SetAlpha(1)
-						return
+	if not frame.hook then
+		frame:HookScript('OnUpdate', function(self)
+			if BC:getDB(key, 'outRange') then
+				if not self:IsShown() or self:GetAlpha() == 0 then return end
+				local unit = self.unit
+				if type(unit) ~= 'string' or not UnitExists(unit) then return end
+				if UnitIsUnit('player', unit) or UnitInRange(unit) or (not InCombatLockdown() or UnitCanAttack('player', unit)) and CheckInteractDistance(unit, 4) then
+					self:SetAlpha(1)
+				else
+					for _, id in pairs {
+						5176, -- 愤怒
+						5185, -- 治疗之触
+						75, -- 自动射击
+						133, -- 火球术
+						635, -- 圣光术
+						2050, -- 次级治疗术
+						453, -- 安抚心灵
+						8092, -- 心灵震爆
+						589, -- 暗言术：痛
+						403, -- 闪电箭
+						331, -- 治疗波
+						686, -- 暗影箭
+						1490, -- 元素诅咒
+						603, -- 厄运诅咒
+						5138, -- 吸取法力
+						1120, -- 吸取灵魂
+						689, -- 吸取生命
+						6789, -- 死亡缠绕
+						980, -- 痛苦诅咒
+						27243, -- 腐蚀之种
+						172, -- 腐蚀术
+						702, -- 虚弱诅咒
+						1714, -- 语言诅咒
+						704 -- 鲁莽诅咒
+					} do
+						local spell = GetSpellInfo(id)
+						if spell and IsSpellInRange(spell, unit) == 1 then
+							self:SetAlpha(1)
+							return
+						end
 					end
+					self:SetAlpha(.5)
 				end
-				self:SetAlpha(.5)
+			else
+				frame:SetAlpha(1)
 			end
 		end)
 		frame.hook = true
-	elseif frame.hook then
-		frame:SetAlpha(1)
-		frame.hook = nil
-		frame:SetScript('OnUpdate', nil)
 	end
 
 	-- PVP图标
