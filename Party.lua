@@ -230,7 +230,7 @@ frame:SetScript('OnEvent', function(self, event, unit)
 	elseif event == 'UNIT_LEVEL' then
 		if party and BC[party] then self:level(BC[party]) end
 	elseif event == 'GROUP_ROSTER_UPDATE' then
-		for id = 1, MAX_PARTY_MEMBERS() do
+		for id = 1, MAX_PARTY_MEMBERS do
 			BC:update('party' .. id)
 			BC:update('party' .. id .. 'target')
 			self:level(BC['party' .. id])

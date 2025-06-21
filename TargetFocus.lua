@@ -7,12 +7,11 @@ end)
 
 -- 切换目标立即更新战斗状态边框红光
 hooksecurefunc('TargetFrame_Update', function(self)
+	if self.unit ~= 'target' and self.unit ~= 'focus' then return end
 	if self.flash then self.flash:Hide() end
-	if self.unit == 'target' or self.unit == 'focus' then
-		BC:update(self.unit)
-		BC:update(self.unit .. 'target')
-		BC:miniIcon(self.unit)
-	end
+	BC:update(self.unit)
+	BC:update(self.unit .. 'target')
+	BC:miniIcon(self.unit)
 end)
 
 -- 等级
