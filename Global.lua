@@ -42,7 +42,7 @@ BC.default = {
 		anchor = 'PlayerFrame',
 		relative = 'TOPLEFT',
 		offsetX = 84,
-		offsetY = not UnitHasVehiclePlayerFrameUI('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
+		offsetY = not UnitInVehicle('player') and (BC.class == 'DEATHKNIGHT' or BC.class == 'SHAMAN') and -80 or -61,
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
@@ -248,7 +248,7 @@ end
 
 -- 获取玩家载具单位
 function BC:vehicleUnit(unit)
-	if UnitHasVehiclePlayerFrameUI('player') then
+	if UnitInVehicle('player') then
 		if unit == 'pet' or unit == 'vehicle' then
 			return 'player'
 		elseif unit == 'player' then
@@ -429,6 +429,7 @@ BC.debuffTable = {
 	['Magic'] = {
 		4987, -- 圣骑士 清洁术
 		527, -- 牧师 驱散魔法
+		32375, -- 牧师 群体驱散
 		19505 -- 术士 吞噬魔法
 	},
 	['Poison'] = {
@@ -443,7 +444,10 @@ BC.debuffTable = {
 BC.buffTable = {
 	['Magic'] = {
 		527,  -- 牧师 驱散魔法
+		32375, -- 牧师 群体驱散
 		19505, -- 术士 吞噬魔法
+		30449, -- 法师 法术偷取
+		47488, -- 战士 盾牌猛击
 		370   -- 萨满 净化术
 	},
 	[''] = { -- 激怒
@@ -505,8 +509,8 @@ function BC:aura(unit)
 		local name = frame:GetName() .. 'Buff' .. i
 		local buff = _G[name] or key == 'party' and CreateFrame('Button', name, frame)
 		if not buff then break end
-
 		buff:SetFrameLevel(5)
+
 		buff.icon = _G[name .. 'Icon']
 		if not buff.icon then
 			buff.icon = buff:CreateTexture(name .. 'Icon', 'BACKGROUND')
@@ -552,7 +556,7 @@ function BC:aura(unit)
 			GameTooltip:Hide()
 		end)
 
-		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
+		local _, icon, count, dispelType, duration, expirationTime, source = UnitBuff(unit, i)
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
 			local selfCast = source == 'player' or source == 'pet'
@@ -735,8 +739,7 @@ function BC:portrait(unit)
 		local coord = CLASS_ICON_TCOORDS[select(2, UnitClass(unit))]
 		if type(coord) == 'table' then
 			frame.portrait:SetTexCoord(unpack(coord))
-			frame.portrait:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or
-				self:file(self.portraitList[1]))
+			frame.portrait:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 		end
 	else
 		frame.portrait:SetTexCoord(0, 1, 0, 1)
@@ -860,8 +863,7 @@ function BC:miniIcon(unit)
 			end
 			local coord = CLASS_ICON_TCOORDS[base]
 			if coord then
-				frame.miniIcon.icon:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or
-					self:file(self.portraitList[1]))
+				frame.miniIcon.icon:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 				frame.miniIcon.icon:SetTexCoord(unpack(coord))
 			end
 		else
@@ -983,15 +985,14 @@ function BC:bar(bar)
 	if not unit or not UnitExists(unit) then return end
 	local font = self:getDB('global', 'valueFont')
 	local flag = self:getDB('global', 'fontFlags')
-	local key = unit == 'vehicle' and 'player' or
-			(UnitHasVehiclePlayerFrameUI('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
+	local key = unit == 'vehicle' and 'player' or (UnitInVehicle('player') and unit == 'player' and 'pet' or unit:gsub('%d', ''))
 	local size = self:getDB(key, 'valueFontSize')
 	if not size then return end
 
 	local value = bar:GetValue()
 	local _, valueMax = bar:GetMinMaxValues()
 	local color
-	if UnitHasVehiclePlayerFrameUI('player') and unit == 'pet' then
+	if UnitInVehicle('player') and unit == 'pet' then
 		if bar.powerType then
 			value = UnitPower('player')
 			valueMax = UnitPowerMax('player')
@@ -1031,7 +1032,7 @@ function BC:bar(bar)
 		end
 	end
 	if type(color) == 'table' then
-		if UnitHasVehiclePlayerFrameUI('player') and unit == 'player' then
+		if UnitInVehicle('player') and unit == 'player' then
 			bar:SetStatusBarColor(color.r, color.g, color.b)
 		else
 			bar:SetStatusBarColor(color.r, color.g, color.b)
@@ -1192,7 +1193,6 @@ function BC:update(unit)
 	elseif unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
-			if unit == 'w' then print(frame:IsShown()) end
 		else
 			frame:SetAlpha(0)
 			return
@@ -1211,7 +1211,7 @@ function BC:update(unit)
 			else
 				color = { r = 1, g = .82, b = 0 }
 			end
-			if UnitHasVehiclePlayerFrameUI('player') then
+			if UnitInVehicle('player') then
 				if unit == 'pet' or unit == 'vehicle' then
 					frame.name:SetText(UnitName('player'))
 					if self:getDB('global', 'nameClassColor') then color = RAID_CLASS_COLORS[select(2, UnitClass('player'))] end
@@ -1574,6 +1574,31 @@ BC:SetScript('OnEvent', function(self, event, unit)
 				SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
 			else
 				SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
+			end
+		end
+
+		-- 进入达拉然自动关闭姓名板
+		if self:getDB('global', 'autoDalaran') then
+			if GetZoneText() == L.dalaran then
+				if self:getDB('cache', 'nameplateShowFriends') == nil then
+					self:setDB('cache', 'nameplateShowFriends', GetCVar('nameplateShowFriends'), 1)
+				end
+				if self:getDB('cache', 'nameplateShowEnemies') == nil then
+					self:setDB('cache', 'nameplateShowEnemies', GetCVar('nameplateShowEnemies'), 1)
+				end
+
+				SetCVar('nameplateShowFriends', 0)
+				SetCVar('nameplateShowEnemies', 0)
+			else
+				if self:getDB('cache', 'nameplateShowFriends') then
+					SetCVar('nameplateShowFriends', self:getDB('cache', 'nameplateShowFriends'))
+					self:setDB('cache', 'nameplateShowFriends', nil, 1)
+				end
+
+				if self:getDB('cache', 'nameplateShowEnemies') then
+					SetCVar('nameplateShowEnemies', self:getDB('cache', 'nameplateShowEnemies'))
+					self:setDB('cache', 'nameplateShowEnemies', nil, 1)
+				end
 			end
 		end
 	end

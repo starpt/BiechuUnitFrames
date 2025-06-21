@@ -22,9 +22,8 @@ end)
 
 for unit, frame in pairs({
 	target = TargetFrame,
-	focus = FocusFrame,
+	focus = FocusFrame
 }) do
-
 	-- 名字
 	frame.name:SetWidth(120)
 	frame.name:SetPoint('CENTER', -50, 17.5)
@@ -35,8 +34,8 @@ for unit, frame in pairs({
 		if self.offsetY then self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 26, self.offsetY) end
 	end)
 
-	frame.flash = _G[frame:GetName() .. 'Flash'] -- 战斗中边框发红光
-	frame.statusBar = frame.nameBackground -- 状态栏
+	frame.flash = _G[frame:GetName() .. 'Flash']              -- 战斗中边框发红光
+	frame.statusBar = frame.nameBackground                    -- 状态栏
 	frame.deadText:SetPoint('CENTER', frame.healthbar, 0, -4) -- 死亡
 	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 
@@ -63,7 +62,7 @@ for unit, frame in pairs({
 	frame.threatNumericIndicator.text:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
 
 	frame.init = function()
-		BC:aura(unit) -- 更新Buff/Debuff
+		BC:aura(unit)   -- 更新Buff/Debuff
 		BC:miniIcon(unit) -- 更新小图标
 
 		-- Quartz 施法条
