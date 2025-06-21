@@ -233,7 +233,7 @@ frame:SetScript('OnEvent', function(self, event, unit)
 		for id = 1, GetNumSubgroupMembers() do
 			self:level(BC['party'.. id])
 			BC:update('party' .. id)
-			BC:update('party' .. id .. 'target')
+			-- BC:update('party' .. id .. 'target')
 		end
 	end
 end)
