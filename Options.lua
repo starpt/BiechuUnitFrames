@@ -623,9 +623,8 @@ option:check('target', 'healthBarClass', 'miniIcon')       -- 体力条职业色
 option:check('target', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
 
 -- 状态栏透明度
-option:slider('target', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .1, function(self, value)
-	value = floor(value * 10 + 0.5)
-	value = value / 10
+option:slider('target', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .05, function(self, value)
+	value = floor(value * 20) / 20
 	if value ~= BC:getDB('target', 'statusBarAlpha') then BC:setDB('target', 'statusBarAlpha', value) end
 	option.target.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
 end)
