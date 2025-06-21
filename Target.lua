@@ -95,7 +95,7 @@ for unit, frame in pairs({
 			hooksecurefunc(QuartzCastBar, 'Show', function(self)
 				if frame.castBar.offsetY then
 					self:ClearAllPoints()
-					self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 1, frame.castBar.offsetY + 7)
+					self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 0, frame.castBar.offsetY + 6)
 				end
 			end)
 		end
@@ -115,15 +115,15 @@ for unit, frame in pairs({
 	totFrame.healthbar.SideText = totFrame.borderTexture:GetParent():CreateFontString()
 	totFrame.healthbar.SideText:SetPoint('LEFT', totFrame.healthbar, 'RIGHT', 2, 0)
 
+	-- 死亡
+	totFrame.deadText:ClearAllPoints()
+	totFrame.deadText:SetPoint('CENTER', totFrame.healthbar, .5, -4)
+
 	-- 法力
 	totFrame.manabar.MiddleText = totFrame.borderTexture:GetParent():CreateFontString()
 	totFrame.manabar.MiddleText:SetPoint('CENTER', totFrame.manabar, 0, -.5)
 	totFrame.manabar.SideText = totFrame.borderTexture:GetParent():CreateFontString()
 	totFrame.manabar.SideText:SetPoint('LEFT', totFrame.manabar, 'RIGHT', 2, -.5)
-
-	-- 死亡
-	totFrame.deadText:ClearAllPoints()
-	totFrame.deadText:SetPoint('CENTER', totFrame.healthbar, .5, -4)
 
 	BC[unit] = frame
 	BC[unit .. 'target'] = totFrame

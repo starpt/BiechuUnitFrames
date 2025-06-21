@@ -16,7 +16,7 @@ BC.default = {
 		fontFlags = L.fontFlagsList[2].value,
 		dragSystemFarmes = true,
 		incomingHeals = true,
-		autoTab = true,
+		autoTab = true
 	},
 	player = {
 		relative = 'CENTER',
@@ -34,7 +34,7 @@ BC.default = {
 		drag = true,
 		scale = 1,
 		border = 1,
-		portrait = 0,
+		portrait = 0
 	},
 	pet = {
 		anchor = 'PlayerFrame',
@@ -44,7 +44,7 @@ BC.default = {
 		hideName = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
-		valueStyle = 2,
+		valueStyle = 2
 	},
 	pettarget = {
 		anchor = 'PetFrame',
@@ -57,7 +57,7 @@ BC.default = {
 		nameFontSize = 12,
 		valueFontSize = 12,
 		valueStyle = 7,
-		scale = .6,
+		scale = .6
 	},
 	target = {
 		relative = 'CENTER',
@@ -78,8 +78,8 @@ BC.default = {
 		auraSize = 20,
 		auraPercent = .8,
 		auraRows = 5,
-		auraX = 6,
-		auraY = 52,
+		auraX = 4,
+		auraY = 52
 	},
 	targettarget = {
 		anchor = 'TargetFrame',
@@ -89,7 +89,7 @@ BC.default = {
 		outRange = true,
 		nameFontSize = 10,
 		valueFontSize = 10,
-		valueStyle = 2,
+		valueStyle = 2
 	},
 	party = {
 		relative = 'LEFT',
@@ -113,7 +113,7 @@ BC.default = {
 		auraSize = 16,
 		auraPercent = .8,
 		auraX = 1,
-		auraY = 18,
+		auraY = 18
 	},
 	partypet = {
 		relative = 'BOTTOMRIGHT',
@@ -122,7 +122,7 @@ BC.default = {
 		hideName = true,
 		nameFontSize = 7,
 		valueFontSize = 7,
-		valueStyle = 7,
+		valueStyle = 7
 	},
 	partytarget = {
 		relative = 'TOPRIGHT',
@@ -132,8 +132,8 @@ BC.default = {
 		nameFontSize = 10,
 		valueFontSize = 10,
 		valueStyle = 7,
-		scale = 1,
-	},
+		scale = 1
+	}
 }
 
 -- 单元框体
@@ -154,7 +154,7 @@ BC.unitList = {
 	'party1target',
 	'party2target',
 	'party3target',
-	'party4target',
+	'party4target'
 }
 
 -- 边框材质
@@ -165,7 +165,7 @@ BC.borderList = {
 	'TargetingFrame\\UI-TargetingFrame-Elite',
 	'TargetingFrame\\UI-SmallTargetingFrame',
 	'TargetingFrame\\UI-TargetofTargetFrame',
-	'TargetingFrame\\UI-PartyFrame',
+	'TargetingFrame\\UI-PartyFrame'
 }
 
 -- 条材质
@@ -173,7 +173,7 @@ BC.barList = {
 	'TargetingFrame\\UI-StatusBar',          -- 条背景
 	'Tooltips\\UI-StatusBar-Border',         -- 边框
 	'CastingBar\\UI-CastingBar-Border-Small', -- 队友施法条边框
-	'CastingBar\\UI-CastingBar-Small-Shield', -- 队友施法条边框(无法打断)
+	'CastingBar\\UI-CastingBar-Small-Shield' -- 队友施法条边框(无法打断)
 }
 
 -- 头像材质
@@ -184,7 +184,7 @@ BC.portraitList = {
 	[3] = 'Dog',
 	[4] = 'Panda',
 	[5] = 'Moonkin',
-	[6] = 'CoolFace',
+	[6] = 'CoolFace'
 }
 
 -- 种类图标
@@ -202,13 +202,12 @@ BC.creatureList = {
 	[11] = 'Interface\\Icons\\ABILITY_SEAL',                     -- 小动物
 	[12] = 'Interface\\Icons\\INV_Elemental_Mote_Air01',         -- 气体云雾
 	[13] = 'Interface\\Icons\\Spell_Nature_Polymorph',           -- 非战斗宠物
-	[14] = 'Interface\\Icons\\INV_Misc_QuestionMark',            -- 未指定
+	[14] = 'Interface\\Icons\\INV_Misc_QuestionMark'             -- 未指定
 }
 
 -- 材质切换
 function BC:file(file, dark)
-	return 'Interface\\' ..
-	((dark or BC:getDB('global', 'dark')) and 'AddOns\\' .. addonName .. '\\Textures\\' .. file:gsub('.-([^\\/]-%.?[^%.\\/]*)$', '%1') or file)
+	return 'Interface\\' .. ((dark or BC:getDB('global', 'dark')) and 'AddOns\\' .. addonName .. '\\Textures\\' .. file:gsub('.-([^\\/]-%.?[^%.\\/]*)$', '%1') or file)
 end
 
 -- 自定义职业色 萨满职业色改为沉蓝色
@@ -221,7 +220,7 @@ BC.classColor = {
 	['ROGUE'] = CreateColor(1, .96, .41),
 	['DRUID'] = CreateColor(1, .49, .04),
 	['SHAMAN'] = CreateColor(0, .44, .87),
-	['WARRIOR'] = CreateColor(.78, .61, .43),
+	['WARRIOR'] = CreateColor(.78, .61, .43)
 }
 
 -- 格式化单位
@@ -308,7 +307,7 @@ function BC:comfing(text, accept)
 		OnCancel = function(self) end,
 		hideOnEscape = 1,
 		timeout = 0,
-		whileDead = 1,
+		whileDead = 1
 	}
 	StaticPopup_Show(addonName .. 'Comfing'):SetFrameStrata('TOOLTIP')
 end
@@ -375,37 +374,37 @@ end)
 BC.debuffTable = {
 	['Curse'] = {
 		2782, -- 德鲁伊 解除诅咒
-		475, -- 法师 解除诅咒
+		475 -- 法师 解除诅咒
 	},
 	['Disease'] = {
 		4987, -- 圣骑士 清洁术
 		528, -- 牧师 祛病术
 		552, -- 牧师 驱除疾病
 		2870, -- 萨满 祛病术
-		8170, -- 萨满 净化图腾
+		8170 -- 萨满 净化图腾
 	},
 	['Magic'] = {
 		4987, -- 圣骑士 清洁术
 		527, -- 牧师 驱散魔法
-		19505, -- 术士 吞噬魔法
+		19505 -- 术士 吞噬魔法
 	},
 	['Poison'] = {
 		2893, -- 德鲁伊 驱毒术
 		8946, -- 德鲁伊 消毒术
 		4987, -- 圣骑士 清洁术
 		526, -- 萨满 驱毒术
-		8170, -- 萨满 净化图腾
-	},
+		8170 -- 萨满 净化图腾
+	}
 }
 -- 进攻性驱散Buff
 BC.buffTable = {
 	['Magic'] = {
 		527,  -- 牧师 驱散魔法
 		19505, -- 术士 吞噬魔法
-		370,  -- 萨满 净化术
+		370   -- 萨满 净化术
 	},
 	[''] = { -- 激怒
-		19801, -- 猎人 宁神射击
+		19801 -- 猎人 宁神射击
 	}
 }
 function BC:dispel(unit, dispelType)
@@ -506,7 +505,7 @@ function BC:aura(unit)
 		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
 		if not icon and isEnemyBuff then
 			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations
-			:UnitAura(unit, i, 'HELPFUL')
+					:UnitAura(unit, i, 'HELPFUL')
 		end
 
 		if spellId and (key == 'party' or isEnemyBuff) then
@@ -702,8 +701,7 @@ function BC:portrait(unit)
 		local coord = CLASS_ICON_TCOORDS[select(2, UnitClass(unit))]
 		if type(coord) == 'table' then
 			frame.portrait:SetTexCoord(unpack(coord))
-			frame.portrait:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or
-			self:file(self.portraitList[1]))
+			frame.portrait:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 		end
 	else
 		frame.portrait:SetTexCoord(0, 1, 0, 1)
@@ -735,14 +733,14 @@ function BC:miniIcon(unit)
 				talent[active] = {
 					name = name,
 					icon = icon,
-					point = point,
+					point = point
 				}
 			end
 			_, name, _, _, point = GetTalentTabInfo(i, 'player', false, passive)
 			if point > 0 and (type(talent[passive]) ~= 'table' or talent[passive].point < point) then
 				talent[passive] = {
 					name = name,
-					point = point,
+					point = point
 				}
 			end
 		end
@@ -757,7 +755,7 @@ function BC:miniIcon(unit)
 
 		frame.miniIcon.tip[2] = { L.shiftKeyDown .. ':', L.nude, 1, 1, 0, 0, 1, 0 } -- Shift 一键脱装
 
-		if GetNumTalentGroups('player', false) > 1 then                         -- 可以切换天赋(开启双天赋)
+		if GetNumTalentGroups('player', false) > 1 then                           -- 可以切换天赋(开启双天赋)
 			frame.miniIcon.tip[3] = { L.click .. ':', L.switch .. (active == 1 and L.secondary or L.primary), 1, 1, 0, 0, 1, 0 }
 			if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and type(talent[passive].name) == 'string' then
 				frame.miniIcon.tip[4] = { L.switchAfter .. ':', talent[passive].name, 1, 1, 0, 0, 1, 0 } -- 切换天赋后
@@ -826,8 +824,7 @@ function BC:miniIcon(unit)
 			end
 			local coord = CLASS_ICON_TCOORDS[base]
 			if coord then
-				frame.miniIcon.icon:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or
-				self:file(self.portraitList[1]))
+				frame.miniIcon.icon:SetTexture(self:getDB('global', 'newClassIcon') and (self.texture .. self.portraitList[0]) or self:file(self.portraitList[1]))
 				frame.miniIcon.icon:SetTexCoord(unpack(coord))
 			end
 		else
@@ -1140,7 +1137,6 @@ function BC:update(unit)
 	elseif unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
-			if unit == 'w' then print(frame:IsShown()) end
 		else
 			frame:SetAlpha(0)
 			return
@@ -1459,7 +1455,7 @@ function BC:init(unit)
 					172, -- 腐蚀术
 					702, -- 虚弱诅咒
 					1714, -- 语言诅咒
-					704, -- 鲁莽诅咒
+					704 -- 鲁莽诅咒
 				}) do
 					local spell = GetSpellInfo(id)
 					if spell and IsSpellInRange(spell, unit) == 1 then
@@ -1515,7 +1511,7 @@ for _, event in pairs({
 	'UNIT_THREAT_LIST_UPDATE',     -- 仇恨列表变化
 	'UNIT_THREAT_SITUATION_UPDATE', -- 仇恨变化
 	'ZONE_CHANGED',                -- 区域更改
-	'ZONE_CHANGED_NEW_AREA',       -- 传送
+	'ZONE_CHANGED_NEW_AREA'        -- 传送
 }) do
 	BC:RegisterEvent(event)
 end
