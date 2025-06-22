@@ -1119,20 +1119,38 @@ function BC:update(unit)
 	local key = unit:gsub('%d', '')
 
 	-- 显示/隐藏 框体
-	if self:getDB(key, 'hideFrame') then
-		frame:SetAlpha(0)
-		return
-	end
 	if key == 'party' then
-		if not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			frame:SetAlpha(0)
 			if self[unit .. 'target'] then self[unit .. 'target']:SetAlpha(0) end
 			return
 		else
+			if not frame:IsShown() then
+				if InCombatLockdown() then
+					self.updateCombat = self.updateCombat or {}
+					table.insert(self.updateCombat, function()
+						frame:Show()
+						BC:update(unit .. 'target')
+					end)
+				else
+					frame:Show()
+				end
+			end
 			frame:SetAlpha(1)
-			if self[unit .. 'target'] and UnitExists(unit .. 'target') then self[unit .. 'target']:SetAlpha(1) end
+			self:update(unit .. 'target')
 		end
-	elseif unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
+	elseif self:getDB(key, 'hideFrame') then
+		frame:SetAlpha(0)
+		return
+	elseif key == 'partytarget' then
+		local party = unit:gsub('target$', '')
+		if not self[party] or not self[party]:IsShown() or self[party]:GetAlpha() <= 0 then
+			frame:SetAlpha(0)
+			return
+		end
+	end
+
+	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
 		else
@@ -1421,15 +1439,14 @@ function BC:init(unit)
 	end
 
 	-- 超出范围半透明
-	if not frame.hook then
-		frame:HookScript('OnUpdate', function(self)
-			if BC:getDB(key, 'outRange') then
-				if not self:IsShown() or self:GetAlpha() == 0 then return end
-				local unit = self.unit
-				if type(unit) ~= 'string' or not UnitExists(unit) then return end
-				if UnitIsUnit('player', unit) or UnitInRange(unit) or (not InCombatLockdown() or UnitCanAttack('player', unit)) and CheckInteractDistance(unit, 4) then
+	if BC:getDB(key, 'outRange')    then
+		if not frame.hook then
+			frame:HookScript('OnUpdate', function(self)
+				if not BC:getDB(key, 'outRange') or not self:IsShown() or self:GetAlpha() <= 0 or not UnitExists(self.unit) then return end
+				if UnitIsUnit('player', self.unit) or UnitInRange(self.unit) or (not InCombatLockdown() or UnitCanAttack('player', self.unit)) and CheckInteractDistance(self.unit, 4) then
 					self:SetAlpha(1)
 				else
+					local spell
 					for _, id in pairs {
 						5176, -- 愤怒
 						5185, -- 治疗之触
@@ -1456,19 +1473,20 @@ function BC:init(unit)
 						1714, -- 语言诅咒
 						704 -- 鲁莽诅咒
 					} do
-						local spell = GetSpellInfo(id)
-						if spell and IsSpellInRange(spell, unit) == 1 then
-							self:SetAlpha(1)
-							return
+						spell = GetSpellInfo(id)
+						if spell and IsSpellInRange(spell, self.unit) == 1 then
+							break
+						else
+							spell = nil
 						end
 					end
-					self:SetAlpha(.5)
+					self:SetAlpha(spell and 1 or .5)
 				end
-			else
-				frame:SetAlpha(1)
-			end
-		end)
-		frame.hook = true
+			end)
+			frame.hook = true
+		end
+	elseif frame.hook then
+		frame:SetAlpha(1)
 	end
 
 	-- PVP图标
@@ -1525,6 +1543,10 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		self:setDB('cache', 'threat', nil) -- 清空仇恨列表
+		for _, fun in pairs(self.updateCombat) do
+			if type(fun) == 'function' then fun() end
+		end
+		self.updateCombat = nil
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		self:incomingHeals('target')
 		self:threat('target')
