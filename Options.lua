@@ -1111,6 +1111,7 @@ end)
 
 -- 团队显示小队框体
 option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self, button)
+	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'raidShowParty')) end) then return end
 	local enabled = self:GetChecked()
 	if button then
 		BC:setDB('party', 'raidShowParty', enabled)
