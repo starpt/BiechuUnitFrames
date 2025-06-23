@@ -1543,10 +1543,12 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		self:setDB('cache', 'threat', nil) -- 清空仇恨列表
-		for _, fun in pairs(self.updateCombat) do
-			if type(fun) == 'function' then fun() end
+		if self.updateCombat then
+			for _, fun in pairs(self.updateCombat) do
+				if type(fun) == 'function' then fun() end
+			end
+			self.updateCombat = nil
 		end
-		self.updateCombat = nil
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		self:incomingHeals('target')
 		self:threat('target')
