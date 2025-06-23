@@ -217,8 +217,8 @@ for id = 1, MAX_PARTY_MEMBERS do
 end
 
 for _, event in pairs {
-	'UNIT_AURA',          -- Buff/Debuff变化
-	'UNIT_LEVEL',         -- 升级
+	'UNIT_AURA',         -- Buff/Debuff变化
+	'UNIT_LEVEL',        -- 升级
 	'GROUP_ROSTER_UPDATE' -- 团队变更
 } do
 	frame:RegisterEvent(event)

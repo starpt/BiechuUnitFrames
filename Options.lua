@@ -62,7 +62,7 @@ local horizontal = 322 -- 水平间隔
 -- 数值样式
 function option:valueStyleList(...)
 	local list = {}
-	for _, i in pairs({ ... }) do
+	for _, i in pairs { ... } do
 		list[i] = L.valueStyleList[i]
 	end
 	list[10] = L.valueStyleList[10] -- 都不显示

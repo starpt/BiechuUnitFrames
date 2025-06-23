@@ -803,7 +803,7 @@ function BC:miniIcon(unit)
 		frame.miniIcon.click = function()
 			if IsShiftKeyDown() then                                                      -- 按住Shift 一键脱光
 				EQUIPMENTMANAGER_BAGSLOTS = {}                                              -- 背包空间缓存
-				for _, i in pairs({ 16, 17, 18, 5, 7, 1, 3, 9, 10, 6, 8 }) do
+				for _, i in pairs { 16, 17, 18, 5, 7, 1, 3, 9, 10, 6, 8 } do
 					local durability = GetInventoryItemDurability(i)
 					if durability and durability > 0 then -- 有耐久度
 						for bag = BACKPACK_CONTAINER, NUM_BAG_FRAMES do
@@ -1467,7 +1467,7 @@ function BC:init(unit)
 	end
 
 	-- 超出范围半透明
-	if BC:getDB(key, 'outRange')    then
+	if BC:getDB(key, 'outRange') then
 		if not frame.hook then
 			frame:HookScript('OnUpdate', function(self)
 				if not BC:getDB(key, 'outRange') or not self:IsShown() or self:GetAlpha() <= 0 or not UnitExists(self.unit) then return end
@@ -1544,9 +1544,9 @@ function BC:init(unit)
 	self:update(unit)
 end
 
-for _, event in pairs({
+for _, event in pairs {
 	'PLAYER_ENTERING_WORLD', -- 进入世界
-	'PLAYER_REGEN_ENABLED',        -- 结束战斗
+	'PLAYER_REGEN_ENABLED', -- 结束战斗
 	'PLAYER_FOCUS_CHANGED', -- 焦点目标变化
 	'PLAYER_TARGET_CHANGED', -- 我的目标变化
 	'UNIT_TARGET',          -- 目标切换
@@ -1555,7 +1555,7 @@ for _, event in pairs({
 	'UNIT_HEALTH',          -- 体力变化
 	'ZONE_CHANGED',         -- 区域更改
 	'ZONE_CHANGED_NEW_AREA' -- 传送
-}) do
+} do
 	BC:RegisterEvent(event)
 end
 BC:SetScript('OnEvent', function(self, event, unit)
