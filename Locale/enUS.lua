@@ -33,67 +33,67 @@ L.nameFont = 'First name font'
 L.fontList = {
 	[1] = {
 		text = 'Friz Quadrata TT',
-		value = [[Fonts\FRIZQT__.ttf]],
+		value = [[Fonts\FRIZQT__.ttf]]
 	},
 	[2] = {
 		text = '2002',
-		value = [[Fonts\2002.ttf]],
+		value = [[Fonts\2002.ttf]]
 	},
 	[3] = {
 		text = '2002 Bold',
-		value = [[Fonts\2002B.ttf]],
+		value = [[Fonts\2002B.ttf]]
 	},
 	[4] = {
 		text = 'AR CrystalzcuheiGBK Demibold',
-		value = [[Fonts\ARHei.ttf]],
+		value = [[Fonts\ARHei.ttf]]
 	},
 	[5] = {
 		text = 'AR ZhongkaiGBK Medium (Combat)',
-		value = [[Fonts\ARKai_C.ttf]],
+		value = [[Fonts\ARKai_C.ttf]]
 	},
 	[6] = {
 		text = 'AR ZhongkaiGBK Medium',
-		value = [[Fonts\ARKai_T.ttf]],
+		value = [[Fonts\ARKai_T.ttf]]
 	},
 	[7] = {
 		text = 'Arial Narrow',
-		value = [[Fonts\ARIALN.ttf]],
+		value = [[Fonts\ARIALN.ttf]]
 	},
 	[8] = {
 		text = 'MoK',
-		value = [[Fonts\K_Pagetext.ttf]],
+		value = [[Fonts\K_Pagetext.ttf]]
 	},
 	[9] = {
 		text = 'Morpheus',
-		value = [[Fonts\MORPHEUS_CYR.ttf]],
+		value = [[Fonts\MORPHEUS_CYR.ttf]]
 	},
 	[10] = {
 		text = 'Nimrod MT',
-		value = [[Fonts\NIM_____.ttf]],
+		value = [[Fonts\NIM_____.ttf]]
 	},
 	[11] = {
 		text = 'Skurri',
-		value = [[Fonts\SKURRI_CYR.ttf]],
-	},
+		value = [[Fonts\SKURRI_CYR.ttf]]
+	}
 }
 L.fontFlags = 'Font Outline'
 L.fontFlagsList = {
 	[1] = {
 		text = 'None',
-		value = 'NONE',
+		value = 'NONE'
 	},
 	[2] = {
 		text = 'Thin',
-		value = 'OUTLINE',
+		value = 'OUTLINE'
 	},
 	[3] = {
 		text = 'Thick',
-		value = 'THICKOUTLINE',
+		value = 'THICKOUTLINE'
 	},
 	[4] = {
 		text = 'Monochrome',
-		value = 'MONOCHROME',
-	},
+		value = 'MONOCHROME'
+	}
 }
 L.portraitCombat = 'Display combat information on the avatar'
 L.valueFont = 'Value Font'
@@ -107,7 +107,7 @@ L.borderList = {
 	[1] = 'Normal',
 	[2] = 'Rare',
 	[3] = 'RareElite',
-	[4] = 'Elite',
+	[4] = 'Elite'
 }
 L.portrait = 'Portrait'
 L.portraitList = {
@@ -117,7 +117,7 @@ L.portraitList = {
 	[3] = 'Dog',
 	[4] = 'Panda',
 	[5] = 'Moonkin',
-	[6] = 'CoolFace',
+	[6] = 'CoolFace'
 }
 L.nameFontSize = 'Name Font Size'
 L.valueFontSize = 'Value Font Size'
@@ -132,7 +132,7 @@ L.valueStyleList = {
 	[7] = 'Side percentage',
 	[8] = 'Side current value',
 	[9] = 'Side current/maximum',
-	[10] = 'None',
+	[10] = 'None'
 }
 L.druidBar = 'Show custom druid mana bars'
 L.hideName = 'Hide Name'
@@ -147,7 +147,7 @@ L.pointPlayerAlignment = 'Horizontal alignment'
 L.pointPlayerCenter = 'Horizontally centered'
 L.pointPlayerVertical = 'Vertical alignment'
 L.portraitClass = 'The avatar shows the class icon'
-L.showEnemyBuff  = 'Show enemy target simulation buff'
+L.showEnemyBuff = 'Show enemy target simulation buff'
 L.selfCooldown = 'Only show the CD of the Aura I cast'
 L.dispelCooldown = 'Only show CD for Aura that can be dispelled'
 L.dispelStealable = 'Highlight Aura that you can dispel'
@@ -182,7 +182,7 @@ L.creatureList = {
 	['Critter'] = 11,
 	['Gas Cloud'] = 12,
 	['Non-combat Pet'] = 13,
-	['Not specified'] = 14,
+	['Not specified'] = 14
 }
 
 L.playerClass = 'Player class:'

@@ -33,67 +33,67 @@ L.nameFont = 'Шрифт имени'
 L.fontList = {
 	[1] = {
 		text = 'Friz Quadrata TT',
-		value = [[Fonts\FRIZQT__.ttf]],
+		value = [[Fonts\FRIZQT__.ttf]]
 	},
 	[2] = {
 		text = '2002',
-		value = [[Fonts\2002.ttf]],
+		value = [[Fonts\2002.ttf]]
 	},
 	[3] = {
 		text = '2002 Полужирный',
-		value = [[Fonts\2002B.ttf]],
+		value = [[Fonts\2002B.ttf]]
 	},
 	[4] = {
 		text = 'AR CrystalzcuheiGBK Полужирный',
-		value = [[Fonts\ARHei.ttf]],
+		value = [[Fonts\ARHei.ttf]]
 	},
 	[5] = {
 		text = 'AR ZhongkaiGBK Средний (Бой)',
-		value = [[Fonts\ARKai_C.ttf]],
+		value = [[Fonts\ARKai_C.ttf]]
 	},
 	[6] = {
 		text = 'AR ZhongkaiGBK Средний',
-		value = [[Fonts\ARKai_T.ttf]],
+		value = [[Fonts\ARKai_T.ttf]]
 	},
 	[7] = {
 		text = 'Arial Узкий',
-		value = [[Fonts\ARIALN.ttf]],
+		value = [[Fonts\ARIALN.ttf]]
 	},
 	[8] = {
 		text = 'MoK',
-		value = [[Fonts\K_Pagetext.ttf]],
+		value = [[Fonts\K_Pagetext.ttf]]
 	},
 	[9] = {
 		text = 'Morpheus',
-		value = [[Fonts\MORPHEUS_CYR.ttf]],
+		value = [[Fonts\MORPHEUS_CYR.ttf]]
 	},
 	[10] = {
 		text = 'Nimrod MT',
-		value = [[Fonts\NIM_____.ttf]],
+		value = [[Fonts\NIM_____.ttf]]
 	},
 	[11] = {
 		text = 'Skurri',
-		value = [[Fonts\SKURRI_CYR.ttf]],
-	},
+		value = [[Fonts\SKURRI_CYR.ttf]]
+	}
 }
 L.fontFlags = 'Контур шрифта'
 L.fontFlagsList = {
 	[1] = {
 		text = 'Нет',
-		value = 'NONE',
+		value = 'NONE'
 	},
 	[2] = {
 		text = 'Тонкий',
-		value = 'OUTLINE',
+		value = 'OUTLINE'
 	},
 	[3] = {
 		text = 'Толстый',
-		value = 'THICKOUTLINE',
+		value = 'THICKOUTLINE'
 	},
 	[4] = {
 		text = 'Монохромный',
-		value = 'MONOCHROME',
-	},
+		value = 'MONOCHROME'
+	}
 }
 L.portraitCombat = 'Отображать информацию о бое на портрете'
 L.valueFont = 'Шрифт значений'
@@ -107,7 +107,7 @@ L.borderList = {
 	[1] = 'Обычная',
 	[2] = 'Редкая',
 	[3] = 'Редкая элитная',
-	[4] = 'Элитная',
+	[4] = 'Элитная'
 }
 L.portrait = 'Портрет'
 L.portraitList = {
@@ -117,7 +117,7 @@ L.portraitList = {
 	[3] = 'Собака',
 	[4] = 'Панда',
 	[5] = 'Лунный совух',
-	[6] = 'Крутое лицо',
+	[6] = 'Крутое лицо'
 }
 L.nameFontSize = 'Размер шрифта имени'
 L.valueFontSize = 'Размер шрифта значений'
@@ -132,7 +132,7 @@ L.valueStyleList = {
 	[7] = 'Процент сбоку',
 	[8] = 'Текущее значение сбоку',
 	[9] = 'Текущее/максимальное сбоку',
-	[10] = 'Нет',
+	[10] = 'Нет'
 }
 L.druidBar = 'Показывать полосы маны для друидов'
 L.hideName = 'Скрыть имя'
@@ -182,7 +182,7 @@ L.creatureList = {
 	['Существо'] = 11,
 	['Газовое облако'] = 12,
 	['Небоевое животное'] = 13,
-	['Не указано'] = 14,
+	['Не указано'] = 14
 }
 L.playerClass = 'Класс игрока:'
 L.creatureType = 'Тип существа:'

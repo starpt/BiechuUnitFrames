@@ -1439,7 +1439,7 @@ function BC:init(unit)
 	end
 
 	-- 超出范围半透明
-	if BC:getDB(key, 'outRange')    then
+	if BC:getDB(key, 'outRange') then
 		if not frame.hook then
 			frame:HookScript('OnUpdate', function(self)
 				if not BC:getDB(key, 'outRange') or not self:IsShown() or self:GetAlpha() <= 0 or not UnitExists(self.unit) then return end

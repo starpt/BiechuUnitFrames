@@ -5,10 +5,10 @@ local dark = BC:getDB('global', 'dark')
 local frame = CreateFrame('Frame')
 
 BC.player = PlayerFrame
-BC.player.name:SetPoint('TOP', 50, -26) -- 名字
+BC.player.name:SetPoint('TOP', 50, -26)      -- 名字
 BC.player.borderTexture = PlayerFrameTexture -- 边框
-BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
-BC.player.pvpIcon = PlayerPVPIcon -- PVP图标
+BC.player.flash = PlayerFrameFlash           -- 战斗中边框发红光
+BC.player.pvpIcon = PlayerPVPIcon            -- PVP图标
 
 -- 等级
 PlayerLevelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
@@ -180,7 +180,7 @@ end
 
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	BC:miniIcon('player') -- 小图标
+	BC:miniIcon('player')             -- 小图标
 
 	-- 装备小图标
 	frame:equip()
@@ -206,7 +206,7 @@ local point, relativeTo, relativePoint, offsetX, offsetY = PetFrameHappiness:Get
 PetFrameHappiness:SetPoint(point, relativeTo, relativePoint, offsetX - 4, offsetY + 10)
 PetFrameHappiness:SetSize(20, 20)
 
-BC.pet.borderTexture = PetFrameTexture -- 边框
+BC.pet.borderTexture = PetFrameTexture     -- 边框
 BC.pet.name:SetPoint('BOTTOMLEFT', 50, 41) -- 名字
 
 -- 体力
@@ -282,11 +282,11 @@ BC.pettarget.manabar.SideText = BC.pettarget:CreateFontString()
 BC.pettarget.manabar.SideText:SetPoint('RIGHT', BC.pettarget.manabar, 'LEFT', 0, -1)
 BC.pettarget.manabar.unit = 'pettarget'
 
-for _, event in pairs({
+for _, event in pairs {
 	'ACTIVE_TALENT_GROUP_CHANGED', -- 天赋切换
-	'PLAYER_TALENT_UPDATE', -- 天赋点更新
-	'UPDATE_SHAPESHIFT_FORM', -- 形状变化
-}) do
+	'PLAYER_TALENT_UPDATE',       -- 天赋点更新
+	'UPDATE_SHAPESHIFT_FORM'      -- 形状变化
+} do
 	frame:RegisterEvent(event)
 end
 frame:SetScript('OnEvent', function(self, event)

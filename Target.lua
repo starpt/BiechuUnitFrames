@@ -19,10 +19,9 @@ hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
 	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16) end
 end)
 
-for unit, frame in pairs({
-	target = TargetFrame,
-}) do
-
+for unit, frame in pairs {
+	target = TargetFrame
+} do
 	-- 名字
 	frame.name:SetWidth(120)
 	frame.name:SetPoint('CENTER', -50, 17.5)
@@ -44,7 +43,7 @@ for unit, frame in pairs({
 		frame.flash:SetTexCoord(0, 0.9453125, 0, 0.181640625)
 	end
 
-	frame.statusBar = frame.nameBackground -- 状态栏
+	frame.statusBar = frame.nameBackground                    -- 状态栏
 	frame.deadText:SetPoint('CENTER', frame.healthbar, 0, -4) -- 死亡
 	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
 
@@ -86,7 +85,7 @@ for unit, frame in pairs({
 	end
 
 	frame.init = function()
-		BC:aura(unit) -- 更新Buff/Debuff
+		BC:aura(unit)   -- 更新Buff/Debuff
 		BC:miniIcon(unit) -- 更新小图标
 
 		-- Quartz 施法条
