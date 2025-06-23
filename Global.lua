@@ -1564,10 +1564,12 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:drag(LFGParentFrame) -- 寻求组队
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
-		for _, fun in pairs(self.updateCombat) do
-			if type(fun) == 'function' then fun() end
+		if self.updateCombat then
+			for _, fun in pairs(self.updateCombat) do
+				if type(fun) == 'function' then fun() end
+			end
+			self.updateCombat = nil
 		end
-		self.updateCombat = nil
 	elseif event == 'PLAYER_FOCUS_CHANGED' then
 		self:incomingHeals('focus')
 	elseif event == 'PLAYER_TARGET_CHANGED' then
