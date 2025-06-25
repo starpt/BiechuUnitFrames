@@ -1149,7 +1149,6 @@ function BC:update(unit)
 			return
 		end
 	end
-
 	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) then
 			frame:SetAlpha(1)
