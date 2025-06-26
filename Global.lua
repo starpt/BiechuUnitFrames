@@ -1206,7 +1206,7 @@ function BC:update(unit)
 		end
 	end
 	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
-		if UnitExists(unit) then
+		if UnitExists(unit) and not (UnitInVehicle('player') and unit == 'pettarget') then
 			frame:SetAlpha(1)
 		else
 			frame:SetAlpha(0)
