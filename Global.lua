@@ -1156,6 +1156,8 @@ function BC:update(unit)
 			frame:SetAlpha(0)
 			return
 		end
+	elseif unit == 'pet'and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
+		self.pettarget:SetAlpha(0)
 	end
 
 	-- 名字
