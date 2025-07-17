@@ -504,16 +504,16 @@ function BC:aura(unit)
 
 		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
 		if not icon and isEnemyBuff then
-			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations
-					:UnitAura(unit, i, 'HELPFUL')
+			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations:UnitAura(unit, i, 'HELPFUL')
 		end
 
-		if spellId and (key == 'party' or isEnemyBuff) then
+		if not buff:GetScript('OnEnter') and spellId then
 			buff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
 				GameTooltip:SetSpellByID(spellId)
 			end)
-
+		end
+		if not buff:GetScript('OnLeave') then
 			buff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
 			end)
@@ -610,13 +610,17 @@ function BC:aura(unit)
 			debuff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		debuff:SetScript('OnEnter', function(self)
-			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-			GameTooltip:SetUnitDebuff(unit, i)
-		end)
-		debuff:SetScript('OnLeave', function()
-			GameTooltip:Hide()
-		end)
+		if not debuff:GetScript('OnEnter') then
+			debuff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
+				GameTooltip:SetUnitDebuff(unit, i)
+			end)
+		end
+		if not debuff:GetScript('OnLeave') then
+			debuff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
+		end
 
 		local _, icon, count, dispelType, duration, expirationTime, source = UnitDebuff(unit, i)
 		if icon then
