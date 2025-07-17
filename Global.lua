@@ -507,18 +507,6 @@ function BC:aura(unit)
 			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations:UnitAura(unit, i, 'HELPFUL')
 		end
 
-		if not buff:GetScript('OnEnter') and spellId then
-			buff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
-				GameTooltip:SetSpellByID(spellId)
-			end)
-		end
-		if not buff:GetScript('OnLeave') then
-			buff:SetScript('OnLeave', function()
-				GameTooltip:Hide()
-			end)
-		end
-
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
 			local selfCast = source == 'player' or source == 'pet'
@@ -554,6 +542,18 @@ function BC:aura(unit)
 				buff.count:SetText(count)
 			else
 				buff.count:SetText(nil)
+			end
+
+			if not buff:GetScript('OnEnter') and spellId then
+				buff:SetScript('OnEnter', function(self)
+					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
+					GameTooltip:SetSpellByID(spellId)
+				end)
+			end
+			if not buff:GetScript('OnLeave') then
+				buff:SetScript('OnLeave', function()
+					GameTooltip:Hide()
+				end)
 			end
 
 			buff:Show()
