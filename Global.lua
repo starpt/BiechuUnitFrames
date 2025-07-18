@@ -544,17 +544,14 @@ function BC:aura(unit)
 				buff.count:SetText(nil)
 			end
 
-			if not buff:GetScript('OnEnter') and spellId then
-				buff:SetScript('OnEnter', function(self)
-					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
-					GameTooltip:SetSpellByID(spellId)
-				end)
-			end
-			if not buff:GetScript('OnLeave') then
-				buff:SetScript('OnLeave', function()
-					GameTooltip:Hide()
-				end)
-			end
+			buff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
+				GameTooltip:SetSpellByID(spellId)
+				GameTooltip:Show()
+			end)
+			buff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
 
 			buff:Show()
 			total = total + 1
@@ -611,9 +608,10 @@ function BC:aura(unit)
 		end
 
 		if not debuff:GetScript('OnEnter') then
+			debuff:SetID(i)
 			debuff:SetScript('OnEnter', function(self)
 				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
-				GameTooltip:SetUnitDebuff(unit, i)
+				GameTooltip:SetUnitBuff(self.unit, self:GetID())
 			end)
 		end
 		if not debuff:GetScript('OnLeave') then
@@ -1114,6 +1112,26 @@ hooksecurefunc('TextStatusBar_UpdateTextString', function(self)
 end)
 
 -- 更新
+function BC:toggle(frame, show)
+	if not frame then return end
+	local show = show == nil and not frame:IsShown() or show
+	local setToggle = function()
+		if show then
+			frame:SetAlpha(1)
+			frame:Show()
+		else
+			frame:SetAlpha(0)
+			frame:Hide()
+		end
+	end
+	if InCombatLockdown() then
+		self.updateCombat = self.updateCombat or {}
+		table.insert(self.updateCombat, setToggle)
+	else
+		setToggle()
+	end
+end
+
 function BC:update(unit)
 	if unit == 'targettarget' and UnitIsUnit('player', 'target') then return end
 	unit = self:formatUnit(unit)
@@ -1125,43 +1143,32 @@ function BC:update(unit)
 	-- 显示/隐藏 框体
 	if key == 'party' then
 		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
-			frame:SetAlpha(0)
-			if self[unit .. 'target'] then self[unit .. 'target']:SetAlpha(0) end
+			self:toggle(frame, false)
+			if self[unit .. 'target'] then self:toggle(self[unit .. 'target'], false) end
 			return
 		else
-			if not frame:IsShown() then
-				if InCombatLockdown() then
-					self.updateCombat = self.updateCombat or {}
-					table.insert(self.updateCombat, function()
-						frame:Show()
-						BC:update(unit .. 'target')
-					end)
-				else
-					frame:Show()
-				end
-			end
-			frame:SetAlpha(1)
+			self:toggle(frame, true)
 			self:update(unit .. 'target')
 		end
 	elseif self:getDB(key, 'hideFrame') then
-		frame:SetAlpha(0)
+		self:toggle(frame, false)
 		return
 	elseif key == 'partytarget' then
 		local party = unit:gsub('target$', '')
 		if not self[party] or not self[party]:IsShown() or self[party]:GetAlpha() <= 0 then
-			frame:SetAlpha(0)
+			self:toggle(frame, false)
 			return
 		end
 	end
 	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) then
-			frame:SetAlpha(1)
+			self:toggle(frame, true)
 		else
-			frame:SetAlpha(0)
+			self:toggle(frame, false)
 			return
 		end
 	elseif unit == 'pet' and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
-		self.pettarget:SetAlpha(0)
+		self:toggle(self.pettarget, false)
 	end
 
 	-- 名字
