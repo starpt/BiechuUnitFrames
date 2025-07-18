@@ -546,7 +546,11 @@ function BC:aura(unit)
 
 			buff:SetScript('OnEnter', function(self)
 				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
-				GameTooltip:SetSpellByID(spellId)
+				if self.unit and self:GetID() then
+					GameTooltip:SetUnitBuff(self.unit, self:GetID())
+				elseif spellId then
+					GameTooltip:SetSpellByID(spellId)
+				end
 				GameTooltip:Show()
 			end)
 			buff:SetScript('OnLeave', function()
