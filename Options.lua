@@ -874,11 +874,11 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, bu
 	option.party.auraY:SetEnabled(enabled)
 
 	option.partypet.hideFrame:SetEnabled(enabled)
-	local enabledPet = not BC:getDB('partypet', 'hideFrame')
-	option.partypet.hideName:SetEnabled(enabled and enabledPet)
-	option.partypet.nameFontSize:SetEnabled(enabled and enabledPet and not BC:getDB('partypet', 'hideName'))
-	option.partypet.valueFontSize:SetEnabled(enabled and enabledPet)
-	option.partypet.valueStyle:SetEnabled(enabled and enabledPet)
+	enabled = not BC:getDB('partypet', 'hideFrame')
+	option.partypet.hideName:SetEnabled(enabled and enabled)
+	option.partypet.nameFontSize:SetEnabled(enabled and enabled and not BC:getDB('partypet', 'hideName'))
+	option.partypet.valueFontSize:SetEnabled(enabled and enabled)
+	option.partypet.valueStyle:SetEnabled(enabled and enabled)
 
 	option.partytarget.hideFrame:SetEnabled(enabled)
 	local enabledTarget = not BC:getDB('partytarget', 'hideFrame')

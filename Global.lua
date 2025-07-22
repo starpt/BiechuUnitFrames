@@ -1116,23 +1116,20 @@ hooksecurefunc('TextStatusBar_UpdateTextString', function(self)
 end)
 
 -- 更新
+BC.cambatLeave = {}
 function BC:toggle(frame, show)
-	if not frame then return end
-	local show = show == nil and not frame:IsShown() or show
-	local setToggle = function()
+	local fn = function()
 		if show then
-			frame:SetAlpha(1)
 			frame:Show()
 		else
-			frame:SetAlpha(0)
 			frame:Hide()
 		end
 	end
+	frame:SetAlpha(show and 1 or 0)
 	if InCombatLockdown() then
-		self.updateCombat = self.updateCombat or {}
-		table.insert(self.updateCombat, setToggle)
+		table.insert(self.cambatLeave, fn)
 	else
-		setToggle()
+		fn()
 	end
 end
 
@@ -1146,20 +1143,28 @@ function BC:update(unit)
 
 	-- 显示/隐藏 框体
 	if key == 'party' then
-		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+		local partytarget = self[unit .. 'target']
+		if self:getDB(key, 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			self:toggle(frame, false)
-			if self[unit .. 'target'] then self:toggle(self[unit .. 'target'], false) end
+			self:toggle(partytarget, false)
 			return
 		else
 			self:toggle(frame, true)
-			self:update(unit .. 'target')
+			self:toggle(partytarget, true)
+			if UnitExists(unit) then
+				self:update(unit .. 'target')
+			else
+				frame:SetAlpha(0)
+				partytarget:SetAlpha(0)
+				return
+			end
 		end
 	elseif self:getDB(key, 'hideFrame') then
 		self:toggle(frame, false)
 		return
 	elseif key == 'partytarget' then
-		local party = unit:gsub('target$', '')
-		if not self[party] or not self[party]:IsShown() or self[party]:GetAlpha() <= 0 then
+		local party = self[unit:gsub('target$', '')]
+		if not party:IsShown() or party:GetAlpha() <= 0 then
 			self:toggle(frame, false)
 			return
 		end
@@ -1168,11 +1173,11 @@ function BC:update(unit)
 		if UnitExists(unit) then
 			self:toggle(frame, true)
 		else
-			self:toggle(frame, false)
+			frame:SetAlpha(0)
 			return
 		end
 	elseif unit == 'pet' and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
-		self:toggle(self.pettarget, false)
+		self.pettarget:SetAlpha(0)
 	end
 
 	-- 名字
@@ -1188,8 +1193,7 @@ function BC:update(unit)
 				color = { r = 1, g = .82, b = 0 }
 			end
 			if type(color) == 'table' then frame.name:SetTextColor(color.r, color.g, color.b) end
-			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'),
-				self:getDB('global', 'fontFlags'))
+			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'), self:getDB('global', 'fontFlags'))
 			frame.name:Show()
 		end
 	end
@@ -1559,12 +1563,10 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		self:setDB('cache', 'threat', nil) -- 清空仇恨列表
-		if self.updateCombat then
-			for _, fun in pairs(self.updateCombat) do
-				if type(fun) == 'function' then fun() end
-			end
-			self.updateCombat = nil
+		for _, fun in pairs(self.cambatLeave) do
+			if type(fun) == 'function' then fun() end
 		end
+		self.cambatLeave = {}
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		self:incomingHeals('target')
 		self:threat('target')
@@ -1586,21 +1588,17 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		-- PVP环境自动设置TAB选择敌对玩家
 		if self:getDB('global', 'autoTab') then
 			local _, instance = IsInInstance()
-			if InCombatLockdown() then
-				self.updateCombat = self.updateCombat or {}
-				table.insert(self.updateCombat, function()
-					if instance == 'arena' or instance == 'pvp' then
-						SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
-					else
-						SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
-					end
-				end)
-			else
+			local fn = function()
 				if instance == 'arena' or instance == 'pvp' then
 					SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
 				else
 					SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
 				end
+			end
+			if InCombatLockdown() then
+				table.insert(self.cambatLeave, fn)
+			else
+				fn()
 			end
 		end
 	end
