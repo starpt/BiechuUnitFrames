@@ -1,9 +1,9 @@
-## Interface: 11507
+## Interface: 11508
 ## Title: BiechuUnitFrames
 ## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.10_beta3
+## Version: 1.15.12_beta1
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
 ## X-Localizations: enUS, zhCN
@@ -17,6 +17,7 @@ Libs\LibClassicDurations.xml
 Locale\enUS.lua
 Locale\zhCN.lua
 Locale\ruRU.lua
+
 Global.lua
 Player.lua
 Target.lua
