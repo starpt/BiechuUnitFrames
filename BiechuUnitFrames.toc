@@ -1,9 +1,9 @@
-## Interface: 11507
+## Interface: 11508
 ## Title: BiechuUnitFrames
 ## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.11_beta5
+## Version: 1.15.12_beta1
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
 ## X-Localizations: enUS, zhCN
