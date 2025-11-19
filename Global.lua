@@ -502,9 +502,9 @@ function BC:aura(unit)
 			buff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		local _, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = UnitBuff(unit, i)
+		local _, icon, count, dispelType, duration, expirationTime, source, _, _, spellId = UnitBuff(unit, i)
 		if not icon and isEnemyBuff then
-			_, icon, count, dispelType, duration, expirationTime, source, isStealable, _, spellId = LibClassicDurations:UnitAura(unit, i, 'HELPFUL')
+			_, icon, count, dispelType, duration, expirationTime, source, _, _, spellId = LibClassicDurations:UnitAura(unit, i, 'HELPFUL')
 		end
 
 		if icon then
@@ -545,7 +545,7 @@ function BC:aura(unit)
 			end
 
 			buff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
 				if self.unit and self:GetID() then
 					GameTooltip:SetUnitBuff(self.unit, self:GetID())
 				elseif spellId then
@@ -611,19 +611,6 @@ function BC:aura(unit)
 			debuff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		if not debuff:GetScript('OnEnter') then
-			debuff:SetID(i)
-			debuff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 15, -25)
-				GameTooltip:SetUnitBuff(self.unit, self:GetID())
-			end)
-		end
-		if not debuff:GetScript('OnLeave') then
-			debuff:SetScript('OnLeave', function()
-				GameTooltip:Hide()
-			end)
-		end
-
 		local _, icon, count, dispelType, duration, expirationTime, source = UnitDebuff(unit, i)
 		if icon then
 			CooldownFrame_Set(debuff.cooldown, expirationTime - duration, duration, true)
@@ -670,6 +657,14 @@ function BC:aura(unit)
 					debuff.border:Show()
 				end
 			end
+
+			debuff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
+				GameTooltip:SetUnitBuff(self.unit, self:GetID())
+			end)
+			debuff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
 
 			debuff:Show()
 			total = total + 1
@@ -796,13 +791,13 @@ function BC:miniIcon(unit)
 				end
 				if type(ItemRackUser) == 'table' then
 					for i = 1, 6 do -- 最多6个装备小图标
-						_G['EquipSetFrame' .. i]:SetAlpha(.4)
+						_G['EquipSetFrame' .. i]:SetAlpha(.3)
 					end
 					ItemRackUser.CurrentSet = nil
 				end
 			else
 				C_SpecializationInfo.SetActiveSpecGroup(passive) -- 切换天赋
-				frame.miniIcon.callBack = function()           -- 切换天赋回调
+				frame.miniIcon.callBack = function()         -- 切换天赋回调
 					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and talent[passive].name then
 						local setID = C_EquipmentSet.GetEquipmentSetID(talent[passive].name)
 						if setID then C_EquipmentSet.UseEquipmentSet(setID) end
@@ -1132,7 +1127,6 @@ function BC:toggle(frame, show)
 		fn()
 	end
 end
-
 function BC:update(unit)
 	if unit == 'targettarget' and UnitIsUnit('player', 'target') then return end
 	unit = self:formatUnit(unit)
@@ -1144,21 +1138,13 @@ function BC:update(unit)
 	-- 显示/隐藏 框体
 	if key == 'party' then
 		local partytarget = self[unit .. 'target']
-		if self:getDB(key, 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+		if not UnitExists(unit) or self:getDB(key, 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			self:toggle(frame, false)
 			self:toggle(partytarget, false)
 			return
-		else
-			self:toggle(frame, true)
-			self:toggle(partytarget, true)
-			if UnitExists(unit) then
-				self:update(unit .. 'target')
-			else
-				frame:SetAlpha(0)
-				partytarget:SetAlpha(0)
-				return
-			end
 		end
+		self:toggle(frame, true)
+		self:update(unit .. 'target')
 	elseif self:getDB(key, 'hideFrame') then
 		self:toggle(frame, false)
 		return
@@ -1563,8 +1549,8 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
 		self:setDB('cache', 'threat', nil) -- 清空仇恨列表
-		for _, fun in pairs(self.cambatLeave) do
-			if type(fun) == 'function' then fun() end
+		for _, fn in pairs(self.cambatLeave) do
+			if type(fn) == 'function' then fn() end
 		end
 		self.cambatLeave = {}
 	elseif event == 'PLAYER_TARGET_CHANGED' then
@@ -1587,7 +1573,7 @@ BC:SetScript('OnEvent', function(self, event, unit)
 	elseif event == 'ZONE_CHANGED' or event == 'ZONE_CHANGED_NEW_AREA' then
 		-- PVP环境自动设置TAB选择敌对玩家
 		if self:getDB('global', 'autoTab') then
-			local _, instance = IsInInstance()
+			local instance = select(2, IsInInstance())
 			local fn = function()
 				if instance == 'arena' or instance == 'pvp' then
 					SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
