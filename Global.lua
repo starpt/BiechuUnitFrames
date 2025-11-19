@@ -834,8 +834,8 @@ function BC:miniIcon(unit)
 					end
 				end
 			else
-				SetActiveTalentGroup(passive)    -- 切换天赋
-				frame.miniIcon.callBack = function() -- 切换天赋回调
+				C_SpecializationInfo.SetActiveSpecGroup(passive) -- 切换天赋
+				frame.miniIcon.callBack = function()         -- 切换天赋回调
 					if BC:getDB('player', 'autoTalentEquip') and type(talent[passive]) == 'table' and talent[passive].name then
 						local setID = C_EquipmentSet.GetEquipmentSetID(talent[passive].name)
 						if setID then C_EquipmentSet.UseEquipmentSet(setID) end
@@ -1212,7 +1212,7 @@ function BC:update(unit)
 			frame:SetAlpha(0)
 			return
 		end
-	elseif unit == 'pet'and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
+	elseif unit == 'pet' and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
 		self.pettarget:SetAlpha(0)
 	end
 

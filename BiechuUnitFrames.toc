@@ -1,9 +1,8 @@
-## Interface: 30405
+## Interface: 38000
 ## Title: BiechuUnitFrames
-## Notes: Biechu Unit Frames
 ## Notes-zhCN: 别处头像框体
 
-## Version: 3.4.7
+## Version: 3.4.8
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
 ## X-Localizations: enUS, zhCN
