@@ -17,7 +17,7 @@ hooksecurefunc('PlayerFrame_UpdateLevelTextAnchor', function()
 end)
 
 -- 载具
-hooksecurefunc('PlayerFrame_UpdateArt', function(...)
+hooksecurefunc('PlayerFrame_UpdateArt', function()
 	BC:init('player')
 	BC:init('pet')
 end)

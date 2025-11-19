@@ -8,6 +8,8 @@ BC.texture = 'Interface\\AddOns\\' .. addonName .. '\\Textures\\'
 -- 默认设置
 BC.default = {
 	global = {
+		dark = true,
+		newClassIcon = true,
 		healthBarColor = true,
 		nameClassColor = true,
 		carry = 1,
@@ -416,39 +418,43 @@ end)
 -- 保护性驱散Debuff
 BC.debuffTable = {
 	['Curse'] = {
+		475, -- 法师 解除诅咒
 		2782, -- 德鲁伊 解除诅咒
-		475 -- 法师 解除诅咒
+		51886 -- 萨满 净化灵魂
 	},
 	['Disease'] = {
-		4987, -- 圣骑士 清洁术
 		528, -- 牧师 祛病术
 		552, -- 牧师 驱除疾病
-		2870, -- 萨满 祛病术
-		8170 -- 萨满 净化图腾
+		-- 2870, -- 萨满 祛病术
+		4987, -- 圣骑士 清洁术
+		8170, -- 萨满 净化图腾
+		51886 -- 萨满 净化灵魂
 	},
 	['Magic'] = {
-		4987, -- 圣骑士 清洁术
 		527, -- 牧师 驱散魔法
-		32375, -- 牧师 群体驱散
-		19505 -- 术士 吞噬魔法
+		4987, -- 圣骑士 清洁术
+		19505, -- 术士 吞噬魔法
+		32375 -- 牧师 群体驱散
 	},
 	['Poison'] = {
-		2893, -- 德鲁伊 驱毒术
-		8946, -- 德鲁伊 消毒术
-		4987, -- 圣骑士 清洁术
 		526, -- 萨满 驱毒术
-		8170 -- 萨满 净化图腾
+		2893, -- 德鲁伊 驱毒术
+		4987, -- 圣骑士 清洁术
+		8170, -- 萨满 净化图腾
+		8946, -- 德鲁伊 消毒术
+		51886 -- 萨满 净化灵魂
 	}
 }
 -- 进攻性驱散Buff
 BC.buffTable = {
 	['Magic'] = {
+		370,  -- 萨满 净化术
 		527,  -- 牧师 驱散魔法
-		32375, -- 牧师 群体驱散
 		19505, -- 术士 吞噬魔法
+		19801, -- 猎人 宁神射击
 		30449, -- 法师 法术偷取
-		47488, -- 战士 盾牌猛击
-		370   -- 萨满 净化术
+		32375, -- 牧师 群体驱散
+		47488 -- 战士 盾牌猛击
 	},
 	[''] = { -- 激怒
 		19801 -- 猎人 宁神射击
@@ -548,14 +554,6 @@ function BC:aura(unit)
 			buff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		buff:SetScript('OnEnter', function(self)
-			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-			GameTooltip:SetUnitBuff(unit, i)
-		end)
-		buff:SetScript('OnLeave', function()
-			GameTooltip:Hide()
-		end)
-
 		local _, icon, count, dispelType, duration, expirationTime, source = UnitBuff(unit, i)
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
@@ -593,6 +591,14 @@ function BC:aura(unit)
 			else
 				buff.count:SetText(nil)
 			end
+
+			buff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
+				GameTooltip:SetUnitBuff(self.unit, self:GetID())
+			end)
+			buff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
 
 			buff:Show()
 			total = total + 1
@@ -648,14 +654,6 @@ function BC:aura(unit)
 			debuff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		debuff:SetScript('OnEnter', function(self)
-			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-			GameTooltip:SetUnitDebuff(unit, i)
-		end)
-		debuff:SetScript('OnLeave', function()
-			GameTooltip:Hide()
-		end)
-
 		local _, icon, count, dispelType, duration, expirationTime, source = UnitDebuff(unit, i)
 		if icon then
 			CooldownFrame_Set(debuff.cooldown, expirationTime - duration, duration, true)
@@ -702,6 +700,14 @@ function BC:aura(unit)
 					debuff.border:Show()
 				end
 			end
+
+			debuff:SetScript('OnEnter', function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
+				GameTooltip:SetUnitBuff(self.unit, self:GetID())
+			end)
+			debuff:SetScript('OnLeave', function()
+				GameTooltip:Hide()
+			end)
 
 			debuff:Show()
 			total = total + 1
@@ -1166,6 +1172,23 @@ hooksecurefunc('TextStatusBar_UpdateTextString', function(self)
 end)
 
 -- 更新
+BC.cambatLeave = {}
+function BC:toggle(frame, show)
+	local fn = function()
+		if show then
+			frame:Show()
+		else
+			frame:Hide()
+		end
+	end
+	frame:SetAlpha(show and 1 or 0)
+	if InCombatLockdown() then
+		table.insert(self.cambatLeave, fn)
+	else
+		fn()
+	end
+end
+
 function BC:update(unit)
 	if unit == 'targettarget' and UnitIsUnit('player', 'target') then return end
 	unit = self:formatUnit(unit)
@@ -1176,38 +1199,27 @@ function BC:update(unit)
 
 	-- 显示/隐藏 框体
 	if key == 'party' then
-		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
-			frame:SetAlpha(0)
-			if self[unit .. 'target'] then self[unit .. 'target']:SetAlpha(0) end
+		local partytarget = self[unit .. 'target']
+		if not UnitExists(unit) or self:getDB(key, 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+			self:toggle(frame, false)
+			self:toggle(partytarget, false)
 			return
-		else
-			if not frame:IsShown() then
-				if InCombatLockdown() then
-					self.updateCombat = self.updateCombat or {}
-					table.insert(self.updateCombat, function()
-						frame:Show()
-						BC:update(unit .. 'target')
-					end)
-				else
-					frame:Show()
-				end
-			end
-			frame:SetAlpha(1)
-			self:update(unit .. 'target')
 		end
+		self:toggle(frame, true)
+		self:update(unit .. 'target')
 	elseif self:getDB(key, 'hideFrame') then
-		frame:SetAlpha(0)
+		self:toggle(frame, false)
 		return
 	elseif key == 'partytarget' then
-		local party = unit:gsub('target$', '')
-		if not self[party] or not self[party]:IsShown() or self[party]:GetAlpha() <= 0 then
-			frame:SetAlpha(0)
+		local party = self[unit:gsub('target$', '')]
+		if not party:IsShown() or party:GetAlpha() <= 0 then
+			self:toggle(frame, false)
 			return
 		end
 	end
 	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
 		if UnitExists(unit) and not (UnitInVehicle('player') and unit == 'pettarget') then
-			frame:SetAlpha(1)
+			self:toggle(frame, true)
 		else
 			frame:SetAlpha(0)
 			return
@@ -1228,18 +1240,8 @@ function BC:update(unit)
 			else
 				color = { r = 1, g = .82, b = 0 }
 			end
-			if UnitInVehicle('player') then
-				if unit == 'pet' or unit == 'vehicle' then
-					frame.name:SetText(UnitName('player'))
-					if self:getDB('global', 'nameClassColor') then color = RAID_CLASS_COLORS[select(2, UnitClass('player'))] end
-				elseif unit == 'player' then
-					frame.name:SetText(UnitName('pet'))
-					color = { r = 1, g = .82, b = 0 }
-				end
-			end
 			if type(color) == 'table' then frame.name:SetTextColor(color.r, color.g, color.b) end
-			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'),
-				self:getDB('global', 'fontFlags'))
+			frame.name:SetFont(self:getDB('global', 'nameFont'), self:getDB(key, 'nameFontSize'), self:getDB('global', 'fontFlags'))
 			frame.name:Show()
 		end
 	end
@@ -1305,7 +1307,6 @@ function BC:init(unit)
 			else
 				frame:SetPoint(relative, offsetX, offsetY)
 			end
-			if unit == 'player' then frame:SetUserPlaced(true) end
 		end
 	end
 
@@ -1574,12 +1575,10 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:drag(LFGParentFrame) -- 寻求组队
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
-		if self.updateCombat then
-			for _, fun in pairs(self.updateCombat) do
-				if type(fun) == 'function' then fun() end
-			end
-			self.updateCombat = nil
+		for _, fn in pairs(self.cambatLeave) do
+			if type(fn) == 'function' then fn() end
 		end
+		self.cambatLeave = {}
 	elseif event == 'PLAYER_FOCUS_CHANGED' then
 		self:incomingHeals('focus')
 	elseif event == 'PLAYER_TARGET_CHANGED' then
@@ -1594,22 +1593,18 @@ BC:SetScript('OnEvent', function(self, event, unit)
 	elseif event == 'ZONE_CHANGED' or event == 'ZONE_CHANGED_NEW_AREA' then
 		-- PVP环境自动设置TAB选择敌对玩家
 		if self:getDB('global', 'autoTab') then
-			local _, instance = IsInInstance()
-			if InCombatLockdown() then
-				self.updateCombat = self.updateCombat or {}
-				table.insert(self.updateCombat, function()
-					if instance == 'arena' or instance == 'pvp' then
-						SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
-					else
-						SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
-					end
-				end)
-			else
+			local instance = select(2, IsInInstance())
+			local fn = function()
 				if instance == 'arena' or instance == 'pvp' then
 					SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
 				else
 					SetBinding('TAB', 'TARGETNEARESTENEMY', 1)
 				end
+			end
+			if InCombatLockdown() then
+				table.insert(self.cambatLeave, fn)
+			else
+				fn()
 			end
 		end
 
