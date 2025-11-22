@@ -412,6 +412,8 @@ hooksecurefunc('UIParentLoadAddOn', function(addon)
 	elseif addon == 'Blizzard_Collections' then -- 藏品
 		BC:drag(WardrobeFrame)                   -- 幻化对话框
 		BC:drag(CollectionsJournal)
+	elseif addon == 'Blizzard_InspectUI' then   -- 目标角色信息
+		BC:drag(InspectFrame)
 	end
 end)
 
@@ -770,8 +772,8 @@ function BC:miniIcon(unit)
 		local passive = 3 - active                         -- 将切换天赋
 		local talent = {}
 		local text
-		for i = 1, MAX_TALENT_TABS do
-			local _, name, _, icon, point = GetTalentTabInfo(i, 'player', false, active)
+		for i = 1, GetNumTalentTabs() do
+			local _, name, _, icon, point = GetTalentTabInfo(i, false, false, active)
 			text = (text and text .. '/' or '') .. point
 			if point > 0 and (type(talent[active]) ~= 'table' or talent[active].point < point) then
 				talent[active] = {
@@ -780,7 +782,7 @@ function BC:miniIcon(unit)
 					point = point
 				}
 			end
-			_, name, _, _, point = GetTalentTabInfo(i, 'player', false, passive)
+			_, name, _, _, point = GetTalentTabInfo(i, false, false, passive)
 			if point > 0 and (type(talent[passive]) ~= 'table' or talent[passive].point < point) then
 				talent[passive] = {
 					name = name,
@@ -1188,7 +1190,6 @@ function BC:toggle(frame, show)
 		fn()
 	end
 end
-
 function BC:update(unit)
 	if unit == 'targettarget' and UnitIsUnit('player', 'target') then return end
 	unit = self:formatUnit(unit)
@@ -1199,33 +1200,37 @@ function BC:update(unit)
 
 	-- 显示/隐藏 框体
 	if key == 'party' then
-		local partytarget = self[unit .. 'target']
-		if not UnitExists(unit) or self:getDB(key, 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			self:toggle(frame, false)
-			self:toggle(partytarget, false)
+			self:toggle(self[unit .. 'pet'], false)
+			self:toggle(self[unit .. 'target'], false)
 			return
 		end
 		self:toggle(frame, true)
+		self:update(unit .. 'pet')
 		self:update(unit .. 'target')
 	elseif self:getDB(key, 'hideFrame') then
 		self:toggle(frame, false)
 		return
-	elseif key == 'partytarget' then
+	elseif key == 'partypet' or key == 'partytarget' then
 		local party = self[unit:gsub('target$', '')]
-		if not party:IsShown() or party:GetAlpha() <= 0 then
+		if party and not party:IsShown() or party:GetAlpha() <= 0 then
+			self:toggle(frame, false)
+			return
+		end
+	elseif key == 'partypet' then
+		if not self.pet:IsShown() or self.pet:GetAlpha() <= 0 then
 			self:toggle(frame, false)
 			return
 		end
 	end
 	if unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
-		if UnitExists(unit) and not (UnitInVehicle('player') and unit == 'pettarget') then
+		if UnitExists(unit) then
 			self:toggle(frame, true)
 		else
-			frame:SetAlpha(0)
+			self:toggle(frame, false)
 			return
 		end
-	elseif unit == 'pet' and not UnitExists('pet') and self.pettarget:GetAlpha() > 0 then
-		self.pettarget:SetAlpha(0)
 	end
 
 	-- 名字

@@ -245,6 +245,9 @@ BC.player.init = function()
 		else
 			PlayerFrameVehicleTexture:SetTexture(BC:file('Vehicles\\UI-Vehicle-Frame'))
 		end
+	else
+		BC.player.flash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
+		BC.player.flash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
 	end
 
 	-- 5秒回蓝闪动
