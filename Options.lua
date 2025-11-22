@@ -849,7 +849,11 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	if button then BC:setDB('party', 'hideFrame', not enabled or nil) end
+	if button then
+		BC:setDB('party', 'hideFrame', not enabled or nil)
+		option.partypet.hideFrame:Click()
+		option.partytarget.hideFrame:Click()
+	end
 	option.party.portraitCombat:SetEnabled(enabled)
 	option.party.combatFlash:SetEnabled(enabled)
 	option.party.healthBarClass:SetEnabled(enabled)
@@ -872,23 +876,8 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, bu
 	option.party.auraRows:SetEnabled(enabled)
 	option.party.auraX:SetEnabled(enabled)
 	option.party.auraY:SetEnabled(enabled)
-
 	option.partypet.hideFrame:SetEnabled(enabled)
-	enabled = not BC:getDB('partypet', 'hideFrame')
-	option.partypet.hideName:SetEnabled(enabled and enabled)
-	option.partypet.nameFontSize:SetEnabled(enabled and enabled and not BC:getDB('partypet', 'hideName'))
-	option.partypet.valueFontSize:SetEnabled(enabled and enabled)
-	option.partypet.valueStyle:SetEnabled(enabled and enabled)
-
 	option.partytarget.hideFrame:SetEnabled(enabled)
-	local enabledTarget = not BC:getDB('partytarget', 'hideFrame')
-	option.partytarget.portraitClass:SetEnabled(enabled and enabledTarget)
-	option.partytarget.healthBarClass:SetEnabled(enabled and enabledTarget)
-	option.partytarget.outRange:SetEnabled(enabled and enabledTarget)
-	option.partytarget.hideName:SetEnabled(enabled and enabledTarget)
-	option.partytarget.nameFontSize:SetEnabled(enabled and enabledTarget and not BC:getDB('partytarget', 'hideName'))
-	option.partytarget.valueFontSize:SetEnabled(enabled and enabledTarget)
-	option.partytarget.valueStyle:SetEnabled(enabled and enabledTarget)
 end)
 
 -- 团队显示小队框体
@@ -1004,10 +993,8 @@ end)
 -- 隐藏框体
 option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('partypet', 'hideFrame')) end) then return end
-	local enabled = not self:GetChecked()
-	if button then
-		BC:setDB('partypet', 'hideFrame', not enabled or nil)
-	end
+	local enabled = not self:GetChecked() and not BC:getDB('party', 'hideFrame')
+	if button then BC:setDB('partypet', 'hideFrame', not enabled or nil) end
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
 	option.partypet.valueFontSize:SetEnabled(enabled)
@@ -1043,7 +1030,7 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 -- 隐藏框体
 option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('partytarget', 'hideFrame')) end) then return end
-	local enabled = not self:GetChecked()
+	local enabled = not self:GetChecked() and not BC:getDB('party', 'hideFrame')
 	if button then BC:setDB('partytarget', 'hideFrame', not enabled or nil) end
 	option.partytarget.portraitClass:SetEnabled(enabled)
 	option.partytarget.healthBarClass:SetEnabled(enabled)
