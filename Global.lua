@@ -412,7 +412,7 @@ hooksecurefunc('UIParentLoadAddOn', function(addon)
 	elseif addon == 'Blizzard_Collections' then -- 藏品
 		BC:drag(WardrobeFrame)                   -- 幻化对话框
 		BC:drag(CollectionsJournal)
-	elseif addon == 'Blizzard_InspectUI' then   -- 目标角色信息
+	elseif addon == 'Blizzard_InspectUI' then  -- 目标角色信息
 		BC:drag(InspectFrame)
 	end
 end)
@@ -556,10 +556,10 @@ function BC:aura(unit)
 			buff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		local _, icon, count, dispelType, duration, expirationTime, source = UnitBuff(unit, i)
+		local _, icon, count, dispelType, duration, expirationTime, source, _, _, spellId = UnitBuff(unit, i)
 		if icon then
 			CooldownFrame_Set(buff.cooldown, expirationTime - duration, duration, true)
-			local selfCast = source == 'player' or source == 'pet'
+			local selfCast = source == 'player' or source == 'pet' or source == 'vehicle'
 			if UnitCanAttack('player', unit) then                            -- 进攻驱散
 				local canDispel = self:dispel(unit, dispelType)                -- 可以驱散
 				buff.cooldown._occ_show = not dispelCooldown or canDispel or false -- 倒计时
@@ -596,7 +596,7 @@ function BC:aura(unit)
 
 			buff:SetScript('OnEnter', function(self)
 				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-				GameTooltip:SetUnitBuff(self.unit, self:GetID())
+				if spellId then GameTooltip:SetSpellByID(spellId) end
 			end)
 			buff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
@@ -656,10 +656,10 @@ function BC:aura(unit)
 			debuff.border:SetVertexColor(.3, .3, .3)
 		end
 
-		local _, icon, count, dispelType, duration, expirationTime, source = UnitDebuff(unit, i)
+		local _, icon, count, dispelType, duration, expirationTime, source, _, _, spellId = UnitDebuff(unit, i)
 		if icon then
 			CooldownFrame_Set(debuff.cooldown, expirationTime - duration, duration, true)
-			local selfCast = source == 'player' or source == 'pet'
+			local selfCast = source == 'player' or source == 'pet' or source == 'vehicle'
 			if UnitCanAttack('player', unit) then                           -- Dot
 				debuff.cooldown._occ_show = not selfCooldown or selfCast
 			elseif UnitIsFriend('player', unit) then                        -- 防御驱散
@@ -705,7 +705,7 @@ function BC:aura(unit)
 
 			debuff:SetScript('OnEnter', function(self)
 				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-				GameTooltip:SetUnitBuff(self.unit, self:GetID())
+				if spellId then GameTooltip:SetSpellByID(spellId) end
 			end)
 			debuff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
@@ -1190,6 +1190,7 @@ function BC:toggle(frame, show)
 		fn()
 	end
 end
+
 function BC:update(unit)
 	if unit == 'targettarget' and UnitIsUnit('player', 'target') then return end
 	unit = self:formatUnit(unit)
