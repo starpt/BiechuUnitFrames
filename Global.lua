@@ -595,8 +595,10 @@ function BC:aura(unit)
 			end
 
 			buff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-				if spellId then GameTooltip:SetSpellByID(spellId) end
+				if spellId then
+					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
+					GameTooltip:SetSpellByID(spellId)
+				end
 			end)
 			buff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
@@ -704,8 +706,10 @@ function BC:aura(unit)
 			end
 
 			debuff:SetScript('OnEnter', function(self)
-				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-				if spellId then GameTooltip:SetSpellByID(spellId) end
+				if spellId then
+					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
+					GameTooltip:SetSpellByID(spellId)
+				end
 			end)
 			debuff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
