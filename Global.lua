@@ -392,6 +392,7 @@ BC:drag(FriendsFrame)                          -- 社交
 BC:drag(CommunitiesFrame)                      -- 群组
 BC:drag(PVPFrame, PVPParentFrame)              -- PVP
 BC:drag(BattlefieldFrame, PVPParentFrame)      -- 战场
+BC:drag(WorldStateScoreFrame)                  -- 战场统计
 BC:drag(PVEFrame)                              -- 地下城与副本查找器
 BC:drag(GameMenuFrame)                         -- 主菜单
 BC:drag(HelpFrame)                             -- 客服支持
@@ -1180,7 +1181,7 @@ end)
 -- 更新
 BC.cambatLeave = {}
 function BC:toggle(frame, show)
-	local fn = function()
+	local leave = function()
 		if show then
 			frame:Show()
 		else
@@ -1189,9 +1190,9 @@ function BC:toggle(frame, show)
 	end
 	frame:SetAlpha(show and 1 or 0)
 	if InCombatLockdown() then
-		table.insert(self.cambatLeave, fn)
+		table.insert(self.cambatLeave, leave)
 	else
-		fn()
+		leave()
 	end
 end
 
@@ -1205,7 +1206,7 @@ function BC:update(unit)
 
 	-- 显示/隐藏 框体
 	if key == 'party' then
-		if self:getDB(key, 'hideFrame') or not UnitExists(unit) or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
+		if not UnitExists(unit) or self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			self:toggle(frame, false)
 			self:toggle(self[unit .. 'pet'], false)
 			self:toggle(self[unit .. 'target'], false)
@@ -1218,13 +1219,7 @@ function BC:update(unit)
 		self:toggle(frame, false)
 		return
 	elseif key == 'partypet' or key == 'partytarget' then
-		local party = self[unit:gsub('target$', '')]
-		if party and not party:IsShown() or party:GetAlpha() <= 0 then
-			self:toggle(frame, false)
-			return
-		end
-	elseif key == 'partypet' then
-		if not self.pet:IsShown() or self.pet:GetAlpha() <= 0 then
+		if not UnitExists(unit:match('^(party%d).*$')) or self:getDB('party', 'hideFrame') or not self:getDB('party', 'raidShowParty') and UnitInRaid('player') then
 			self:toggle(frame, false)
 			return
 		end
@@ -1317,6 +1312,7 @@ function BC:init(unit)
 			else
 				frame:SetPoint(relative, offsetX, offsetY)
 			end
+			if unit == 'player' then frame:SetUserPlaced(true) end
 		end
 	end
 
@@ -1585,8 +1581,8 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		self:drag(LFGParentFrame) -- 寻求组队
 		self:init()
 	elseif event == 'PLAYER_REGEN_ENABLED' then
-		for _, fn in pairs(self.cambatLeave) do
-			if type(fn) == 'function' then fn() end
+		for _, leave in pairs(self.cambatLeave) do
+			if type(leave) == 'function' then leave() end
 		end
 		self.cambatLeave = {}
 	elseif event == 'PLAYER_FOCUS_CHANGED' then
@@ -1604,7 +1600,7 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		-- PVP环境自动设置TAB选择敌对玩家
 		if self:getDB('global', 'autoTab') then
 			local instance = select(2, IsInInstance())
-			local fn = function()
+			local leave = function()
 				if instance == 'arena' or instance == 'pvp' then
 					SetBinding('TAB', 'TARGETNEARESTENEMYPLAYER', 1)
 				else
@@ -1612,9 +1608,9 @@ BC:SetScript('OnEvent', function(self, event, unit)
 				end
 			end
 			if InCombatLockdown() then
-				table.insert(self.cambatLeave, fn)
+				table.insert(self.cambatLeave, leave)
 			else
-				fn()
+				leave()
 			end
 		end
 
