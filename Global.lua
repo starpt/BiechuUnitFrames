@@ -105,7 +105,7 @@ BC.default = {
 		statusBarAlpha = .8,
 		nameFontSize = 13,
 		valueFontSize = 12,
-		valueStyle = 7,
+		valueStyle = 1,
 		drag = true,
 		scale = 1,
 		selfCooldown = true,
@@ -364,7 +364,7 @@ function BC:drag(frame, parent, drag, callBack)
 
 		self.moving = true
 		mover:SetMovable(true)       -- 允许移动
-		mover:SetClampedToScreen(true) -- 屏幕内移动
+		-- mover:SetClampedToScreen(true) -- 屏幕内移动
 		mover:StartMoving()
 	end)
 	frame:SetScript('OnMouseUp', function(self)
