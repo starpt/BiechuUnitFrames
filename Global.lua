@@ -773,7 +773,7 @@ function BC:miniIcon(unit)
 	local frame = self[unit]
 	if not (frame and frame.miniIcon and frame.miniIcon:IsShown()) then return end
 	if unit == 'player' then
-		local active = GetActiveTalentGroup('player', false) -- 当前天赋
+		local active = GetActiveTalentGroup(false, false)  -- 当前天赋
 		local passive = 3 - active                         -- 将切换天赋
 		local talent = {}
 		local text

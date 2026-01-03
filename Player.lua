@@ -363,7 +363,7 @@ for _, event in pairs {
 	frame:RegisterEvent(event)
 end
 frame:SetScript('OnEvent', function(self, event, unit)
-	if event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' or event == 'ZONE_CHANGED_NEW_AREA' then
+	if event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' then
 		BC:miniIcon('player')
 	elseif event == 'EQUIPMENT_SETS_CHANGED' then
 		self:equip()
