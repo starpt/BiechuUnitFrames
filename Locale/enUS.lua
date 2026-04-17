@@ -12,7 +12,7 @@ L.focustarget = 'Focus Target Frame'
 L.party = 'Party Frame'
 L.partypet = 'Party Pet Frame'
 L.partytarget = 'Party Target Frame'
-L.info = 'Email: ' .. GetAddOnMetadata(addonName, 'X-eMail')
+L.info = 'Email: ' .. C_AddOns.GetAddOnMetadata(addonName, 'X-eMail')
 L.cantSaveInCombat = 'Cant save in combat!'
 L.confirmResetDefault = 'Confirm reset default?'
 L.reset = 'Reset'
@@ -182,11 +182,8 @@ L.creatureList = {
 	['Giant'] = 7,
 	['Undead'] = 8,
 	['Totem'] = 9,
-	['Aberration'] = 10,
-	['Critter'] = 11,
-	['Gas Cloud'] = 12,
-	['Non-combat Pet'] = 13,
-	['Not specified'] = 14
+	['Critter'] = 10,
+	['Not specified'] = 11
 }
 
 L.playerClass = 'Player class:'

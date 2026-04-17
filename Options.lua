@@ -44,15 +44,15 @@ for index, name in pairs(option.list) do
 end
 
 -- 暴雪变量修改
-hooksecurefunc('SetCVar', function(name, value, button)
+hooksecurefunc('SetCVar', function(name, value)
 	if name == 'alwaysCompareItems' then    -- 启用装备对比
-		option.alwaysCompareItems:SetChecked(value == '1')
+		option.alwaysCompareItems:SetChecked(tostring(value) == '1')
 	elseif name == 'showTargetOfTarget' then -- 目标的目标
-		if button ~= 'LeftButton' then
-			BC:setDB('targettarget', 'hideFrame', value == false or value == '0')
-			option.targettarget.hideFrame:SetChecked(value == false or value == '0')
-			option.targettarget.hideFrame:Click()
-		end
+		option.targettarget.hideFrame:SetChecked(tostring(value) == '0')
+		option.targettarget.hideFrame:Click()
+	elseif name == 'showPartyPets' then -- 队友宠物
+		option.partypet.hideFrame:SetChecked(tostring(value) == '0')
+		option.partypet.hideFrame:Click()
 	end
 end)
 
@@ -87,7 +87,7 @@ function option:check(key, name, relative, offsetX, offsetY, text, click)
 	_G[parent[name]:GetName() .. 'Text']:SetText(L[text or name])
 
 	parent[name].Click = type(click) == 'function' and click or function(self)
-		BC:setDB(key, name, self:GetChecked() and true or false)
+		BC:setDB(key, name, self:GetChecked())
 	end
 	parent[name]:SetScript('OnClick', parent[name].Click)
 
@@ -103,26 +103,33 @@ end
 -- 拖动
 function option:slider(key, name, relative, offsetX, offsetY, widht, height, lowText, highText, valueMin, valueMax, valueStep, change)
 	local parent = key == 'global' and self or self[key]
-	parent[name] = CreateFrame('Slider', parent:GetName() .. name:gsub('^%l', string.upper), parent, 'CompactUnitFrameProfilesSliderTemplate')
+	parent[name] = CreateFrame('Slider', parent:GetName() .. name:gsub('^%l', string.upper), parent, 'BackdropTemplate, OptionsSliderTemplate')
 	parent[name]:SetPoint('TOPLEFT', relative and parent[relative] or parent, offsetX or 0, offsetY or vertical)
 	parent[name]:SetSize(widht or 180, height or 16)
-	_G[parent[name]:GetName() .. 'Low']:SetText(lowText)
-	_G[parent[name]:GetName() .. 'High']:SetText(highText)
+	parent[name].Low:SetText(lowText)
+	parent[name].High:SetText(highText)
 	parent[name]:SetMinMaxValues(valueMin, valueMax)
 	parent[name]:SetValueStep(valueStep)
-	parent[name .. 'Text'] = parent:CreateFontString(parent:GetName() .. name:gsub('^%l', string.upper) .. 'Text', 'ARTWORK', 'GameFontNormalSmall')
-	parent[name .. 'Text']:SetPoint('CENTER', parent[name], 0, 16)
+	parent[name]:SetBackdrop {
+		bgFile = 'Interface\\Buttons\\UI-SliderBar-Background',
+		edgeFile = 'Interface\\Buttons\\UI-SliderBar-Border',
+		tile = true,
+		tileSize = 8,
+		edgeSize = 8,
+		insets = { left = 3, right = 3, top = 6, bottom = 6 }
+	}
+	parent[name].Text = parent:CreateFontString(parent:GetName() .. name:gsub('^%l', string.upper) .. 'Text', 'ARTWORK', 'GameFontNormalSmall')
+	parent[name].Text:SetPoint('CENTER', parent[name], 0, 16)
 	if type(change) == 'function' then parent[name]:SetScript('OnValueChanged', change) end
-
 	hooksecurefunc(parent[name], 'SetEnabled', function(self, value)
 		if value then
-			_G[self:GetName() .. 'Text']:SetTextColor(1, .82, 0)
-			_G[self:GetName() .. 'Low']:SetTextColor(1, 1, 1)
-			_G[self:GetName() .. 'High']:SetTextColor(1, 1, 1)
+			self.Text:SetTextColor(1, .82, 0)
+			self.Low:SetTextColor(1, 1, 1)
+			self.High:SetTextColor(1, 1, 1)
 		else
-			_G[self:GetName() .. 'Text']:SetTextColor(.5, .5, .5)
-			_G[self:GetName() .. 'Low']:SetTextColor(.5, .5, .5)
-			_G[self:GetName() .. 'High']:SetTextColor(.5, .5, .5)
+			self.Text:SetTextColor(.5, .5, .5)
+			self.Low:SetTextColor(.5, .5, .5)
+			self.High:SetTextColor(.5, .5, .5)
 		end
 	end)
 end
@@ -240,7 +247,6 @@ function option:init()
 	self.player.autoTalentEquip:SetChecked(BC:getDB('player', 'autoTalentEquip'))
 	self.player.autoTalentEquip:SetEnabled(BC:getDB('player', 'miniIcon'))
 
-
 	self.player.equipmentIcon:SetChecked(BC:getDB('player', 'equipmentIcon'))    -- 显示装备小图标
 	self.player.hidePartyNumber:SetChecked(BC:getDB('player', 'hidePartyNumber')) -- 在团队中隐藏小队编号
 
@@ -335,7 +341,7 @@ option:SetScript('OnEvent', function(self, event)
 end)
 
 --[[ 全局设置 开始 ]]
-option:title(option, addonName .. ' v' .. GetAddOnMetadata(addonName, 'Version'))
+option:title(option, addonName .. ' v' .. C_AddOns.GetAddOnMetadata(addonName, 'Version'))
 option.info = option:CreateFontString(option:GetName() .. 'Info', 'ARTWORK', 'SystemFont_Small')
 option.info:SetPoint('TOPLEFT', 17, vertical - 6)
 option.info:SetTextColor(.7, .7, .7)
@@ -403,7 +409,6 @@ option:button('global', 'reset', 'configDown', 218, -.5, 60, function()
 	if option:combatAlert() then return end
 	BC:comfing(L.confirmResetDefault, function()
 		SetCVar('alwaysCompareItems', '1')
-		SetCVar('showTargetOfTarget', '1')
 		BC:setDB('reset')
 		option:init()
 	end)
@@ -412,6 +417,7 @@ end)
 option:check('global', 'dragSystemFarmes', nil, horizontal, vertical - 39) -- 自由拖动系统框体
 option:check('global', 'incomingHeals', 'dragSystemFarmes')                -- 显示预治疗
 
+-- 启用装备对比
 option:check('global', 'alwaysCompareItems', 'incomingHeals', nil, nil, nil, function(self)
 	SetCVar('alwaysCompareItems', self:GetChecked() and '1' or '0')
 end)
@@ -420,10 +426,10 @@ option:check('global', 'autoTab', 'alwaysCompareItems') -- PVP自动TAB选择玩
 option:check('global', 'autoDalaran', 'autoTab')        -- 达拉然自动关闭姓名板
 
 -- 支付宝
-option.alipay = option:CreateTexture()
-option.alipay:SetTexture(BC.texture .. 'Alipay')
-option.alipay:SetSize(128, 128)
-option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
+-- option.alipay = option:CreateTexture()
+-- option.alipay:SetTexture(BC.texture .. 'Alipay')
+-- option.alipay:SetSize(128, 128)
+-- option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
 --[[ 全局设置 结束 ]]
 
 
@@ -442,24 +448,22 @@ option.player.autoTalentEquip:SetScale(.9)
 option:check('player', 'equipmentIcon', 'miniIcon', nil, vertical - 18) -- 显示装备小图标
 option:check('player', 'hidePartyNumber', 'equipmentIcon')              -- 在团队中隐藏小队编号
 option:check('player', 'fiveSecondRule', 'hidePartyNumber')             -- 法力条显示5秒恢复
-
--- 显示自定义德鲁伊法力条
-option:check('player', 'druidBar', 'fiveSecondRule')
-option:check('player', 'healthBarClass', 'druidBar')       -- 体力条职业色(玩家)
-option:check('player', 'statusBarClass', 'healthBarClass') -- 状态栏背景职业色(玩家)
+option:check('player', 'druidBar', 'fiveSecondRule')                    -- 显示自定义德鲁伊法力条
+option:check('player', 'healthBarClass', 'druidBar')                    -- 体力条职业色(玩家)
+option:check('player', 'statusBarClass', 'healthBarClass')              -- 状态栏背景职业色(玩家)
 
 -- 名字字体大小
-option:slider('player', 'nameFontSize', 'statusBarClass', 5, vertical - 16, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('player', 'nameFontSize', 'statusBarClass', 5, vertical - 16, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('player', 'nameFontSize') then BC:setDB('player', 'nameFontSize', value) end
-	option.player.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('player', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('player', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('player', 'valueFontSize') then BC:setDB('player', 'valueFontSize', value) end
-	option.player.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('player', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -473,10 +477,10 @@ option:button('player', 'pointTargetLeftTop', nil, horizontal + 2, -20, nil, fun
 	BC:setDB('target', 'relative', 'TOPLEFT')
 	if BC:getDB('target', 'anchor') then
 		BC:setDB('target', 'offsetX', 299)
-		BC:setDB('target', 'offsetY', 0)
+		BC:setDB('target', 'offsetY', 3.5)
 	else
 		BC:setDB('target', 'offsetX', 280)
-		BC:setDB('target', 'offsetY', -4)
+		BC:setDB('target', 'offsetY', -.5)
 	end
 	option.player.scale:SetValue(1)
 	option.target.scale:SetValue(1)
@@ -507,7 +511,7 @@ option:check('player', 'drag', 'pointTargetLeftTop', -2, vertical - 4) -- 非战
 option:slider('player', 'scale', 'drag', 4, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
 	if option:combatAlert(function() self:SetValue(BC:getDB('player', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
-	option.player.scaleText:SetText(L.scale .. ': ' .. value .. '%')
+	self.Text:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('player', 'scale') then BC:setDB('player', 'scale', value) end
 
@@ -528,23 +532,23 @@ option:downMenu('player', 'portrait', L.portraitList, 'border')              -- 
 option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 
 -- 隐藏名字
-option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self, button)
-	if button then BC:setDB('pet', 'hideName', self:GetChecked() and true or false) end
+option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self)
+	BC:setDB('pet', 'hideName', self:GetChecked())
 	if option.pet.nameFontSize then option.pet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('pet', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('pet', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('pet', 'nameFontSize') then BC:setDB('pet', 'nameFontSize', value) end
-	option.pet.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('pet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('pet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('pet', 'valueFontSize') then BC:setDB('pet', 'valueFontSize', value) end
-	option.pet.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('pet', 'valueStyle', option:valueStyleList(1, 2, 3, 4), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -565,10 +569,10 @@ option:check('pet', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按
 --[[ 宠物的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('pettarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	if button then BC:setDB('pettarget', 'hideFrame', not enabled) end
+	BC:setDB('pettarget', 'hideFrame', not enabled)
 	option.pettarget.portraitClass:SetEnabled(enabled)
 	option.pettarget.healthBarClass:SetEnabled(enabled)
 	option.pettarget.outRange:SetEnabled(enabled)
@@ -587,23 +591,23 @@ option:check('pettarget', 'healthBarClass', 'portraitClass') -- 体力条职业�
 option:check('pettarget', 'outRange', 'healthBarClass')      -- 超出范围半透明
 
 -- 隐藏名字
-option:check('pettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
-	if button then BC:setDB('pettarget', 'hideName', self:GetChecked() and true or false) end
+option:check('pettarget', 'hideName', 'outRange', nil, nil, nil, function(self)
+	BC:setDB('pettarget', 'hideName', self:GetChecked())
 	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('pettarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('pettarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('pettarget', 'nameFontSize') then BC:setDB('pettarget', 'nameFontSize', value) end
-	option.pettarget.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('pettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('pettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('pettarget', 'valueFontSize') then BC:setDB('pettarget', 'valueFontSize', value) end
-	option.pettarget.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('pettarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -628,21 +632,21 @@ option:check('target', 'statusBarClass', 'healthBarClass') -- 状态栏背景职
 option:slider('target', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .05, function(self, value)
 	value = floor(value * 20) / 20
 	if value ~= BC:getDB('target', 'statusBarAlpha') then BC:setDB('target', 'statusBarAlpha', value) end
-	option.target.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
+	self.Text:SetText(L.statusBarAlpha .. ': ' .. value)
 end)
 
 -- 名字字体大小
-option:slider('target', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('target', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('target', 'nameFontSize') then BC:setDB('target', 'nameFontSize', value) end
-	option.target.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('target', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('target', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('target', 'valueFontSize') then BC:setDB('target', 'valueFontSize', value) end
-	option.target.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -651,7 +655,7 @@ option:downMenu('target', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, v
 option:button('target', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, function()
 	if option:combatAlert() then return end
 	if BC:getDB('target', 'anchor') then
-		BC:setDB('target', 'offsetY', 0)
+		BC:setDB('target', 'offsetY', 3.5)
 	else
 		local relative = BC:getDB('player', 'relative')
 		local offsetX
@@ -663,8 +667,8 @@ option:button('target', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, f
 			offsetX = TargetFrame:GetLeft() - (UIParent:GetWidth() - TargetFrame:GetWidth()) / 2
 		end
 		BC:setDB('target', 'relative', relative)
-		BC:setDB('target', 'offsetX', floor(offsetX + .5))
-		BC:setDB('target', 'offsetY', BC:getDB('player', 'offsetY'))
+		BC:setDB('target', 'offsetX', floor(offsetX * 10 + .5) / 10)
+		BC:setDB('target', 'offsetY', BC:getDB('player', 'offsetY') + 3.5)
 	end
 end)
 
@@ -685,7 +689,7 @@ option:button('target', 'pointPlayerCenter', 'pointPlayerAlignment', 164, 0, 160
 		BC:setDB('player', 'relative', relative)
 		local scale = BC:getDB('player', 'scale')
 		BC:setDB('player', 'offsetX', floor(UIParent:GetWidth() - BC:getDB('target', 'offsetX') * scale - TargetFrame:GetWidth() * scale + 0.5) / scale / 2)
-		BC:setDB('target', 'offsetY', 0)
+		BC:setDB('target', 'offsetY', 3.5)
 	else
 		relative = BC:getDB('player', 'relative')
 		if string.match(relative, 'TOP') then
@@ -700,7 +704,7 @@ option:button('target', 'pointPlayerCenter', 'pointPlayerAlignment', 164, 0, 160
 		BC:setDB('player', 'offsetX', offsetX)
 		BC:setDB('target', 'relative', relative)
 		BC:setDB('target', 'offsetX', -offsetX)
-		BC:setDB('target', 'offsetY', BC:getDB('player', 'offsetY'))
+		BC:setDB('target', 'offsetY', BC:getDB('player', 'offsetY') + 3.5)
 	end
 end)
 
@@ -725,15 +729,15 @@ option:check('target', 'anchor', 'drag', nil, nil, nil, function(self)
 		BC:setDB('target', 'anchor', nil)
 	end
 	BC:setDB('target', 'relative', 'TOPLEFT')
-	BC:setDB('target', 'offsetX', floor(offsetX + .5))
-	BC:setDB('target', 'offsetY', floor(offsetY + .5))
+	BC:setDB('target', 'offsetX', floor(offsetX * 10 + .5) / 10)
+	BC:setDB('target', 'offsetY', floor(offsetY * 10 + .5) / 10)
 end)
 
 -- 框体缩放
 option:slider('target', 'scale', 'anchor', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
 	if option:combatAlert(function() self:SetValue(BC:getDB('target', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
-	option.target.scaleText:SetText(L.scale .. ': ' .. value .. '%')
+	self.Text:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('target', 'scale') then BC:setDB('target', 'scale', value) end
 end)
@@ -745,14 +749,14 @@ option:check('target', 'dispelStealable', 'dispelCooldown')       -- 高亮显�
 -- Buff/Debuff大小
 option:slider('target', 'auraSize', 'dispelStealable', 4, vertical - 20, 250, nil, 12, 64, 12, 64, 1, function(self, value)
 	value = floor(value)
-	option.target.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	self.Text:SetText(L.auraSize .. ': ' .. value)
 	if value ~= BC:getDB('target', 'auraSize') then BC:setDB('target', 'auraSize', value) end
 end)
 
 -- 其他人施放Buff/Debuff百分比
 option:slider('target', 'auraPercent', 'auraSize', 4, vertical - 20, 250, nil, '50%', '100%', .5, 1, .05, function(self, value)
 	value = floor(value * 100 + .5)
-	option.target.auraPercentText:SetText(L.auraPercent .. ': ' .. value .. '%')
+	self.Text:SetText(L.auraPercent .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('target', 'auraPercent') then BC:setDB('target', 'auraPercent', value) end
 end)
@@ -760,21 +764,21 @@ end)
 -- 一行Buff/Debuff数量
 option:slider('target', 'auraRows', 'auraPercent', 0, vertical - 20, nil, nil, 1, 32, 1, 32, 1, function(self, value)
 	value = floor(value)
-	option.target.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	self.Text:SetText(L.auraRows .. ': ' .. value)
 	if value ~= BC:getDB('target', 'auraRows') then BC:setDB('target', 'auraRows', value) end
 end)
 
 -- Buff/Debuf起始X轴位置
 option:slider('target', 'auraX', 'auraRows', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value)
-	option.target.auraXText:SetText(L.auraX .. ': ' .. value)
+	self.Text:SetText(L.auraX .. ': ' .. value)
 	if value ~= BC:getDB('target', 'auraX') then BC:setDB('target', 'auraX', value) end
 end)
 
 -- Buff/Debuf起始Y轴位置
 option:slider('target', 'auraY', 'auraX', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value)
-	option.target.auraYText:SetText(L.auraY .. ': ' .. value)
+	self.Text:SetText(L.auraY .. ': ' .. value)
 	if value ~= BC:getDB('target', 'auraY') then BC:setDB('target', 'auraY', value) end
 end)
 --[[ 目标设置 结束 ]]
@@ -783,13 +787,10 @@ end)
 --[[ 目标的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('targettarget', 'hideFrame')) end) then return end
+	BC:setDB('targettarget', 'hideFrame', self:GetChecked())
 	local enabled = not self:GetChecked()
-	if button then
-		BC:setDB('targettarget', 'hideFrame', not enabled or nil)
-		SetCVar('showTargetOfTarget', enabled, button)
-	end
 	option.targettarget.portraitClass:SetEnabled(enabled)
 	option.targettarget.healthBarClass:SetEnabled(enabled)
 	option.targettarget.outRange:SetEnabled(enabled)
@@ -802,30 +803,30 @@ option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(s
 end)
 
 -- 头像显示职业图标(玩家)
-option:check('targettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self, button)
-	if button then BC:setDB('targettarget', 'portrait', self:GetChecked() and 1 or 0) end
+option:check('targettarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
+	BC:setDB('targettarget', 'portrait', self:GetChecked() and 1 or 0)
 end)
 
 option:check('targettarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
 option:check('targettarget', 'outRange', 'healthBarClass')      -- 超出范围半透明
 
 -- 隐藏名字
-option:check('targettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
-	if button then BC:setDB('targettarget', 'hideName', self:GetChecked() and true or false) end
+option:check('targettarget', 'hideName', 'outRange', nil, nil, nil, function(self)
+	BC:setDB('targettarget', 'hideName', self:GetChecked())
 	if option.targettarget.nameFontSize then option.targettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('targettarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('targettarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
-	option.targettarget.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('targettarget', 'nameFontSize') then BC:setDB('targettarget', 'nameFontSize', value) end
 end)
 
 -- 数值字体大小
-option:slider('targettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('targettarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
-	option.targettarget.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 	if value ~= BC:getDB('targettarget', 'valueFontSize') then BC:setDB('targettarget', 'valueFontSize', value) end
 end)
 
@@ -845,6 +846,7 @@ option:check('targettarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战
 
 
 --[[ 焦点设置 开始 ]]
+
 option:check('focus', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 option:check('focus', 'combatFlash', 'portraitCombat')         -- 战斗状态边框红光
 option:check('focus', 'threatLeft', 'combatFlash')             -- 居左显示威胁值
@@ -862,21 +864,21 @@ option:check('focus', 'statusBarClass', 'healthBarClass') -- 状态栏背景职�
 option:slider('focus', 'statusBarAlpha', 'statusBarClass', 5, vertical - 16, nil, nil, '0', '1', 0, 1, .05, function(self, value)
 	value = floor(value * 20) / 20
 	if value ~= BC:getDB('focus', 'statusBarAlpha') then BC:setDB('focus', 'statusBarAlpha', value) end
-	option.focus.statusBarAlphaText:SetText(L.statusBarAlpha .. ': ' .. value)
+	self.Text:SetText(L.statusBarAlpha .. ': ' .. value)
 end)
 
 -- 名字字体大小
-option:slider('focus', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('focus', 'nameFontSize', 'statusBarAlpha', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('focus', 'nameFontSize') then BC:setDB('focus', 'nameFontSize', value) end
-	option.focus.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('focus', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(_, value)
+option:slider('focus', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 8, 18, 8, 18, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('focus', 'valueFontSize') then BC:setDB('focus', 'valueFontSize', value) end
-	option.focus.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('focus', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -885,7 +887,7 @@ option:downMenu('focus', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, ve
 option:button('focus', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, function()
 	if option:combatAlert() then return end
 	if BC:getDB('focus', 'anchor') then
-		BC:setDB('focus', 'offsetY', 0)
+		BC:setDB('focus', 'offsetY', 3.5)
 	else
 		local relative = BC:getDB('player', 'relative')
 		local offsetX
@@ -897,8 +899,8 @@ option:button('focus', 'pointPlayerAlignment', nil, horizontal + 2, -20, 160, fu
 			offsetX = FocusFrame:GetLeft() - (UIParent:GetWidth() - FocusFrame:GetWidth()) / 2
 		end
 		BC:setDB('focus', 'relative', relative)
-		BC:setDB('focus', 'offsetX', floor(offsetX + .5))
-		BC:setDB('focus', 'offsetY', BC:getDB('player', 'offsetY'))
+		BC:setDB('focus', 'offsetX', floor(offsetX * 10 + .5) / 10)
+		BC:setDB('focus', 'offsetY', BC:getDB('player', 'offsetY') + 3.5)
 	end
 end)
 
@@ -906,7 +908,7 @@ end)
 option:button('focus', 'pointPlayerVertical', 'pointPlayerAlignment', 164, 0, 160, function()
 	if option:combatAlert() then return end
 	if BC:getDB('focus', 'anchor') then
-		BC:setDB('focus', 'offsetX', 42)
+		BC:setDB('focus', 'offsetX', 24)
 	else
 		local relative = BC:getDB('player', 'relative')
 		local offsetY
@@ -918,8 +920,8 @@ option:button('focus', 'pointPlayerVertical', 'pointPlayerAlignment', 164, 0, 16
 			offsetY = FocusFrame:GetTop() - (UIParent:GetHeight() + FocusFrame:GetHeight()) / 2
 		end
 		BC:setDB('focus', 'relative', relative)
-		BC:setDB('focus', 'offsetX', BC:getDB('player', 'offsetX') + 42)
-		BC:setDB('focus', 'offsetY', floor(offsetY + .5))
+		BC:setDB('focus', 'offsetX', BC:getDB('player', 'offsetX') + 24)
+		BC:setDB('focus', 'offsetY', floor(offsetY * 10 + .5) / 10)
 	end
 end)
 
@@ -931,7 +933,6 @@ option:check('focus', 'anchor', 'drag', nil, nil, nil, function(self)
 	BC:setDB('player', 'scale', 1)
 	option.focus.scale:SetValue(1)
 	BC:setDB('focus', 'scale', 1)
-
 	local offsetX, offsetY
 	if self:GetChecked() then
 		offsetX = FocusFrame:GetLeft() - PlayerFrame:GetLeft()
@@ -945,15 +946,15 @@ option:check('focus', 'anchor', 'drag', nil, nil, nil, function(self)
 		BC:setDB('focus', 'anchor', nil)
 	end
 	BC:setDB('focus', 'relative', 'TOPLEFT')
-	BC:setDB('focus', 'offsetX', floor(offsetX + .5))
-	BC:setDB('focus', 'offsetY', floor(offsetY + .5))
+	BC:setDB('focus', 'offsetX', floor(offsetX * 10 + .5) / 10)
+	BC:setDB('focus', 'offsetY', floor(offsetY * 10 + .5) / 10)
 end)
 
 -- 框体缩放
 option:slider('focus', 'scale', 'anchor', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
 	if option:combatAlert(function() self:SetValue(BC:getDB('focus', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
-	option.focus.scaleText:SetText(L.scale .. ': ' .. value .. '%')
+	self.Text:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('focus', 'scale') then BC:setDB('focus', 'scale', value) end
 end)
@@ -965,14 +966,14 @@ option:check('focus', 'dispelStealable', 'dispelCooldown')       -- 高亮显示
 -- 自己施放的Buff/Debuff大小
 option:slider('focus', 'auraSize', 'dispelStealable', 4, vertical - 20, 250, nil, 12, 64, 12, 64, 1, function(self, value)
 	value = floor(value)
-	option.focus.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	self.Text:SetText(L.auraSize .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'auraSize') then BC:setDB('focus', 'auraSize', value) end
 end)
 
 -- 其他人施放Buff/Debuff百分比
 option:slider('focus', 'auraPercent', 'auraSize', 4, vertical - 20, 250, nil, '50%', '100%', .5, 1, .05, function(self, value)
 	value = floor(value * 100 + .5)
-	option.focus.auraPercentText:SetText(L.auraPercent .. ': ' .. value .. '%')
+	self.Text:SetText(L.auraPercent .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('focus', 'auraPercent') then BC:setDB('focus', 'auraPercent', value) end
 end)
@@ -980,21 +981,21 @@ end)
 -- 一行Buff/Debuff数量
 option:slider('focus', 'auraRows', 'auraPercent', 0, vertical - 20, nil, nil, 1, 32, 1, 32, 1, function(self, value)
 	value = floor(value)
-	option.focus.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	self.Text:SetText(L.auraRows .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'auraRows') then BC:setDB('focus', 'auraRows', value) end
 end)
 
 -- Buff/Debuf起始X轴位置
 option:slider('focus', 'auraX', 'auraRows', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value)
-	option.focus.auraXText:SetText(L.auraX .. ': ' .. value)
+	self.Text:SetText(L.auraX .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'auraX') then BC:setDB('focus', 'auraX', value) end
 end)
 
 -- Buff/Debuf起始Y轴位置
 option:slider('focus', 'auraY', 'auraX', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value)
-	option.focus.auraYText:SetText(L.auraY .. ': ' .. value)
+	self.Text:SetText(L.auraY .. ': ' .. value)
 	if value ~= BC:getDB('focus', 'auraY') then BC:setDB('focus', 'auraY', value) end
 end)
 --[[ 焦点设置 结束 ]]
@@ -1003,10 +1004,10 @@ end)
 --[[ 焦点的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('focustarget', 'hideFrame')) end) then return end
 	local enabled = not self:GetChecked()
-	if button then BC:setDB('focustarget', 'hideFrame', not enabled) end
+	BC:setDB('focustarget', 'hideFrame', not enabled)
 	option.focustarget.portraitClass:SetEnabled(enabled)
 	option.focustarget.healthBarClass:SetEnabled(enabled)
 	option.focustarget.outRange:SetEnabled(enabled)
@@ -1019,30 +1020,30 @@ option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(se
 end)
 
 -- 头像显示职业图标(玩家)
-option:check('focustarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self, button)
-	if button then BC:setDB('focustarget', 'portrait', self:GetChecked() and 1 or 0) end
+option:check('focustarget', 'portraitClass', 'hideFrame', nil, nil, nil, function(self)
+	BC:setDB('focustarget', 'portrait', self:GetChecked() and 1 or 0)
 end)
 
 option:check('focustarget', 'healthBarClass', 'portraitClass') -- 体力条职业色(玩家)
 option:check('focustarget', 'outRange', 'healthBarClass')      -- 超出范围半透明
 
 -- 隐藏名字
-option:check('focustarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
-	if button then BC:setDB('focustarget', 'hideName', self:GetChecked() and true or false) end
+option:check('focustarget', 'hideName', 'outRange', nil, nil, nil, function(self)
+	BC:setDB('focustarget', 'hideName', self:GetChecked())
 	if option.focustarget.nameFontSize then option.focustarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('focustarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('focustarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
-	option.focustarget.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 	if value ~= BC:getDB('focustarget', 'nameFontSize') then BC:setDB('focustarget', 'nameFontSize', value) end
 end)
 
 -- 数值字体大小
-option:slider('focustarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('focustarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
-	option.focustarget.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 	if value ~= BC:getDB('focustarget', 'valueFontSize') then BC:setDB('focustarget', 'valueFontSize', value) end
 end)
 
@@ -1064,14 +1065,12 @@ option:check('focustarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战�
 --[[ 队友设置 开始 ]]
 
 -- 隐藏框体
-option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'hideFrame')) end) then return end
+	BC:setDB('party', 'hideFrame', self:GetChecked())
+	option.partypet.hideFrame:Click()
+	option.partytarget.hideFrame:Click()
 	local enabled = not self:GetChecked()
-	if button then
-		BC:setDB('party', 'hideFrame', not enabled or nil)
-		option.partypet.hideFrame:Click()
-		option.partytarget.hideFrame:Click()
-	end
 	option.party.portraitCombat:SetEnabled(enabled)
 	option.party.combatFlash:SetEnabled(enabled)
 	option.party.healthBarClass:SetEnabled(enabled)
@@ -1099,12 +1098,9 @@ option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, bu
 end)
 
 -- 团队显示小队框体
-option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self, button)
+option:check('party', 'raidShowParty', 'hideFrame', nil, nil, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('party', 'raidShowParty')) end) then return end
-	local enabled = self:GetChecked()
-	if button then
-		BC:setDB('party', 'raidShowParty', enabled)
-	end
+	BC:setDB('party', 'raidShowParty', self:GetChecked())
 end)
 option:check('party', 'portraitCombat', 'raidShowParty') -- 头像显示战斗信息
 option:check('party', 'combatFlash', 'portraitCombat')   -- 战斗状态边框红光
@@ -1120,23 +1116,23 @@ option:check('party', 'showLevel', 'outRange')     -- 显示等级
 option:check('party', 'showCastBar', 'showLevel')  -- 显示队友施法条
 
 -- 隐藏名字
-option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self, button)
-	if button then BC:setDB('party', 'hideName', self:GetChecked() and true or false) end
+option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self)
+	BC:setDB('party', 'hideName', self:GetChecked())
 	if option.party.nameFontSize then option.party.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('party', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('party', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('party', 'nameFontSize') then BC:setDB('party', 'nameFontSize', value) end
-	option.party.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('party', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('party', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('party', 'valueFontSize') then BC:setDB('party', 'valueFontSize', value) end
-	option.party.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('party', 'valueStyle', L.valueStyleList, 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -1156,7 +1152,7 @@ option:check('party', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中�
 option:slider('party', 'scale', 'drag', 5, vertical - 16, nil, nil, '50%', '150%', .5, 1.5, .05, function(self, value)
 	if option:combatAlert(function() self:SetValue(BC:getDB('party', 'scale')) end) then return end
 	value = floor(value * 100 + .5)
-	option.party.scaleText:SetText(L.scale .. ': ' .. value .. '%')
+	self.Text:SetText(L.scale .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('party', 'scale') then
 		BC:setDB('party', 'scale', value)
@@ -1171,14 +1167,14 @@ option:check('party', 'dispelStealable', 'dispelCooldown', nil, nil, 'debuffStea
 -- Buff/Debuff大小
 option:slider('party', 'auraSize', 'dispelStealable', 4, vertical - 20, 250, nil, 12, 64, 12, 64, 1, function(self, value)
 	value = floor(value)
-	option.party.auraSizeText:SetText(L.auraSize .. ': ' .. value)
+	self.Text:SetText(L.auraSize .. ': ' .. value)
 	if value ~= BC:getDB('party', 'auraSize') then BC:setDB('party', 'auraSize', value) end
 end)
 
 -- 其他人施放Buff/Debuff百分比
 option:slider('party', 'auraPercent', 'auraSize', 4, vertical - 20, 250, nil, '50%', '100%', .5, 1, .05, function(self, value)
 	value = floor(value * 100 + .5)
-	option.party.auraPercentText:SetText(L.auraPercent .. ': ' .. value .. '%')
+	self.Text:SetText(L.auraPercent .. ': ' .. value .. '%')
 	value = value / 100
 	if value ~= BC:getDB('party', 'auraPercent') then BC:setDB('party', 'auraPercent', value) end
 end)
@@ -1186,7 +1182,7 @@ end)
 -- 一行Buff/Debuff数量
 option:slider('party', 'auraRows', 'auraPercent', 0, vertical - 20, nil, nil, 8, 32, 8, 32, 1, function(self, value)
 	value = floor(value + .5)
-	option.party.auraRowsText:SetText(L.auraRows .. ': ' .. value)
+	self.Text:SetText(L.auraRows .. ': ' .. value)
 	if value ~= BC:getDB('party', 'auraRows') then BC:setDB('party', 'auraRows', value) end
 end)
 
@@ -1194,14 +1190,14 @@ end)
 option:slider('party', 'auraX', 'auraRows', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('party', 'auraX') then BC:setDB('party', 'auraX', value) end
-	option.party.auraXText:SetText(L.auraX .. ': ' .. value)
+	self.Text:SetText(L.auraX .. ': ' .. value)
 end)
 
 -- Buff/Debuf起始Y轴位置
 option:slider('party', 'auraY', 'auraX', 0, vertical - 20, nil, nil, -256, 256, -256, 256, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('party', 'auraY') then BC:setDB('party', 'auraY', value) end
-	option.party.auraYText:SetText(L.auraY .. ': ' .. value)
+	self.Text:SetText(L.auraY .. ': ' .. value)
 end)
 --[[ 队友设置 结束 ]]
 
@@ -1209,10 +1205,10 @@ end)
 --[[ 队友的宠物设置 开始 ]]
 
 -- 隐藏框体
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('partypet', 'hideFrame')) end) then return end
-	local enabled = not self:GetChecked() and not BC:getDB('party', 'hideFrame')
-	if button then BC:setDB('partypet', 'hideFrame', not enabled or nil) end
+	local enabled = not self:GetChecked() and not BC:getDB('partypet', 'hideFrame')
+	BC:setDB('partypet', 'hideFrame', not enabled or nil)
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
 	option.partypet.valueFontSize:SetEnabled(enabled)
@@ -1220,23 +1216,23 @@ option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self,
 end)
 
 -- 隐藏名字
-option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self, button)
-	if button then BC:setDB('partypet', 'hideName', self:GetChecked() and true or false) end
+option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
+	BC:setDB('partypet', 'hideName', self:GetChecked())
 	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('partypet', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('partypet', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('partypet', 'nameFontSize') then BC:setDB('partypet', 'nameFontSize', value) end
-	option.partypet.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('partypet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('partypet', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('partypet', 'valueFontSize') then BC:setDB('partypet', 'valueFontSize', value) end
-	option.partypet.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式
@@ -1246,10 +1242,10 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 --[[ 队友目标的设置 开始 ]]
 
 -- 隐藏框体
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 	if option:combatAlert(function() self:SetChecked(BC:getDB('partytarget', 'hideFrame')) end) then return end
-	local enabled = not self:GetChecked() and not BC:getDB('party', 'hideFrame')
-	if button then BC:setDB('partytarget', 'hideFrame', not enabled or nil) end
+	local enabled = not self:GetChecked() and not BC:getDB('partytarget', 'hideFrame')
+	BC:setDB('partytarget', 'hideFrame', not enabled or nil)
 	option.partytarget.portraitClass:SetEnabled(enabled)
 	option.partytarget.healthBarClass:SetEnabled(enabled)
 	option.partytarget.outRange:SetEnabled(enabled)
@@ -1268,23 +1264,23 @@ option:check('partytarget', 'healthBarClass', 'portraitClass') -- 体力条职�
 option:check('partytarget', 'outRange', 'healthBarClass')      -- 超出范围半透明
 
 -- 隐藏名字
-option:check('partytarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
-	if button then BC:setDB('partytarget', 'hideName', self:GetChecked()) end
+option:check('partytarget', 'hideName', 'outRange', nil, nil, nil, function(self)
+	BC:setDB('partytarget', 'hideName', self:GetChecked())
 	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
 -- 名字字体大小
-option:slider('partytarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('partytarget', 'nameFontSize', 'hideName', 5, vertical - 16, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('partytarget', 'nameFontSize') then BC:setDB('partytarget', 'nameFontSize', value) end
-	option.partytarget.nameFontSizeText:SetText(L.nameFontSize .. ': ' .. value)
+	self.Text:SetText(L.nameFontSize .. ': ' .. value)
 end)
 
 -- 数值字体大小
-option:slider('partytarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(_, value)
+option:slider('partytarget', 'valueFontSize', 'nameFontSize', 0, vertical - 20, nil, nil, 6, 16, 6, 16, 1, function(self, value)
 	value = floor(value + .5)
 	if value ~= BC:getDB('partytarget', 'valueFontSize') then BC:setDB('partytarget', 'valueFontSize', value) end
-	option.partytarget.valueFontSizeText:SetText(L.valueFontSize .. ': ' .. value)
+	self.Text:SetText(L.valueFontSize .. ': ' .. value)
 end)
 
 option:downMenu('partytarget', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 'valueFontSize', -1, vertical - 8, 170) -- 数值样式

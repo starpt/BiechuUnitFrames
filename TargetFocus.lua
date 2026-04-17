@@ -1,42 +1,54 @@
 local BC = _G[...]
 
--- 更新Buff/Debuff
-hooksecurefunc('TargetFrame_UpdateAuras', function(self)
-	BC:aura(self.unit)
-end)
-
--- 切换目标立即更新战斗状态边框红光
-hooksecurefunc('TargetFrame_Update', function(self)
-	if self.unit ~= 'target' and self.unit ~= 'focus' then return end
-	if self.flash then self.flash:Hide() end
-	BC:update(self.unit)
-	BC:update(self.unit .. 'target')
-	BC:miniIcon(self.unit)
-end)
-
--- 等级
-hooksecurefunc('TargetFrame_UpdateLevelTextAnchor', function(self)
-	if self.levelText then self.levelText:SetPoint('CENTER', 63, -16) end
-end)
-
 for unit, frame in pairs {
 	target = TargetFrame,
 	focus = FocusFrame
 } do
-	-- 名字
-	frame.name:SetWidth(120)
-	frame.name:SetPoint('CENTER', -50, 17.5)
-
-	-- 施法条
-	frame.castBar = _G[frame:GetName() .. 'SpellBar']
-	hooksecurefunc(frame.castBar, 'Show', function(self)
-		if self.offsetY then self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 26, self.offsetY) end
+	-- 更新Buff/Debuff
+	hooksecurefunc(frame, 'UpdateAuras', function(self)
+		BC:aura(self.unit)
 	end)
 
-	frame.flash = _G[frame:GetName() .. 'Flash']              -- 战斗中边框发红光
-	frame.statusBar = frame.nameBackground                    -- 状态栏
+	-- 切换目标立即更新战斗状态边框红光
+	hooksecurefunc(frame, 'Update', function(self)
+		BC:update(self.unit)
+		BC:update(self.unit .. 'target')
+		BC:miniIcon(self.unit)
+	end)
+
+	-- 名字
+	frame.name:SetWidth(120)
+	frame.name:SetPoint('CENTER', -34, 14.5)
+
+	-- 施法条
+	frame.spellbar.Border:SetDrawLayer('OVERLAY')
+	frame.spellbar.Icon:SetPoint('LEFT', -22, 0)
+	frame.spellbar.Icon:SetTexCoord(.08, .92, .08, .92)
+	frame.spellbar.IconBorder = frame.spellbar:CreateTexture(nil, 'BORDER')
+	frame.spellbar.IconBorder:SetPoint('CENTER', frame.spellbar.Icon)
+	frame.spellbar.IconBorder:SetSize(frame.spellbar.Icon:GetWidth() + 2, frame.spellbar.Icon:GetHeight() + 2)
+	frame.spellbar.IconBorder:SetTexture(BC.texture .. 'Border')
+	frame.spellbar.Text:SetDrawLayer('OVERLAY')
+	frame.spellbar.Text:SetFont(STANDARD_TEXT_FONT, 13)
+	frame.spellbar.Text:ClearAllPoints()
+	frame.spellbar.Text:SetPoint('CENTER')
+	frame.spellbar.Spark:SetSize(24, 24)
+	frame.casting = function(self, offsetY)
+		local offsetY = offsetY or self.yOffset or 0
+		self.yOffset = offsetY
+		self:SetScale(.88)
+		self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 48, (offsetY - 4) / .88)
+	end
+
+	frame.flash = _G[frame:GetName() .. 'Flash']             -- 战斗中边框发红光
+	frame.statusBar = frame.nameBackground                   -- 状态栏
+	frame.statusBar:SetWidth(118)
+	frame.Background:SetPoint('BOTTOMLEFT', 24, 30)          -- 背景
 	frame.deadText:SetPoint('CENTER', frame.healthbar, 0, -4) -- 死亡
-	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE') -- 等级
+
+	-- 等级
+	frame.levelText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
+	frame.levelText:SetPoint('CENTER', 80, -19.5)
 
 	-- 体力
 	frame.healthbar.MiddleText = frame.textureFrame.HealthBarText
@@ -55,30 +67,32 @@ for unit, frame in pairs {
 	frame.manabar.SideText:SetPoint('RIGHT', frame.manabar, 'LEFT', -3, -.5)
 
 	-- 威胁值
+	frame.threatNumericIndicator:ClearAllPoints()
+	frame.threatNumericIndicator:SetPoint('TOP', -64, -8)
 	frame.threatNumericIndicator.border = frame.threatNumericIndicator:CreateTexture(nil, 'OVERLAY')
 	frame.threatNumericIndicator.border:SetAllPoints(frame.threatNumericIndicator)
 	frame.threatNumericIndicator.border:SetTexCoord(0, .77, 0, .55)
+	frame.threatNumericIndicator.text:SetPoint('TOP', 0, -4.5)
 	frame.threatNumericIndicator.text:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
 
 	frame.init = function()
 		BC:aura(unit)   -- 更新Buff/Debuff
 		BC:miniIcon(unit) -- 更新小图标
 
-		-- Quartz 施法条
-		local QuartzCastBar = _G['Quartz3CastBar' .. unit:gsub('^%l', string.upper)]
-		if QuartzCastBar then
-			hooksecurefunc(QuartzCastBar, 'Show', function(self)
-				if frame.castBar.offsetY then
-					self:ClearAllPoints()
-					self:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 0, frame.castBar.offsetY + 6)
-				end
-			end)
-		end
-
 		-- 威胁值
 		frame.threatNumericIndicator.bg:SetTexture(BC:file(BC.barList[1]))
 		frame.threatNumericIndicator.border:SetTexture(BC:file('TargetingFrame\\NumericThreatBorder'))
-		frame.threatNumericIndicator:SetPoint('TOP', BC:getDB(unit, 'threatLeft') and -84 or -50, -5)
+
+		-- 施法条
+		frame.spellbar:SetStatusBarTexture(BC:file(BC.barList[1]))
+		frame.spellbar.Border:SetTexture(BC:file(BC.barList[3]))
+		frame.spellbar.BorderShield:SetTexture(BC:file(BC.barList[4]))
+		if BC:getDB('global', 'dark') then
+			frame.spellbar.IconBorder:SetVertexColor(.1, .1, .1)
+		else
+			frame.spellbar.IconBorder:SetVertexColor(.2, .2, .2)
+		end
+		frame.casting(frame.spellbar)
 	end
 
 	-- 目标的目标
@@ -100,6 +114,23 @@ for unit, frame in pairs {
 	totFrame.manabar.MiddleText:SetPoint('CENTER', totFrame.manabar, 0, -.5)
 	totFrame.manabar.SideText = totFrame.borderTexture:GetParent():CreateFontString()
 	totFrame.manabar.SideText:SetPoint('LEFT', totFrame.manabar, 'RIGHT', 2, -.5)
+
+	if unit == 'focus' then
+		hooksecurefunc(frame, 'SetSmallSize', function(self)
+			BC:init(unit)
+			self.healthbar.MiddleText:SetPoint('CENTER', frame.healthbar, 0, -.5)
+			totFrame:SetScale(1)
+			BC:aura(unit)
+		end)
+	end
+
+	-- 施法条位置
+	hooksecurefunc(frame.spellbar, 'AdjustPosition', function(self)
+		frame.casting(self)
+	end)
+	frame.spellbar:HookScript('OnEvent', function(self)
+		frame.casting(self)
+	end)
 
 	BC[unit] = frame
 	BC[unit .. 'target'] = totFrame

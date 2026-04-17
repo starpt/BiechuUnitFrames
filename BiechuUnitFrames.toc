@@ -1,21 +1,26 @@
-## Interface: 38000
+## Interface: 38001
 ## Title: BiechuUnitFrames
+## Notes: Biechu Unit Frames
+## Notes-ruRU: Biechu Юнит-фреймы
 ## Notes-zhCN: 别处头像框体
 
-## Version: 3.80_1.1
+## Version: 38.1.1
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
+## IconTexture: Interface\AddOns\BiechuUnitFrames\Logo
+## Category: Unit Frames
+
 ## X-Localizations: enUS, zhCN
-## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
+## X-Category: Unit Frames
+## X-Website: http://github.com/starpt/biechuunitframes
 ## X-eMail: starpt@gmail.com
 ## X-LoadOn-Slash: /bc
 
 Locale\enUS.lua
 Locale\zhCN.lua
+
 Global.lua
 Player.lua
 TargetFocus.lua
 Party.lua
-
-# 设置(设置完成后可以禁用)
 Options.lua
