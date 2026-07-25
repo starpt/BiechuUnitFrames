@@ -18,8 +18,8 @@ for id = 1, MAX_PARTY_MEMBERS do
 	local party = 'party' .. id
 	BC[party] = PartyFrame['MemberFrame' .. id]
 	BC[party].borderTexture = BC[party].PartyMemberOverlay.Texture -- 边框
-	BC[party].pvpIcon = BC[party].PartyMemberOverlay.PVPIcon      -- PVP状态图标
-	BC[party].flash = BC[party].Flash                             -- 战斗中边框发红光
+	BC[party].pvpIcon = BC[party].PartyMemberOverlay.PVPIcon -- PVP状态图标
+	BC[party].flash = BC[party].Flash -- 战斗中边框发红光
 
 	-- 等级文字
 	BC[party].levelText = BC[party]:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
@@ -31,13 +31,13 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	-- 体力
 	BC[party].healthbar.MiddleText = parent:CreateFontString()
-	BC[party].healthbar.MiddleText:SetPoint('CENTER', BC[party].healthbar, 0, -.5)
+	BC[party].healthbar.MiddleText:SetPoint('CENTER', BC[party].healthbar, 0, -0.5)
 	BC[party].healthbar.LeftText = parent:CreateFontString()
-	BC[party].healthbar.LeftText:SetPoint('LEFT', BC[party].healthbar, 0, -.5)
+	BC[party].healthbar.LeftText:SetPoint('LEFT', BC[party].healthbar, 0, -0.5)
 	BC[party].healthbar.RightText = parent:CreateFontString()
-	BC[party].healthbar.RightText:SetPoint('RIGHT', BC[party].healthbar, -1, -.5)
+	BC[party].healthbar.RightText:SetPoint('RIGHT', BC[party].healthbar, -1, -0.5)
 	BC[party].healthbar.SideText = parent:CreateFontString()
-	BC[party].healthbar.SideText:SetPoint('LEFT', BC[party].healthbar, 'RIGHT', 2, -.5)
+	BC[party].healthbar.SideText:SetPoint('LEFT', BC[party].healthbar, 'RIGHT', 2, -0.5)
 
 	-- 法力
 	BC[party].manabar.MiddleText = parent:CreateFontString()
@@ -56,11 +56,11 @@ for id = 1, MAX_PARTY_MEMBERS do
 	BC[party].spellbar.Border:ClearAllPoints()
 	BC[party].spellbar.Border:SetPoint('CENTER')
 	BC[party].spellbar.Border:SetSize(126, 28)
-	BC[party].spellbar.Border:SetAlpha(.8)
+	BC[party].spellbar.Border:SetAlpha(0.8)
 	BC[party].spellbar.Icon:ClearAllPoints()
 	BC[party].spellbar.Icon:SetPoint('LEFT', -10.5, 0)
 	BC[party].spellbar.Icon:SetSize(8, 8)
-	BC[party].spellbar.Icon:SetTexCoord(.05, .95, .05, .95)
+	BC[party].spellbar.Icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 	BC[party].spellbar.Text:SetDrawLayer('OVERLAY')
 	BC[party].spellbar.Text:SetFont(STANDARD_TEXT_FONT, 8)
 	BC[party].spellbar.Text:ClearAllPoints()
@@ -92,9 +92,9 @@ for id = 1, MAX_PARTY_MEMBERS do
 	-- 体力
 	BC[partypet].healthbar:SetFrameLevel(1)
 	BC[partypet].healthbar.MiddleText = parent:CreateFontString()
-	BC[partypet].healthbar.MiddleText:SetPoint('CENTER', BC[partypet].healthbar, 0, .5)
+	BC[partypet].healthbar.MiddleText:SetPoint('CENTER', BC[partypet].healthbar, 0, 0.5)
 	BC[partypet].healthbar.SideText = parent:CreateFontString()
-	BC[partypet].healthbar.SideText:SetPoint('LEFT', BC[partypet].healthbar, 'RIGHT', 2, .5)
+	BC[partypet].healthbar.SideText:SetPoint('LEFT', BC[partypet].healthbar, 'RIGHT', 2, 0.5)
 
 	-- 法力
 	BC[partypet].manabar = CreateFrame('StatusBar', nil, BC[partypet], 'TextStatusBar')
@@ -148,9 +148,9 @@ for id = 1, MAX_PARTY_MEMBERS do
 	BC[partytarget].manabar.unit = partytarget
 
 	BC[partytarget].manabar.MiddleText = BC[partytarget]:CreateFontString()
-	BC[partytarget].manabar.MiddleText:SetPoint('CENTER', BC[partytarget].manabar, 0, -.5)
+	BC[partytarget].manabar.MiddleText:SetPoint('CENTER', BC[partytarget].manabar, 0, -0.5)
 	BC[partytarget].manabar.SideText = BC[partytarget]:CreateFontString()
-	BC[partytarget].manabar.SideText:SetPoint('RIGHT', BC[partytarget].manabar, 'LEFT', -3, -.5)
+	BC[partytarget].manabar.SideText:SetPoint('RIGHT', BC[partytarget].manabar, 'LEFT', -3, -0.5)
 
 	-- 鼠标提示
 	BC[partytarget]:SetScript('OnEnter', function(self)
@@ -165,7 +165,7 @@ for id = 1, MAX_PARTY_MEMBERS do
 
 	BC[party].init = function()
 		frame:level(BC[party]) -- 等级
-		BC:aura(party)       -- Buff/Debuff
+		BC:aura(party) -- Buff/Debuff
 
 		-- 显示施法条
 		if BC:getDB('party', 'showCastBar') then
@@ -178,16 +178,17 @@ for id = 1, MAX_PARTY_MEMBERS do
 		end
 		-- 定位
 		if id > 1 and not InCombatLockdown() then
-			local offsetY = ceil((MAX_TARGET_BUFFS + MAX_TARGET_DEBUFFS) / BC:getDB('party', 'auraRows')) * (BC:getDB('party', 'auraSize') + 2)
+			local offsetY = ceil((MAX_TARGET_BUFFS + MAX_TARGET_DEBUFFS) / BC:getDB('party', 'auraRows'))
+				* (BC:getDB('party', 'auraSize') + 2)
 			BC[party]:SetPoint('TOPLEFT', BC['party' .. id - 1], 0, -42 - offsetY - (showCastBar and 18 or 0))
 		end
 	end
 end
 
 for _, event in pairs({
-	'UNIT_AURA',         -- Buff/Debuff变化
-	'UNIT_LEVEL',        -- 升级
-	'GROUP_ROSTER_UPDATE' -- 团队变更
+	'UNIT_AURA', -- Buff/Debuff变化
+	'UNIT_LEVEL', -- 升级
+	'GROUP_ROSTER_UPDATE', -- 团队变更
 }) do
 	frame:RegisterEvent(event)
 end
@@ -209,7 +210,7 @@ end)
 frame:SetScript('OnUpdate', function(self, elapsed)
 	if GetNumSubgroupMembers() == 0 then return end
 	self.timer = (self.timer or 0) + elapsed
-	if self.timer < .1 then return end
+	if self.timer < 0.1 then return end
 	self.timer = 0
 
 	for id = 1, GetNumSubgroupMembers() do
