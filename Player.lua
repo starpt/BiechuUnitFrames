@@ -22,15 +22,15 @@ PlayerPVPTimerText:SetDrawLayer('OVERLAY')
 PlayerPVPTimerText:SetFont(STANDARD_TEXT_FONT, 13, 'OUTLINE')
 PlayerPVPTimerText:SetPoint('CENTER', BC.player.pvpIcon, 'TOPLEFT', 21, -19)
 
-BC.player.portrait:SetPoint('TOPLEFT', 42, -12)           -- 头像
-BC.player.flash = PlayerFrameFlash                        -- 战斗中边框发红光
+BC.player.portrait:SetPoint('TOPLEFT', 42, -12) -- 头像
+BC.player.flash = PlayerFrameFlash -- 战斗中边框发红光
 PlayerHitIndicator:SetPoint('CENTER', BC.player.portrait) -- 头像战斗信息
-PlayerFrameBackground:SetPoint('TOPLEFT', 106, -22)       -- 背景
-PlayerStatusTexture:SetPoint('TOPLEFT', 35, -8)           -- 状态栏背景 (休息的时候闪动)
-PlayerRestIcon:SetPoint('TOPLEFT', 37, -49)               -- 休息图标
-PlayerLeaderIcon:SetPoint('TOPLEFT', 44, -10)             -- 队长图标
-PlayerMasterIcon:SetPoint('TOPLEFT', 80, -10)             -- 分配图标
-PlayerAttackBackground:SetPoint('TOPLEFT', 37, -50)       -- 战斗状态背景
+PlayerFrameBackground:SetPoint('TOPLEFT', 106, -22) -- 背景
+PlayerStatusTexture:SetPoint('TOPLEFT', 35, -8) -- 状态栏背景 (休息的时候闪动)
+PlayerRestIcon:SetPoint('TOPLEFT', 37, -49) -- 休息图标
+PlayerLeaderIcon:SetPoint('TOPLEFT', 44, -10) -- 队长图标
+PlayerMasterIcon:SetPoint('TOPLEFT', 80, -10) -- 分配图标
+PlayerAttackBackground:SetPoint('TOPLEFT', 37, -50) -- 战斗状态背景
 
 -- 状态栏
 BC.player.statusBar = BC.player:CreateTexture(nil, 'BACKGROUND')
@@ -50,7 +50,7 @@ hooksecurefunc('PlayerFrame_UpdateArt', function(self)
 		PlayerFrameFlash:SetTexCoord(0, 1, 0, 0.78)
 		PlayerFrameFlash:SetPoint('TOPLEFT', 20, 0)
 		self.healthbar:SetPoint('TOPLEFT', 120, -51.5) -- 体力条
-		self.manabar:SetPoint('TOPLEFT', 120, -62)   -- 法力条
+		self.manabar:SetPoint('TOPLEFT', 120, -62) -- 法力条
 	else
 		PlayerName:SetPoint('CENTER', 50, 17.8)
 		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
@@ -64,7 +64,6 @@ hooksecurefunc('PlayerFrame_ToPlayerArt', function()
 	BC.player.manabar:SetPoint('TOPLEFT', 106, -52)
 end)
 
-
 -- 小队编号
 PlayerFrameGroupIndicatorText:SetFont(STANDARD_TEXT_FONT, 12)
 PlayerFrameGroupIndicatorText:SetPoint('LEFT', 20, -3)
@@ -75,19 +74,19 @@ end)
 
 -- 体力
 BC.player.healthbar.MiddleText = PlayerFrameHealthBarText
-BC.player.healthbar.MiddleText:SetPoint('CENTER', BC.player.healthbar, 0, -.5)
-BC.player.healthbar.LeftText:SetPoint('LEFT', BC.player.healthbar, 4, -.5)
-BC.player.healthbar.RightText:SetPoint('RIGHT', BC.player.healthbar, -.5, -.5)
+BC.player.healthbar.MiddleText:SetPoint('CENTER', BC.player.healthbar, 0, -0.5)
+BC.player.healthbar.LeftText:SetPoint('LEFT', BC.player.healthbar, 4, -0.5)
+BC.player.healthbar.RightText:SetPoint('RIGHT', BC.player.healthbar, -0.5, -0.5)
 BC.player.healthbar.SideText = BC.player.healthbar:CreateFontString()
-BC.player.healthbar.SideText:SetPoint('LEFT', BC.player.healthbar, 'RIGHT', 3, -.5)
+BC.player.healthbar.SideText:SetPoint('LEFT', BC.player.healthbar, 'RIGHT', 3, -0.5)
 
 -- 法力
 BC.player.manabar.MiddleText = PlayerFrameManaBarText
-BC.player.manabar.MiddleText:SetPoint('CENTER', BC.player.manabar, 0, -.5)
-BC.player.manabar.LeftText:SetPoint('LEFT', BC.player.manabar, 4, -.5)
-BC.player.manabar.RightText:SetPoint('RIGHT', BC.player.manabar, -.5, -.5)
+BC.player.manabar.MiddleText:SetPoint('CENTER', BC.player.manabar, 0, -0.5)
+BC.player.manabar.LeftText:SetPoint('LEFT', BC.player.manabar, 4, -0.5)
+BC.player.manabar.RightText:SetPoint('RIGHT', BC.player.manabar, -0.5, -0.5)
 BC.player.manabar.SideText = BC.player.manabar:CreateFontString()
-BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -.5)
+BC.player.manabar.SideText:SetPoint('LEFT', BC.player.manabar, 'RIGHT', 3, -0.5)
 
 -- 装备小图标
 function frame:equip()
@@ -105,13 +104,13 @@ function frame:equip()
 			equip.border:SetTexture(BC.texture .. 'Border')
 			equip.icon = equip:CreateTexture(nil, 'BACKGROUND')
 			equip.icon:SetAllPoints(equip.border)
-			equip.icon:SetTexCoord(.05, .95, .05, .95)
+			equip.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 		end
 		equip:Hide()
 		if BC:getDB('global', 'dark') then
-			equip.border:SetVertexColor(.1, .1, .1)
+			equip.border:SetVertexColor(0.1, 0.1, 0.1)
 		else
-			equip.border:SetVertexColor(.2, .2, .2)
+			equip.border:SetVertexColor(0.2, 0.2, 0.2)
 		end
 	end
 	if not BC:getDB('player', 'equipmentIcon') then return end
@@ -129,7 +128,7 @@ function frame:equip()
 				if isEquipped then
 					equip:SetAlpha(1)
 				else
-					equip:SetAlpha(.4)
+					equip:SetAlpha(0.4)
 				end
 				equip:Show()
 
@@ -144,7 +143,7 @@ function frame:equip()
 					if self.isEquipped then
 						self:SetAlpha(1)
 					else
-						self:SetAlpha(.4)
+						self:SetAlpha(0.4)
 					end
 					GameTooltip:Hide()
 				end)
@@ -173,7 +172,7 @@ hooksecurefunc(C_EquipmentSet, 'UseEquipmentSet', function(setID)
 				equip:SetAlpha(1)
 				equip.isEquipped = true
 			else
-				equip:SetAlpha(.4)
+				equip:SetAlpha(0.4)
 				equip.isEquipped = false
 			end
 		end
@@ -188,21 +187,22 @@ function frame:spark(bar, powerType)
 		bar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
 		bar.spark:SetBlendMode('ADD')
 		bar.spark:SetSize(28, 28)
-		bar.spark:SetAlpha(.8)
+		bar.spark:SetAlpha(0.8)
 		if powerType then bar.powerType = powerType end
 	end
 	bar:HookScript('OnUpdate', function(self)
 		local now = GetTime()
 		if self.rate and now < self.rate then return end
-		self.rate = now + .02 --刷新率
+		self.rate = now + 0.02 --刷新率
 
-		if BC:getDB('player', 'fiveSecondRule')
-				and bar:IsShown()
-				and not UnitIsDeadOrGhost('player')
-				and (self.powerType or UnitPowerType('player')) == 0
-				and UnitPower('player', 0) < UnitPowerMax('player', 0)
-				and type(frame.waitTime) == 'number'
-				and frame.waitTime > now
+		if
+			BC:getDB('player', 'fiveSecondRule')
+			and bar:IsShown()
+			and not UnitIsDeadOrGhost('player')
+			and (self.powerType or UnitPowerType('player')) == 0
+			and UnitPower('player', 0) < UnitPowerMax('player', 0)
+			and type(frame.waitTime) == 'number'
+			and frame.waitTime > now
 		then
 			self.spark:Show()
 			self.spark:SetPoint('CENTER', self, 'LEFT', self:GetWidth() * (frame.waitTime - now) / 5, 0)
@@ -231,13 +231,13 @@ if BC.class == 'DRUID' and not BC.player.druid then
 	BC.player.druidBar:SetFrameLevel(3)
 
 	BC.player.druidBar.MiddleText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
-	BC.player.druidBar.MiddleText:SetPoint('CENTER', -2, -.5)
+	BC.player.druidBar.MiddleText:SetPoint('CENTER', -2, -0.5)
 	BC.player.druidBar.LeftText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
-	BC.player.druidBar.LeftText:SetPoint('LEFT', 2, -.5)
+	BC.player.druidBar.LeftText:SetPoint('LEFT', 2, -0.5)
 	BC.player.druidBar.RightText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
-	BC.player.druidBar.RightText:SetPoint('RIGHT', -2.5, -.5)
+	BC.player.druidBar.RightText:SetPoint('RIGHT', -2.5, -0.5)
 	BC.player.druidBar.SideText = BC.player.druidBar:CreateFontString(nil, 'OVERLAY')
-	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', 1, -.5)
+	BC.player.druidBar.SideText:SetPoint('LEFT', BC.player.druidBar, 'RIGHT', 1, -0.5)
 end
 function frame:druid()
 	if not BC.player.druid then return end
@@ -260,7 +260,7 @@ end)
 
 -- 图腾
 hooksecurefunc(TotemFrame, 'Update', function(self)
-	self:SetScale(.8)
+	self:SetScale(0.8)
 	self:SetPoint('TOPLEFT', PlayerFrame, 'BOTTOMLEFT', 107, 44)
 	local slot, totem
 	for i = 1, MAX_TOTEMS do
@@ -282,9 +282,9 @@ end)
 
 BC.player.init = function()
 	PlayerFrame_UpdateGroupIndicator() -- 小队编号
-	PlayerFrame_UpdateArt(BC.player)  -- 载具
-	BC:miniIcon('player')             -- 小图标
-	frame:equip()                     -- 装备小图标
+	PlayerFrame_UpdateArt(BC.player) -- 载具
+	BC:miniIcon('player') -- 小图标
+	frame:equip() -- 装备小图标
 	TotemFrame:Update() -- 图腾
 
 	-- 5秒回蓝闪动
@@ -314,8 +314,8 @@ PetFrameHappiness:SetPoint(point, relativeTo, relativePoint, offsetX - 4, offset
 PetFrameHappiness:SetSize(20, 20)
 
 PetHitIndicator:SetPoint('CENTER', BC.pet.portrait, 0, -3) -- 头像战斗信息
-BC.pet.borderTexture = PetFrameTexture                     -- 边框
-BC.pet.name:SetPoint('BOTTOMLEFT', 49, 41)                 -- 名字
+BC.pet.borderTexture = PetFrameTexture -- 边框
+BC.pet.name:SetPoint('BOTTOMLEFT', 49, 41) -- 名字
 
 -- 体力
 BC.pet.healthbar:SetPoint('TOPLEFT', 47, -13)
@@ -389,13 +389,13 @@ BC.pettarget.manabar.SideText = BC.pettarget:CreateFontString()
 BC.pettarget.manabar.SideText:SetPoint('RIGHT', BC.pettarget.manabar, 'LEFT', 0, -1)
 BC.pettarget.manabar.unit = 'pettarget'
 
-for _, event in pairs {
+for _, event in pairs({
 	'ACTIVE_TALENT_GROUP_CHANGED', -- 天赋切换
-	'PLAYER_TALENT_UPDATE',       -- 天赋点更新
-	'EQUIPMENT_SETS_CHANGED',     -- 套装变更
-	'UPDATE_SHAPESHIFT_FORM',     -- 形态变化
-	'UNIT_POWER_UPDATE'           -- 法力/能量值变化
-} do
+	'PLAYER_TALENT_UPDATE', -- 天赋点更新
+	'EQUIPMENT_SETS_CHANGED', -- 套装变更
+	'UPDATE_SHAPESHIFT_FORM', -- 形态变化
+	'UNIT_POWER_UPDATE', -- 法力/能量值变化
+}) do
 	frame:RegisterEvent(event)
 end
 frame:SetScript('OnEvent', function(self, event, unit)
@@ -418,7 +418,7 @@ end)
 
 frame:SetScript('OnUpdate', function(self, elapsed)
 	self.timer = (self.timer or 0) + elapsed
-	if self.timer < .1 then return end
+	if self.timer < 0.1 then return end
 	self.timer = 0
 
 	if BC.player.druidBar and BC.player.druidBar:IsShown() then BC:bar(BC.player.druidBar) end
