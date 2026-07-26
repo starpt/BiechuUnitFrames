@@ -375,7 +375,7 @@ function BC:drag(frame, parent, drag, callBack)
 	frame:SetScript('OnMouseUp', function(self)
 		if self.moving then
 			mover:StopMovingOrSizing()
-			mover:SetUserPlaced(self.unit == 'player' or self.unit == 'vehicle') -- 不保存在 layout-local.txt
+			mover:SetUserPlaced(self.unit == 'player' or self.unit == 'vehicle') -- 保存在 layout-local.txt
 			if type(callBack) == 'function' then callBack(mover) end
 		end
 		self.moving = nil
@@ -1309,12 +1309,12 @@ function BC:init(unit)
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
-	-- 初始定位
+	-- 定位
 	local anchor = self:getDB(key, 'anchor')
 	local relative = self:getDB(key, 'relative')
 	local offsetX = self:getDB(key, 'offsetX')
 	local offsetY = self:getDB(key, 'offsetY')
-	if not InCombatLockdown() then
+	local leave = function()
 		if unit == 'party1' then
 			frame:GetParent():ClearAllPoints()
 			frame:GetParent():SetPoint(relative, offsetX, offsetY)
@@ -1331,6 +1331,11 @@ function BC:init(unit)
 				if unit == 'player' then frame:SetUserPlaced(true) end
 			end
 		end
+	end
+	if InCombatLockdown() then
+		table.insert(self.cambatLeave, leave)
+	else
+		leave()
 	end
 
 	-- 拖动
@@ -1475,7 +1480,7 @@ function BC:init(unit)
 
 	-- 缩放
 	local scale = self:getDB(key, 'scale')
-	if not InCombatLockdown() and type(scale) == 'number' then frame:SetScale(scale) end
+	if type(scale) == 'number' then frame:SetScale(scale) end
 
 	-- 战斗状态边框红光
 	if frame.flash then
