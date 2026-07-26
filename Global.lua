@@ -1177,11 +1177,14 @@ end
 BC.cambatLeave = {}
 function BC:toggle(frame, show)
 	if not frame then return end
+	local key = type(frame.unit) == 'string' and frame.unit:gsub('%d', '')
 	local leave = function()
 		if show then
 			frame:Show()
+			if key == 'partytarget' then RegisterUnitWatch(frame) end
 		else
 			frame:Hide()
+			if key == 'partytarget' then UnregisterUnitWatch(frame) end
 		end
 	end
 	frame:SetAlpha(show and 1 or 0)
@@ -1200,39 +1203,43 @@ function BC:update(unit)
 	if not frame then return end
 	local key = unit:gsub('%d', '')
 
-	-- 显示/隐藏 框体
+	-- 显示/隐藏
 	if key == 'party' then
 		if
 			not UnitExists(unit)
 			or self:getDB('party', 'hideFrame')
 			or not self:getDB('party', 'raidShowParty') and UnitInRaid('player')
 		then
-			self:toggle(frame, false)
-			self:toggle(self[unit .. 'pet'], false)
-			self:toggle(self[unit .. 'target'], false)
+			self:toggle(frame)
+			self:toggle(self[unit .. 'pet'])
+			self:toggle(self[unit .. 'target'])
 			return
 		end
 		self:toggle(frame, true)
 		self:update(unit .. 'pet')
 		self:update(unit .. 'target')
-	elseif self:getDB(key, 'hideFrame') then
-		self:toggle(frame, false)
-		return
 	elseif key == 'partypet' or key == 'partytarget' then
 		if
-			not UnitExists(unit:match('^(party%d).*$'))
+			not self:getDB('party', 'raidShowParty') and UnitInRaid('player')
+			or not UnitExists(unit:match('^(party%d).*$'))
 			or self:getDB('party', 'hideFrame')
-			or not self:getDB('party', 'raidShowParty') and UnitInRaid('player')
+			or self:getDB(key, 'hideFrame')
+			or not UnitExists(unit)
 		then
-			self:toggle(frame, false)
+			self:toggle(frame)
 			return
+		else
+			self:toggle(frame, true)
 		end
+	elseif self:getDB(key, 'hideFrame') then
+		self:toggle(frame)
+		return
 	end
-	if unit == 'pet' or unit == 'targettarget' or unit == 'pettarget' or key == 'partypet' or key == 'partytarget' then
+	if unit == 'pet' or key == 'pettarget' or unit == 'targettarget' then
 		if UnitExists(unit) then
 			self:toggle(frame, true)
 		else
-			self:toggle(frame, false)
+			self:toggle(frame)
 			return
 		end
 	end
@@ -1524,7 +1531,7 @@ function BC:init(unit)
 			if not self:IsShown() or self:GetAlpha() <= 0 or not UnitExists(self.unit) then return end
 
 			self.timer = (self.timer or 0) + elapsed
-			if self.timer < 0.2 then return end
+			if self.timer < 0.02 then return end
 			self.timer = 0
 
 			if
@@ -1614,6 +1621,7 @@ BC:SetScript('OnEvent', function(self, event, unit)
 		unit = unit == 'player' and 'target' or unit
 		self:update(unit == 'player' and 'target' or unit .. 'target')
 	elseif event == 'UNIT_FLAGS' then
+		if unit == 'player' then self:update('pettarget') end -- 宠物目标更新
 		if self[unit] and self[unit].flash then self[unit].flash:Hide() end
 	elseif event == 'UNIT_HEALTH' or event == 'UNIT_HEAL_PREDICTION' then
 		self:incomingHeals(unit)

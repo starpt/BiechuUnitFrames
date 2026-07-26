@@ -210,7 +210,7 @@ end)
 frame:SetScript('OnUpdate', function(self, elapsed)
 	if GetNumSubgroupMembers() == 0 then return end
 	self.timer = (self.timer or 0) + elapsed
-	if self.timer < 0.1 then return end
+	if self.timer < 0.02 then return end
 	self.timer = 0
 
 	for id = 1, GetNumSubgroupMembers() do

@@ -537,8 +537,8 @@ option:downMenu('player', 'portrait', L.portraitList, 'border') -- 头像
 option:check('pet', 'portraitCombat', nil, 13, vertical - 8) -- 头像显示战斗信息
 
 -- 隐藏名字
-option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self)
-	BC:setDB('pet', 'hideName', self:GetChecked())
+option:check('pet', 'hideName', 'portraitCombat', nil, nil, nil, function(self, button)
+	if button then BC:setDB('pet', 'hideName', self:GetChecked()) end
 	if option.pet.nameFontSize then option.pet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -573,12 +573,13 @@ option:check('pet', 'drag', 'pointDefault', -2, vertical - 4) -- 非战斗中按
 --[[ 宠物的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('pettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('pettarget', 'hideFrame'))
 	end) then return end
-	local enabled = not self:GetChecked()
-	BC:setDB('pettarget', 'hideFrame', not enabled)
+	local enabled = self:GetChecked()
+	if button then BC:setDB('pettarget', 'hideFrame', enabled) end
+	enabled = not enabled
 	option.pettarget.portraitClass:SetEnabled(enabled)
 	option.pettarget.healthBarClass:SetEnabled(enabled)
 	option.pettarget.outRange:SetEnabled(enabled)
@@ -597,8 +598,8 @@ option:check('pettarget', 'healthBarClass', 'portraitClass') -- 体力条职业�
 option:check('pettarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('pettarget', 'hideName', 'outRange', nil, nil, nil, function(self)
-	BC:setDB('pettarget', 'hideName', self:GetChecked())
+option:check('pettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('pettarget', 'hideName', self:GetChecked()) end
 	if option.pettarget.nameFontSize then option.pettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -797,12 +798,13 @@ end)
 --[[ 目标的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('targettarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('targettarget', 'hideFrame'))
 	end) then return end
-	BC:setDB('targettarget', 'hideFrame', self:GetChecked())
-	local enabled = not self:GetChecked()
+	local enabled = self:GetChecked()
+	if button then BC:setDB('targettarget', 'hideFrame', enabled) end
+	enabled = not enabled
 	option.targettarget.portraitClass:SetEnabled(enabled)
 	option.targettarget.healthBarClass:SetEnabled(enabled)
 	option.targettarget.outRange:SetEnabled(enabled)
@@ -823,8 +825,8 @@ option:check('targettarget', 'healthBarClass', 'portraitClass') -- 体力条职�
 option:check('targettarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('targettarget', 'hideName', 'outRange', nil, nil, nil, function(self)
-	BC:setDB('targettarget', 'hideName', self:GetChecked())
+option:check('targettarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('targettarget', 'hideName', self:GetChecked()) end
 	if option.targettarget.nameFontSize then option.targettarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -1016,12 +1018,13 @@ end)
 --[[ 焦点的目标设置 开始 ]]
 
 -- 隐藏框体
-option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('focustarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('focustarget', 'hideFrame'))
 	end) then return end
-	local enabled = not self:GetChecked()
-	BC:setDB('focustarget', 'hideFrame', not enabled)
+	local enabled = self:GetChecked()
+	if button then BC:setDB('focustarget', 'hideFrame', enabled) end
+	enabled = not enabled
 	option.focustarget.portraitClass:SetEnabled(enabled)
 	option.focustarget.healthBarClass:SetEnabled(enabled)
 	option.focustarget.outRange:SetEnabled(enabled)
@@ -1042,8 +1045,8 @@ option:check('focustarget', 'healthBarClass', 'portraitClass') -- 体力条职�
 option:check('focustarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('focustarget', 'hideName', 'outRange', nil, nil, nil, function(self)
-	BC:setDB('focustarget', 'hideName', self:GetChecked())
+option:check('focustarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('focustarget', 'hideName', self:GetChecked()) end
 	if option.focustarget.nameFontSize then option.focustarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -1078,14 +1081,15 @@ option:check('focustarget', 'drag', 'pointDefault', -2, vertical - 4) -- 非战�
 --[[ 队友设置 开始 ]]
 
 -- 隐藏框体
-option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('party', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('party', 'hideFrame'))
 	end) then return end
-	BC:setDB('party', 'hideFrame', self:GetChecked())
+	local enabled = self:GetChecked()
+	if button then BC:setDB('party', 'hideFrame', enabled) end
+	enabled = not enabled
 	option.partypet.hideFrame:Click()
 	option.partytarget.hideFrame:Click()
-	local enabled = not self:GetChecked()
 	option.party.portraitCombat:SetEnabled(enabled)
 	option.party.combatFlash:SetEnabled(enabled)
 	option.party.healthBarClass:SetEnabled(enabled)
@@ -1133,8 +1137,8 @@ option:check('party', 'showLevel', 'outRange') -- 显示等级
 option:check('party', 'showCastBar', 'showLevel') -- 显示队友施法条
 
 -- 隐藏名字
-option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self)
-	BC:setDB('party', 'hideName', self:GetChecked())
+option:check('party', 'hideName', 'showCastBar', nil, nil, nil, function(self, button)
+	if button then BC:setDB('party', 'hideName', self:GetChecked()) end
 	if option.party.nameFontSize then option.party.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -1223,12 +1227,13 @@ end)
 --[[ 队友的宠物设置 开始 ]]
 
 -- 隐藏框体
-option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('partypet', 'hideFrame'))
 	end) then return end
-	local enabled = not self:GetChecked() and not BC:getDB('partypet', 'hideFrame')
-	BC:setDB('partypet', 'hideFrame', not enabled or nil)
+	local enabled = self:GetChecked()
+	if button then BC:setDB('partypet', 'hideFrame', enabled) end
+	enabled = not enabled and not BC:getDB('party', 'hideFrame')
 	option.partypet.hideName:SetEnabled(enabled)
 	option.partypet.nameFontSize:SetEnabled(enabled and not BC:getDB('partypet', 'hideName'))
 	option.partypet.valueFontSize:SetEnabled(enabled)
@@ -1236,8 +1241,8 @@ option:check('partypet', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
 end)
 
 -- 隐藏名字
-option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self)
-	BC:setDB('partypet', 'hideName', self:GetChecked())
+option:check('partypet', 'hideName', 'hideFrame', nil, nil, nil, function(self, button)
+	if button then BC:setDB('partypet', 'hideName', self:GetChecked()) end
 	if option.partypet.nameFontSize then option.partypet.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 
@@ -1261,12 +1266,13 @@ option:downMenu('partypet', 'valueStyle', option:valueStyleList(2, 3, 5, 7, 8), 
 --[[ 队友目标的设置 开始 ]]
 
 -- 隐藏框体
-option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self)
+option:check('partytarget', 'hideFrame', nil, 13, vertical - 8, nil, function(self, button)
 	if option:combatAlert(function()
 		self:SetChecked(BC:getDB('partytarget', 'hideFrame'))
 	end) then return end
-	local enabled = not self:GetChecked() and not BC:getDB('partytarget', 'hideFrame')
-	BC:setDB('partytarget', 'hideFrame', not enabled or nil)
+	local enabled = self:GetChecked()
+	if button then BC:setDB('partytarget', 'hideFrame', enabled) end
+	enabled = not enabled and not BC:getDB('party', 'hideFrame')
 	option.partytarget.portraitClass:SetEnabled(enabled)
 	option.partytarget.healthBarClass:SetEnabled(enabled)
 	option.partytarget.outRange:SetEnabled(enabled)
@@ -1285,8 +1291,8 @@ option:check('partytarget', 'healthBarClass', 'portraitClass') -- 体力条职�
 option:check('partytarget', 'outRange', 'healthBarClass') -- 超出范围半透明
 
 -- 隐藏名字
-option:check('partytarget', 'hideName', 'outRange', nil, nil, nil, function(self)
-	BC:setDB('partytarget', 'hideName', self:GetChecked())
+option:check('partytarget', 'hideName', 'outRange', nil, nil, nil, function(self, button)
+	if button then BC:setDB('partytarget', 'hideName', self:GetChecked()) end
 	if option.partytarget.nameFontSize then option.partytarget.nameFontSize:SetEnabled(not self:GetChecked()) end
 end)
 

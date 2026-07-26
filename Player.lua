@@ -35,33 +35,29 @@ PlayerAttackBackground:SetPoint('TOPLEFT', 37, -50) -- 战斗状态背景
 -- 状态栏
 BC.player.statusBar = BC.player:CreateTexture(nil, 'BACKGROUND')
 BC.player.statusBar:SetSize(119, 19)
-BC.player.statusBar:SetPoint('TOPLEFT', 106, -22)
+BC.player.statusBar:SetPoint('TOPLEFT', 107, -22)
 
 -- 载具
-hooksecurefunc('PlayerFrame_UpdateArt', function(self)
-	if self.state == 'vehicle' then
-		if UnitVehicleSkinType('player') == 'Natural' then
+hooksecurefunc('PlayerFrame_ToVehicleArt', function(self, vehicleType) -- 进入载具
+	if vehicleType == 'Natural' then
 			PlayerFrameVehicleTexture:SetTexture(BC:file('Vehicles\\UI-Vehicle-Frame-Organic'))
 		else
 			PlayerFrameVehicleTexture:SetTexture(BC:file('Vehicles\\UI-Vehicle-Frame'))
 		end
-		PlayerName:SetPoint('CENTER', 50, 12)
+	PlayerName:SetPoint('CENTER', 54, 12)
 		PlayerFrameVehicleTexture:SetPoint('TOPLEFT', 20, 0)
 		PlayerFrameFlash:SetTexCoord(0, 1, 0, 0.78)
 		PlayerFrameFlash:SetPoint('TOPLEFT', 20, 0)
-		self.healthbar:SetPoint('TOPLEFT', 120, -51.5) -- 体力条
-		self.manabar:SetPoint('TOPLEFT', 120, -62) -- 法力条
-	else
-		PlayerName:SetPoint('CENTER', 50, 17.8)
-		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
-		PlayerFrameFlash:SetPoint('TOPLEFT', 15, 0)
-		self.healthbar:SetPoint('TOPLEFT', 106, -41) -- 体力条
-		self.manabar:SetPoint('TOPLEFT', 106, -52) -- 法力条
-	end
+	PlayerFrameHealthBar:SetPoint('TOPLEFT', 120, -51.5) -- 体力条
+	PlayerFrameManaBar:SetPoint('TOPLEFT', 120, -62) -- 法力条
 end)
-hooksecurefunc('PlayerFrame_ToPlayerArt', function()
-	BC.player.healthbar:SetPoint('TOPLEFT', 106, -41)
-	BC.player.manabar:SetPoint('TOPLEFT', 106, -52)
+hooksecurefunc('PlayerFrame_ToPlayerArt', function() -- 离开载具
+	PlayerName:SetPoint('CENTER', 50, 17.5)
+	PlayerFrameFlash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
+		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
+	PlayerFrameFlash:SetPoint('TOPLEFT', 13, 1)
+	PlayerFrameHealthBar:SetPoint('TOPLEFT', 106.5, -41)
+	PlayerFrameManaBar:SetPoint('TOPLEFT', 106.5, -52)
 end)
 
 -- 小队编号
@@ -307,6 +303,7 @@ end
 -- 宠物
 BC.pet = PetFrame
 PetPortrait:SetDrawLayer('ARTWORK') -- 头像层级
+PetFrameFlash:SetAlpha(0) -- 战斗中边框发红光
 
 -- 快乐值图标
 local point, relativeTo, relativePoint, offsetX, offsetY = PetFrameHappiness:GetPoint()
@@ -366,6 +363,7 @@ BC.pettarget:SetScript('OnLeave', function(self)
 end)
 
 SecureUnitButton_OnLoad(BC.pettarget, 'pettarget') -- 点击选择
+RegisterUnitWatch(BC.pettarget) -- 注册安全单位
 
 -- 体力
 BC.pettarget.healthbar = CreateFrame('StatusBar', nil, BC.pettarget, 'TextStatusBar')
@@ -418,7 +416,7 @@ end)
 
 frame:SetScript('OnUpdate', function(self, elapsed)
 	self.timer = (self.timer or 0) + elapsed
-	if self.timer < 0.1 then return end
+	if self.timer < 0.02 then return end
 	self.timer = 0
 
 	if BC.player.druidBar and BC.player.druidBar:IsShown() then BC:bar(BC.player.druidBar) end
