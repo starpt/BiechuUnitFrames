@@ -495,6 +495,15 @@ hooksecurefunc('CooldownFrame_Set', function(self)
 end)
 
 -- Buff/Debuff
+local DebuffTypeColor = DebuffTypeColor
+	or {
+		none = { r = 0.8, g = 0, b = 0 },
+		Magic = { r = 0.2, g = 0.6, b = 1 },
+		Curse = { r = 0.6, g = 0, b = 1 },
+		Disease = { r = 0.6, g = 0.4, b = 0 },
+		Poison = { r = 0, g = 0.6, b = 0 },
+	}
+DebuffTypeColor[''] = DebuffTypeColor['none']
 function BC:aura(unit)
 	unit = self:formatUnit(unit)
 	if not unit then return end
