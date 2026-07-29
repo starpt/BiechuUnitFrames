@@ -7,6 +7,8 @@ L.pet = '├宠物'
 L.pettarget = '├─宠物的目标'
 L.target = '├目标'
 L.targettarget = '├─目标的目标'
+L.focus = '├焦点'
+L.focustarget = '├─焦点的目标'
 L.party = '├队友'
 L.partypet = '├─队友的宠物'
 L.partytarget = '└─队友的目标'
@@ -33,35 +35,35 @@ L.nameFont = '名字字体'
 L.fontList = {
 	[1] = {
 		text = '默认',
-		value = 'Fonts\\ARKai_T.ttf'
+		value = 'Fonts\\ARKai_T.ttf',
 	},
 	[2] = {
 		text = '聊天',
-		value = 'Fonts\\ARHei.ttf'
+		value = 'Fonts\\ARHei.ttf',
 	},
 	[3] = {
 		text = '伤害数字',
-		value = 'Fonts\\ARKai_C.ttf'
-	}
+		value = 'Fonts\\ARKai_C.ttf',
+	},
 }
 L.fontFlags = '字体轮廓'
 L.fontFlagsList = {
 	[1] = {
 		text = '无',
-		value = 'NONE'
+		value = 'NONE',
 	},
 	[2] = {
 		text = '细边',
-		value = 'OUTLINE'
+		value = 'OUTLINE',
 	},
 	[3] = {
 		text = '粗边',
-		value = 'THICKOUTLINE'
+		value = 'THICKOUTLINE',
 	},
 	[4] = {
 		text = '锐利',
-		value = 'MONOCHROME'
-	}
+		value = 'MONOCHROME',
+	},
 }
 L.portraitCombat = '头像显示战斗信息'
 L.valueFont = '数值字体'
@@ -75,7 +77,7 @@ L.borderList = {
 	[1] = '普通',
 	[2] = '稀有',
 	[3] = '稀有精英',
-	[4] = '精英'
+	[4] = '精英',
 }
 L.portrait = '头像'
 L.portraitList = {
@@ -85,7 +87,7 @@ L.portraitList = {
 	[3] = '狗狗',
 	[4] = '熊猫',
 	[5] = '咕有云',
-	[6] = '酷脸'
+	[6] = '酷脸',
 }
 L.nameFontSize = '名字字体大小'
 L.valueFontSize = '数值字体大小'
@@ -100,7 +102,7 @@ L.valueStyleList = {
 	[7] = '侧边百分比',
 	[8] = '侧边当前值',
 	[9] = '侧边当前值/最大值',
-	[10] = '都不显示'
+	[10] = '都不显示',
 }
 L.druidBar = '显示自定义德鲁伊法力条'
 L.hideName = '隐藏名字'
@@ -115,7 +117,6 @@ L.pointPlayerAlignment = '和玩家框体水平对齐'
 L.pointPlayerCenter = '和玩家框体水平居中'
 L.pointPlayerVertical = '和玩家框体垂直对齐'
 L.portraitClass = '头像显示职业图标(玩家)'
-L.showEnemyBuff = '显示敌对目标模拟Buff'
 L.selfCooldown = '只显示我施放的Buff/Debuff倒计时(OmniCC)'
 L.dispelCooldown = '只显示可以驱散的Buff/Debuff倒计时(OmniCC)'
 L.dispelStealable = '高亮显示可以驱散的Buff/Debuff'
@@ -132,8 +133,8 @@ L.showLevel = '显示等级'
 L.outRange = '超出范围半透明'
 L.showCastBar = '显示施法条'
 L.talentIcon = '显示天赋小图标(点击切换天赋)'
-L.autoTalentEquip = '切换天赋后装备天赋名套装(ItemRack)'
-L.equipmentIcon = '显示装备小图标(ItemRack)'
+L.autoTalentEquip = '切换天赋后装备天赋名套装'
+L.equipmentIcon = '显示装备小图标'
 L.hidePartyNumber = '在团队中隐藏小队编号'
 L.miniIcon = '显示小图标(职业/种类)'
 L.creatureList = {
@@ -146,13 +147,9 @@ L.creatureList = {
 	['巨人'] = 7,
 	['亡灵'] = 8,
 	['图腾'] = 9,
-	['畸变怪'] = 10,
-	['小动物'] = 11,
-	['气体云雾'] = 12,
-	['非战斗宠物'] = 13,
-	['未指定'] = 14
+	['小动物'] = 10,
+	['未指定'] = 11,
 }
-
 L.playerClass = '玩家职业'
 L.creatureType = '生物类型'
 L.altKeyDown = '按住Alt点击'
@@ -175,4 +172,3 @@ L.nude = '一键脱装'
 L.click = '点击'
 L.clickEquipment = '点击装备套装'
 L.saveEquipment = '保存套装'
-L.confirmEquipmentSet = '确定要覆盖名为%s的套装?'

@@ -1,27 +1,30 @@
-## Interface: 11508
+## Interface: 11509, 20506
 ## Title: BiechuUnitFrames
 ## Notes: Biechu Unit Frames
+## Notes-ruRU: Biechu Юнит-фреймы
 ## Notes-zhCN: 别处头像框体
 
-## Version: 1.15.12_beta1
+## Version: 25.1.3
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
-## X-Localizations: enUS, zhCN
-## X-Website: https://www.curseforge.com/wow/addons/biechuunitframes
+## IconTexture: Interface\AddOns\BiechuUnitFrames\Logo
+## Category: Unit Frames
+
+## X-Localizations: enUS, ruRU, zhCN
+## X-Category: Unit Frames
+## X-Website: http://github.com/starpt/biechuunitframes
 ## X-eMail: starpt@gmail.com
 ## X-LoadOn-Slash: /bc
 
-# 敌对目标Buff图标
-Libs\LibClassicDurations.xml
-
 Locale\enUS.lua
-Locale\zhCN.lua
 Locale\ruRU.lua
+Locale\zhCN.lua
+
+# 又一个装备管理
+yagear.lua
 
 Global.lua
 Player.lua
-Target.lua
+TargetFocus.lua
 Party.lua
-
-# 设置(设置完成后可以禁用)
 Options.lua
