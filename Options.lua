@@ -434,11 +434,6 @@ end)
 option:check('global', 'autoTab', 'alwaysCompareItems') -- PVP自动TAB选择玩家
 option:check('global', 'autoDalaran', 'autoTab') -- 达拉然自动关闭姓名板
 
--- 支付宝
--- option.alipay = option:CreateTexture()
--- option.alipay:SetTexture(BC.texture .. 'Alipay')
--- option.alipay:SetSize(128, 128)
--- option.alipay:SetPoint('BOTTOMRIGHT', option, -20, 20)
 --[[ 全局设置 结束 ]]
 
 --[[ 玩家设置 开始 ]]

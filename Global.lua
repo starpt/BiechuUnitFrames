@@ -952,10 +952,10 @@ function BC:dark(unit)
 	if frame.statusBar then
 		if UnitIsPlayer(unit) and BC:getDB(key, 'statusBarClass') then
 			local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
-			frame.statusBar:SetVertexColor(color.r, color.g, color.b)
+			frame.statusBar:SetVertexColor(color.r, color.g, color.b, 1)
 			frame.statusBar:Show()
 		elseif unit == 'player' then
-			BC.player.statusBar:Hide()
+			frame.statusBar:SetVertexColor(0, 0, 0, 0.5)
 		else
 			if not UnitPlayerControlled(unit) and UnitIsTapDenied(unit) then
 				frame.statusBar:SetVertexColor(0.5, 0.5, 0.5)

@@ -33,9 +33,8 @@ PlayerMasterIcon:SetPoint('TOPLEFT', 80, -10) -- 分配图标
 PlayerAttackBackground:SetPoint('TOPLEFT', 37, -50) -- 战斗状态背景
 
 -- 状态栏
-BC.player.statusBar = BC.player:CreateTexture(nil, 'BACKGROUND')
+BC.player.statusBar = PlayerFrameBackground
 BC.player.statusBar:SetSize(119, 19)
-BC.player.statusBar:SetPoint('TOPLEFT', 107, -22)
 
 -- 载具
 hooksecurefunc('PlayerFrame_ToVehicleArt', function(self, vehicleType) -- 进入载具
@@ -177,19 +176,18 @@ end)
 
 -- 5秒回蓝
 function frame:spark(bar, powerType)
-	if not bar or BC.class == 'WARRIOR' or BC.class == 'ROGUE' or BC.class == 'DEATHKNIGHT' then return end
-	if not bar.spark then
-		bar.spark = bar:CreateTexture()
-		bar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
-		bar.spark:SetBlendMode('ADD')
-		bar.spark:SetSize(28, 28)
-		bar.spark:SetAlpha(0.8)
-		if powerType then bar.powerType = powerType end
-	end
+	if not bar or bar.spark or BC.class == 'WARRIOR' or BC.class == 'ROGUE' or BC.class == 'DEATHKNIGHT' then return end
+	bar.spark = bar:CreateTexture()
+	bar.spark:SetTexture('Interface\\CastingBar\\UI-CastingBar-Spark')
+	bar.spark:SetBlendMode('ADD')
+	bar.spark:SetSize(28, 28)
+	bar.spark:SetAlpha(0.8)
+	if powerType then bar.powerType = powerType end
 	bar:HookScript('OnUpdate', function(self)
-		local now = GetTime()
+		local now = GetTimePreciseSec()
 		if self.rate and now < self.rate then return end
-		self.rate = now + 0.02 --刷新率
+		self.rate = now + 0.01 --刷新率
+		local powerType = self.powerType or UnitPowerType('player')
 
 		if
 			BC:getDB('player', 'fiveSecondRule')
