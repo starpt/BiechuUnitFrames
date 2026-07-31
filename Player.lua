@@ -53,8 +53,13 @@ end)
 hooksecurefunc('PlayerFrame_ToPlayerArt', function() -- 离开载具
 	PlayerName:SetPoint('CENTER', 50, 17.5)
 	PlayerFrameFlash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
-	PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.75)
-	PlayerFrameFlash:SetPoint('TOPLEFT', 13, -1)
+	if BC.isClassic then
+		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
+		PlayerFrameFlash:SetPoint('TOPLEFT', 13, 1)
+	else
+		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.75)
+		PlayerFrameFlash:SetPoint('TOPLEFT', 13, -1)
+	end
 	PlayerFrameHealthBar:SetPoint('TOPLEFT', 106.5, -41)
 	PlayerFrameManaBar:SetPoint('TOPLEFT', 106.5, -52)
 end)

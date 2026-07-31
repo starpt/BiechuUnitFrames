@@ -14,8 +14,10 @@ for unit, frame in pairs({
 		BC:update(self.unit)
 		BC:update(self.unit .. 'target')
 		BC:miniIcon(self.unit)
-		frame.flash:SetTexCoord(0, 0.9453125, 0, 0.75)
-		frame.flash:SetPoint('TOPLEFT', -6, -5)
+		if not BC.isClassic then
+			frame.flash:SetTexCoord(0, 0.9453125, 0, 0.75)
+			frame.flash:SetPoint('TOPLEFT', -6, -5)
+		end
 	end)
 
 	-- 名字
