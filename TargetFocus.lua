@@ -99,6 +99,9 @@ for unit, frame in pairs({
 	local totFrame = _G[frame:GetName() .. 'ToT']
 	totFrame.borderTexture = _G[totFrame:GetName() .. 'TextureFrameTexture']
 
+	-- 头像间隙修正
+	totFrame.portrait:SetSize(36, 36)
+	totFrame.portrait:SetPoint('TOPLEFT', 4.5, -4.5)
 	-- 体力
 	totFrame.healthbar.MiddleText = totFrame.borderTexture:GetParent():CreateFontString()
 	totFrame.healthbar.MiddleText:SetPoint('CENTER', totFrame.healthbar)

@@ -53,7 +53,7 @@ end)
 hooksecurefunc('PlayerFrame_ToPlayerArt', function() -- 离开载具
 	PlayerName:SetPoint('CENTER', 50, 17.5)
 	PlayerFrameFlash:SetTexture('Interface\\TargetingFrame\\UI-TargetingFrame-Flash')
-		PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
+	PlayerFrameFlash:SetTexCoord(0.9453125, 0, 0, 0.181640625)
 	PlayerFrameFlash:SetPoint('TOPLEFT', 13, 1)
 	PlayerFrameHealthBar:SetPoint('TOPLEFT', 106.5, -41)
 	PlayerFrameManaBar:SetPoint('TOPLEFT', 106.5, -52)
@@ -263,9 +263,8 @@ hooksecurefunc(TotemFrame, 'Update', function(self)
 			totem = self.totemPool:Acquire()
 			if not totem.borderTexture then
 				totem.border = CreateFrame('Frame', nil, totem)
-				totem.border:SetSize(38, 38)
-				totem.border:SetPoint('CENTER')
-				totem.border:SetFrameLevel(7)
+					totem.border:SetAllPoints(totem)
+					totem.border:SetFrameLevel(10)
 				totem.borderTexture = totem.border:CreateTexture()
 				totem.borderTexture:SetAllPoints(totem.border)
 			end
@@ -279,7 +278,7 @@ BC.player.init = function()
 	PlayerFrame_UpdateArt(BC.player) -- 载具
 	BC:miniIcon('player') -- 小图标
 	frame:equip() -- 装备小图标
-	TotemFrame:Update() -- 图腾
+	if TotemFrame then TotemFrame:Update() end -- 图腾
 
 	-- 5秒回蓝闪动
 	if UnitPowerType('player') == 0 or BC.class == 'DRUID' then frame.lastMana = UnitPower('player', 0) end

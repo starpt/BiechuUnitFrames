@@ -4,7 +4,7 @@
 ## Notes-ruRU: Biechu Юнит-фреймы
 ## Notes-zhCN: 别处头像框体
 
-## Version: 38.1.1
+## Version: 38.1.2
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
 ## IconTexture: Interface\AddOns\BiechuUnitFrames\Logo

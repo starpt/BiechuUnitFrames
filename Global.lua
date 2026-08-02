@@ -607,10 +607,8 @@ function BC:aura(unit)
 			end
 
 			buff:SetScript('OnEnter', function(self)
-				if spellId then
 					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-					GameTooltip:SetSpellByID(spellId)
-				end
+				GameTooltip:SetUnitBuff(self:GetParent().unit, self:GetID())
 			end)
 			buff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
@@ -647,7 +645,7 @@ function BC:aura(unit)
 			debuff.cooldown:SetHideCountdownNumbers(true) -- 隐藏倒计时数字
 		end
 
-		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY')
+		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY', 'NumberFontNormalSmall')
 		debuff.count:SetPoint('BOTTOMRIGHT', 2, -2)
 
 		debuff.stealable = _G[name .. 'Stealable']
@@ -718,10 +716,12 @@ function BC:aura(unit)
 			end
 
 			debuff:SetScript('OnEnter', function(self)
-				if spellId then
-					GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', -10, -6)
-					GameTooltip:SetSpellByID(spellId)
+				if self:GetCenter() > GetScreenWidth() / 2 then
+					GameTooltip:SetOwner(self, 'ANCHOR_LEFT')
+				else
+					GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 				end
+				GameTooltip:SetUnitDebuff(unit, self:GetID(), GetCVarBool('showDispelDebuffs') and UnitCanAssist('player', self:GetParent().unit))
 			end)
 			debuff:SetScript('OnLeave', function()
 				GameTooltip:Hide()
@@ -1590,6 +1590,7 @@ function BC:init(unit)
 			frame.incomingHealsBar:SetSize(frame.healthbar:GetSize())
 			frame.incomingHealsBar:SetPoint('LEFT')
 			frame.incomingHealsBar:SetFrameLevel(0)
+			frame.incomingHealsBar:SetAlpha(0.6)
 			frame.incomingHealsBar:SetMinMaxValues(0, 1)
 			frame.incomingHealsBar:SetValue(0)
 			frame.incomingHealsBar:SetStatusBarTexture(self.texture .. 'UI-IncomingHealsBar')
