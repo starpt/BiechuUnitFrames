@@ -629,7 +629,7 @@ function BC:aura(unit)
 			debuff.cooldown:SetHideCountdownNumbers(true) -- 隐藏倒计时数字
 		end
 
-		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY')
+		debuff.count = _G[name .. 'Count'] or debuff:CreateFontString(name .. 'Count', 'OVERLAY', 'NumberFontNormalSmall')
 		debuff.count:SetPoint('BOTTOMRIGHT', 2, -2)
 
 		debuff.stealable = _G[name .. 'Stealable']
@@ -935,7 +935,7 @@ function BC:dark(unit)
 	if frame.statusBar then
 		if UnitIsPlayer(unit) and BC:getDB(key, 'statusBarClass') then
 			local color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
-			frame.statusBar:SetVertexColor(color.r, color.g, color.b)
+			frame.statusBar:SetVertexColor(color.r, color.g, color.b, 1)
 			frame.statusBar:Show()
 		elseif unit == 'player' then
 			frame.statusBar:SetVertexColor(0, 0, 0, 0.5)
