@@ -25,7 +25,10 @@ L.nameClassColor = '名字颜色职业色(玩家)'
 L.dragSystemFarmes = '自由拖动系统框体'
 L.incomingHeals = '显示预治疗'
 L.alwaysCompareItems = '启用装备对比'
+L.disableAddons = '禁用冲突插件'
 L.autoTab = 'PVP自动TAB选择玩家'
+L.dalaran = '达拉然'
+L.autoDalaran = '进入达拉然自动关闭姓名板'
 L.carry = '数值单位'
 L.carryW = '万/亿'
 L.wan = '万'
@@ -35,15 +38,15 @@ L.nameFont = '名字字体'
 L.fontList = {
 	[1] = {
 		text = '默认',
-		value = 'Fonts\\ARKai_T.ttf',
+		value = 'Fonts\\ZYKai_T.ttf',
 	},
 	[2] = {
 		text = '聊天',
-		value = 'Fonts\\ARHei.ttf',
+		value = 'Fonts\\ZYHei.ttf',
 	},
 	[3] = {
 		text = '伤害数字',
-		value = 'Fonts\\ARKai_C.ttf',
+		value = 'Fonts\\ZYKai_C.ttf',
 	},
 }
 L.fontFlags = '字体轮廓'
@@ -65,13 +68,15 @@ L.fontFlagsList = {
 		value = 'MONOCHROME',
 	},
 }
+
 L.portraitCombat = '头像显示战斗信息'
 L.valueFont = '数值字体'
 L.combatFlash = '战斗状态边框红光'
-L.showThreat = '显示威胁百分比'
+L.threatLeft = '居左显示威胁值'
 L.statusBarClass = '状态栏背景职业色(玩家)'
 L.statusBarAlpha = '状态栏透明度'
 L.healthBarClass = '体力条职业色(玩家)'
+L.fiveSecondRule = '法力条显示5秒恢复'
 L.border = '边框'
 L.borderList = {
 	[1] = '普通',
@@ -150,6 +155,7 @@ L.creatureList = {
 	['小动物'] = 10,
 	['未指定'] = 11,
 }
+
 L.playerClass = '玩家职业'
 L.creatureType = '生物类型'
 L.altKeyDown = '按住Alt点击'

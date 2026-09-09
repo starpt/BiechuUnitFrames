@@ -1,30 +1,29 @@
-## Interface: 11509, 20506
+## Interface: 30300
 ## Title: BiechuUnitFrames
 ## Notes: Biechu Unit Frames
 ## Notes-ruRU: Biechu Юнит-фреймы
 ## Notes-zhCN: 别处头像框体
 
-## Version: 25.1.5-beta1
+## Version: 3.3.5_WLK_1.4
 ## Author: starpt
 ## SavedVariables: BiechuUnitFramesDB
-## IconTexture: Interface\AddOns\BiechuUnitFrames\Logo
-## Category: Unit Frames
 
-## X-Localizations: enUS, ruRU, zhCN
 ## X-Category: Unit Frames
+## X-Localizations: enUS, ruRU, zhCN
 ## X-Website: http://github.com/starpt/biechuunitframes
 ## X-eMail: starpt@gmail.com
 ## X-LoadOn-Slash: /bc
+
+# 预治疗库
+LibHealComm-4.0\LibHealComm-4.0.xml
 
 Locale\enUS.lua
 Locale\ruRU.lua
 Locale\zhCN.lua
 
-# 又一个装备管理
-yagear.lua
-
 Global.lua
 Player.lua
 TargetFocus.lua
 Party.lua
+
 Options.lua
